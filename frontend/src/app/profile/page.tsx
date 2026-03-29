@@ -41,17 +41,17 @@ export default async function ProfilePage() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
                 <h2 className="text-xl font-semibold text-white flex items-center gap-2">
                   <CreditCard className="text-[#635BFF]" />
-                  Métodos de Pago Seguros
+                  Pagos y Seguridad
                 </h2>
                 <span className="text-xs bg-[#635BFF]/10 text-[#635BFF] px-3 py-1.5 rounded-full font-medium w-fit border border-[#635BFF]/20">Stripe PCI-DSS</span>
               </div>
               <p className="text-neutral-400 text-sm mb-6 max-w-xl">
-                Suárez y Carmen confía en <span className="text-white font-medium">Stripe™</span> para procesar sus transacciones de forma segura y encriptada (Nivel 1 PCI Compliant). Para garantizar tu máxima seguridad, nosotros no almacenamos ni tenemos acceso a los datos de tu tarjeta en nuestra base de datos.
+                La seguridad es nuestra prioridad. Tus transacciones se gestionan a través de la infraestructura de <span className="text-white font-medium">Stripe™</span>, asegurando que tus datos estén siempre encriptados y protegidos. Nosotros nunca almacenamos tu información financiera.
               </p>
               <div className="border border-neutral-700/50 rounded-2xl p-6 bg-black/40 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                  <h3 className="text-white font-medium mb-1">Pagos de Cursos (Acceso Único)</h3>
-                  <p className="text-neutral-500 text-xs">Al comprar un curso, serás redirigido a la pasarela de pago oficial encriptada de Stripe.</p>
+                  <h3 className="text-white font-medium mb-1">Adquisición de Cursos</h3>
+                  <p className="text-neutral-500 text-xs">Al comprar un curso, serás dirigido directamente a la pasarela de pago oficial de Stripe.</p>
                 </div>
                 <button disabled className="px-5 py-2.5 bg-neutral-800 text-neutral-400 rounded-lg text-sm font-medium transition-colors cursor-not-allowed whitespace-nowrap">
                   Sistema Vinculado
