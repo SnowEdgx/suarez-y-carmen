@@ -80,7 +80,7 @@ export default function CourseGrid({ courses, purchasedCourseIds, isAuthenticate
 
                   <div className="p-5 flex-1 flex flex-col gap-4">
                     <p className="text-sm text-neutral-400 line-clamp-3 min-h-[60px]">
-                      {course.description || "Contenido premium para mejorar tecnica, musicalidad y conexion."}
+                      {course.description || "Contenido completo para mejorar tecnica, musicalidad y conexion."}
                     </p>
 
                     <p className="text-white font-semibold">{formatPrice(course.price_cents)}</p>

@@ -39,7 +39,10 @@ export default function UserMenu({ user }: UserMenuProps) {
           {name.charAt(0).toUpperCase()}
         </div>
         <span className="text-sm font-medium hidden lg:block">{name}</span>
-        <ChevronDown size={14} className={`transition-transform duration-200 hidden lg:block ${isOpen ? "rotate-180" : ""}`} />
+        <ChevronDown
+          size={14}
+          className={`transition-transform duration-200 hidden lg:block ${isOpen ? "rotate-180" : ""}`}
+        />
       </button>
 
       {isOpen && (
@@ -54,14 +57,14 @@ export default function UserMenu({ user }: UserMenuProps) {
               onClick={() => setIsOpen(false)}
               className="flex items-center gap-3 px-4 py-2.5 text-sm text-neutral-300 hover:text-white hover:bg-neutral-800 transition-colors"
             >
-              <UserIcon size={16} /> Mi Perfil
+              <UserIcon size={16} /> Mi perfil
             </Link>
             <Link
               href="/profile#payments"
               onClick={() => setIsOpen(false)}
               className="flex items-center gap-3 px-4 py-2.5 text-sm text-neutral-300 hover:text-white hover:bg-neutral-800 transition-colors"
             >
-              <CreditCard size={16} /> Métodos de Pago
+              <CreditCard size={16} /> Pagos y acceso
             </Link>
           </div>
           <div className="py-2">
@@ -70,7 +73,7 @@ export default function UserMenu({ user }: UserMenuProps) {
                 type="submit"
                 className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:text-red-400 hover:bg-neutral-800 transition-colors text-left"
               >
-                <LogOut size={16} /> Cerrar Sesión
+                <LogOut size={16} /> Cerrar sesion
               </button>
             </form>
           </div>

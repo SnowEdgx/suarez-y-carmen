@@ -196,7 +196,7 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
                     <div className="flex items-center justify-between gap-3">
                       <p className="text-sm font-medium">{lesson.position}. {lesson.title}</p>
                       <span className="text-[11px] uppercase tracking-wide">
-                        {lesson.is_free_preview ? "Preview" : isLocked ? "Premium" : "Disponible"}
+                        {lesson.is_free_preview ? "Preview" : isLocked ? "Bloqueada" : "Disponible"}
                       </span>
                     </div>
                   </li>

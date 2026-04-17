@@ -26,15 +26,15 @@ export default function Hero() {
         </h1>
         <h2 className="mt-6 md:mt-8 text-lg md:text-2xl text-neutral-300 font-light drop-shadow-md max-w-3xl">
           Domina la sensualidad, el estilo y la conexión con <strong className="text-white font-medium">Suárez y Carmen</strong>.
-          Aprende desde casa paso a paso de forma cercana y profesional.
+          Aprende desde casa paso a paso con cursos individuales y acceso inmediato.
         </h2>
 
         <div className="mt-10 md:mt-12 flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
           <Link
-            href="/#pricing"
+            href="/courses"
             className="flex items-center gap-2 px-10 py-4 sm:px-12 sm:py-5 bg-red-600 hover:bg-red-700 text-white text-lg md:text-xl font-semibold rounded-full shadow-2xl transition-all duration-300 hover:scale-105"
           >
-            Comenzar gratis
+            Ver catalogo
           </Link>
           <Link
             href="/courses"

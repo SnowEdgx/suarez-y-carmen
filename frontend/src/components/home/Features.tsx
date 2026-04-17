@@ -5,40 +5,51 @@ export default function Features() {
     {
       icon: <Video className="w-8 h-8 text-red-500" />,
       title: "Calidad 4K",
-      description: "Vídeos grabados con la máxima calidad multicámara para que no te pierdas ningún detalle de los pies o las manos."
+      description:
+        "Videos grabados con calidad multicamara para trabajar detalles de pies, brazos y disociacion con precision.",
     },
     {
       icon: <CheckCircle className="w-8 h-8 text-red-500" />,
-      title: "Paso a Paso",
-      description: "Metodología probada estructurada progresivamente, desde los pasos básicos hasta figuras complejas."
+      title: "Paso a paso",
+      description:
+        "Metodologia progresiva desde fundamentos hasta combinaciones avanzadas, con foco tecnico y musical.",
     },
     {
       icon: <Smartphone className="w-8 h-8 text-red-500" />,
       title: "Multiplataforma",
-      description: "Aprende a tu ritmo desde cualquier dispositivo: móvil, tablet o proyéctalo en tu Smart TV."
+      description:
+        "Aprende a tu ritmo desde movil, tablet o escritorio con acceso inmediato al contenido comprado.",
     },
     {
       icon: <Users className="w-8 h-8 text-red-500" />,
-      title: "Comunidad VIP",
-      description: "Accede a grupos privados, correcciones en vídeo y directos exclusivos cada mes."
-    }
+      title: "Acompanamiento",
+      description:
+        "Estructura clara para practicar cada leccion con criterio y reducir bloqueos durante el aprendizaje.",
+    },
   ];
 
   return (
     <section id="methodology" className="py-24 px-6 md:px-12 max-w-7xl mx-auto">
       <div className="text-center mb-16">
-        <h2 className="text-3xl md:text-4xl font-bold font-serif text-white mb-4">¿Por qué estudiar con nosotros?</h2>
-        <p className="text-neutral-400 max-w-2xl mx-auto text-lg">Nos enfocamos en la técnica y la musicalidad para que bailes de forma natural y conectada.</p>
+        <h2 className="text-3xl md:text-4xl font-bold font-serif text-white mb-4">
+          Por que estudiar con nosotros
+        </h2>
+        <p className="text-neutral-400 max-w-2xl mx-auto text-lg">
+          Nos enfocamos en tecnica, musicalidad y estilo para que bailes con naturalidad y confianza.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
-        {features.map((f, i) => (
-          <div key={i} className="flex flex-col items-center text-center p-6 rounded-2xl bg-neutral-900/50 border border-neutral-800 hover:border-neutral-700 transition-colors">
+        {features.map((feature, index) => (
+          <div
+            key={index}
+            className="flex flex-col items-center text-center p-6 rounded-2xl bg-neutral-900/50 border border-neutral-800 hover:border-neutral-700 transition-colors"
+          >
             <div className="mb-6 p-4 bg-neutral-950 rounded-full shadow-inner shadow-black/50">
-              {f.icon}
+              {feature.icon}
             </div>
-            <h3 className="text-xl font-semibold text-white mb-3">{f.title}</h3>
-            <p className="text-neutral-400 text-sm leading-relaxed">{f.description}</p>
+            <h3 className="text-xl font-semibold text-white mb-3">{feature.title}</h3>
+            <p className="text-neutral-400 text-sm leading-relaxed">{feature.description}</p>
           </div>
         ))}
       </div>
