@@ -21,10 +21,13 @@ type LessonRow = {
   id: string;
   title: string;
   description: string | null;
-  video_url: string;
   position: number;
   is_free_preview: boolean;
 };
+
+function getBackendUrl() {
+  return process.env.BACKEND_URL ?? "http://localhost:4000";
+}
 
 function formatPrice(priceCents: number | null) {
   if (!Number.isInteger(priceCents ?? null) || (priceCents as number) <= 0) {
@@ -37,13 +40,52 @@ function formatPrice(priceCents: number | null) {
   }).format((priceCents as number) / 100);
 }
 
+async function resolveLessonVideoUrl(options: {
+  lessonId: string;
+  accessToken: string | null;
+}) {
+  const { lessonId, accessToken } = options;
+  const headers: HeadersInit = {};
+
+  if (accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`;
+  }
+
+  let response: Response;
+  try {
+    response = await fetch(`${getBackendUrl()}/api/lessons/${encodeURIComponent(lessonId)}/video-url`, {
+      method: "GET",
+      headers,
+      cache: "no-store",
+    });
+  } catch {
+    return null;
+  }
+
+  if (!response.ok) {
+    return null;
+  }
+
+  let payload: Record<string, unknown> | null = null;
+  try {
+    payload = (await response.json()) as Record<string, unknown>;
+  } catch {
+    payload = null;
+  }
+
+  return typeof payload?.url === "string" ? payload.url : null;
+}
+
 export default async function CourseDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
   const supabase = await createClient();
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  const user = session?.user ?? null;
+  const accessToken = session?.access_token ?? null;
 
   const courseResponse = await supabase
     .from("courses")
@@ -59,7 +101,7 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
 
   const lessonsResponse = await supabase
     .from("lessons")
-    .select("id, title, description, video_url, position, is_free_preview")
+    .select("id, title, description, position, is_free_preview")
     .eq("course_id", course.id)
     .order("position", { ascending: true });
 
@@ -81,6 +123,12 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
   const previewLessons = lessons.filter((lesson) => lesson.is_free_preview);
   const accessibleLessons = hasPurchased ? lessons : previewLessons;
   const featuredLesson = accessibleLessons[0] ?? null;
+  const featuredLessonVideoUrl = featuredLesson
+    ? await resolveLessonVideoUrl({
+        lessonId: featuredLesson.id,
+        accessToken,
+      })
+    : null;
   const hasValidPrice = Number.isInteger(course.price_cents) && (course.price_cents as number) > 0;
 
   return (
@@ -89,7 +137,7 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
 
       <main className="pt-28 pb-20 px-6 md:px-12 max-w-7xl mx-auto w-full flex-1">
         <Link href="/courses" className="text-sm text-neutral-400 hover:text-white transition-colors">
-          ? Volver al catalogo
+          Volver al catalogo
         </Link>
 
         <header className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
@@ -159,13 +207,19 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
                 {featuredLesson.description && (
                   <p className="text-neutral-400 text-sm">{featuredLesson.description}</p>
                 )}
-                <video
-                  key={featuredLesson.id}
-                  controls
-                  preload="metadata"
-                  className="w-full rounded-xl border border-neutral-700 bg-black"
-                  src={featuredLesson.video_url}
-                />
+                {featuredLessonVideoUrl ? (
+                  <video
+                    key={featuredLesson.id}
+                    controls
+                    preload="metadata"
+                    className="w-full rounded-xl border border-neutral-700 bg-black"
+                    src={featuredLessonVideoUrl}
+                  />
+                ) : (
+                  <div className="rounded-xl border border-neutral-700 bg-black/60 p-6 text-sm text-neutral-400">
+                    No pudimos cargar el video ahora mismo. Recarga la pagina en unos segundos.
+                  </div>
+                )}
               </div>
             ) : (
               <p className="text-neutral-400">Aun no hay lecciones disponibles para este curso.</p>

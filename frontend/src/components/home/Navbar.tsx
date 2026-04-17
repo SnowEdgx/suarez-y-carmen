@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
@@ -19,6 +19,7 @@ export default function Navbar({ user = null }: NavbarProps) {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
     };
+
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -26,7 +27,9 @@ export default function Navbar({ user = null }: NavbarProps) {
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? "bg-neutral-950/90 backdrop-blur-md shadow-lg py-4" : "bg-gradient-to-b from-black/80 to-transparent py-6"
+        isScrolled
+          ? "bg-neutral-950/90 backdrop-blur-md shadow-lg py-4"
+          : "bg-gradient-to-b from-black/80 to-transparent py-6"
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 md:px-12 flex items-center justify-between">
@@ -35,10 +38,18 @@ export default function Navbar({ user = null }: NavbarProps) {
         </Link>
 
         <nav className="hidden md:flex items-center gap-8">
-          <Link href="/courses" className="text-sm font-medium text-neutral-300 hover:text-white transition-colors">Cursos</Link>
-          <Link href="/#methodology" className="text-sm font-medium text-neutral-300 hover:text-white transition-colors">Metodología</Link>
-          <Link href="/#about" className="text-sm font-medium text-neutral-300 hover:text-white transition-colors">Sobre Nosotros</Link>
-          <Link href="/#pricing" className="text-sm font-medium text-neutral-300 hover:text-white transition-colors">Precios</Link>
+          <Link href="/courses" className="text-sm font-medium text-neutral-300 hover:text-white transition-colors">
+            Cursos
+          </Link>
+          <Link href="/#methodology" className="text-sm font-medium text-neutral-300 hover:text-white transition-colors">
+            Metodologia
+          </Link>
+          <Link href="/#about" className="text-sm font-medium text-neutral-300 hover:text-white transition-colors">
+            Sobre nosotros
+          </Link>
+          <Link href="/#pricing" className="text-sm font-medium text-neutral-300 hover:text-white transition-colors">
+            Modelo
+          </Link>
         </nav>
 
         <div className="hidden md:flex items-center gap-6">
@@ -46,48 +57,69 @@ export default function Navbar({ user = null }: NavbarProps) {
             <UserMenu user={user} />
           ) : (
             <>
-              <Link href="/login" className="text-sm font-medium text-white hover:text-neutral-300 transition-colors drop-shadow-md">
-                Iniciar sesión
+              <Link
+                href="/login"
+                className="text-sm font-medium text-white hover:text-neutral-300 transition-colors drop-shadow-md"
+              >
+                Iniciar sesion
               </Link>
-              <Link href="/#pricing" className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-full shadow-lg transition-all hover:scale-105">
-                Únete Ahora
+              <Link
+                href="/courses"
+                className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-full shadow-lg transition-all hover:scale-105"
+              >
+                Ver cursos
               </Link>
             </>
           )}
         </div>
 
-        <button
-          className="md:hidden text-white"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        >
+        <button className="md:hidden text-white" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
           {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
         </button>
       </div>
 
       {isMobileMenuOpen && (
         <div className="md:hidden absolute top-full left-0 w-full bg-neutral-900 border-t border-neutral-800 p-6 flex flex-col gap-4 shadow-2xl">
-          <Link href="/courses" className="text-neutral-200" onClick={() => setIsMobileMenuOpen(false)}>Cursos</Link>
-          <Link href="/#methodology" className="text-neutral-200" onClick={() => setIsMobileMenuOpen(false)}>Metodología</Link>
-          <Link href="/#about" className="text-neutral-200" onClick={() => setIsMobileMenuOpen(false)}>Sobre Nosotros</Link>
-          <Link href="/#pricing" className="text-neutral-200" onClick={() => setIsMobileMenuOpen(false)}>Precios</Link>
+          <Link href="/courses" className="text-neutral-200" onClick={() => setIsMobileMenuOpen(false)}>
+            Cursos
+          </Link>
+          <Link href="/#methodology" className="text-neutral-200" onClick={() => setIsMobileMenuOpen(false)}>
+            Metodologia
+          </Link>
+          <Link href="/#about" className="text-neutral-200" onClick={() => setIsMobileMenuOpen(false)}>
+            Sobre nosotros
+          </Link>
+          <Link href="/#pricing" className="text-neutral-200" onClick={() => setIsMobileMenuOpen(false)}>
+            Modelo
+          </Link>
           <hr className="border-neutral-800 my-2" />
           {user ? (
             <>
-              <Link href="/profile" className="text-neutral-200" onClick={() => setIsMobileMenuOpen(false)}>Mi Perfil</Link>
+              <Link href="/profile" className="text-neutral-200" onClick={() => setIsMobileMenuOpen(false)}>
+                Mi perfil
+              </Link>
               <form action={signOutAction}>
                 <button
                   type="submit"
                   className="mt-2 text-center py-3 bg-red-600 text-white font-semibold rounded-full w-full"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  Cerrar Sesión
+                  Cerrar sesion
                 </button>
               </form>
             </>
           ) : (
             <>
-              <Link href="/login" className="text-white font-medium" onClick={() => setIsMobileMenuOpen(false)}>Iniciar sesión</Link>
-              <Link href="/#pricing" className="mt-2 text-center py-3 bg-red-600 text-white font-semibold rounded-full" onClick={() => setIsMobileMenuOpen(false)}>Únete Ahora</Link>
+              <Link href="/login" className="text-white font-medium" onClick={() => setIsMobileMenuOpen(false)}>
+                Iniciar sesion
+              </Link>
+              <Link
+                href="/courses"
+                className="mt-2 text-center py-3 bg-red-600 text-white font-semibold rounded-full"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Ver cursos
+              </Link>
             </>
           )}
         </div>

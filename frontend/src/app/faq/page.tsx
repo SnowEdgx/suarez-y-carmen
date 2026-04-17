@@ -26,7 +26,7 @@ export default async function FaqPage() {
           </section>
 
           <section className="border border-neutral-800 rounded-2xl p-6 bg-neutral-900/40">
-            <h2 className="text-white font-semibold mb-2">Hay suscripcion mensual</h2>
+            <h2 className="text-white font-semibold mb-2">Existe suscripcion mensual</h2>
             <p className="text-neutral-400 text-sm">
               No. El modelo vigente es pago singular por curso.
             </p>

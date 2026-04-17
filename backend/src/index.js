@@ -76,6 +76,7 @@ app.use(
 app.use('/api/stripe', require('./routes/stripe.routes'));
 
 app.use(express.json({ limit: '100kb' }));
+app.use('/api/lessons', require('./routes/lesson.routes'));
 
 // Health check.
 app.get('/api/health', (_req, res) => {
