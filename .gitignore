@@ -8,8 +8,15 @@
 .env.production.local
 .supabase/
 
+# Supabase (versionar solo migraciones)
+supabase/snippets/*.sql
+supabase/.temp/
+
 # Next.js
 frontend/.next/
+frontend/.next-build/
+frontend/.next-build*/
+tmp-next-build/
 frontend/out/
 frontend/build/
 
@@ -23,3 +30,5 @@ pnpm-debug.log*
 .DS_Store
 Thumbs.db
 
+# ACL troubleshooting leftovers (local only)
+.git_acl*.txt

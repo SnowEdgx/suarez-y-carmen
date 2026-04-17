@@ -24,9 +24,13 @@ export async function updateProfileName(formData: FormData) {
   }
 
   // Update auth metadata to keep it synced globally
-  await supabase.auth.updateUser({
+  const { error: authUpdateError } = await supabase.auth.updateUser({
     data: { name: fullName.trim() }
   })
+  if (authUpdateError) {
+    console.error('[Profile Update] Auth metadata sync error:', authUpdateError)
+    return { error: 'Perfil guardado parcialmente. No se pudo sincronizar tu cuenta. Intenta de nuevo.' }
+  }
 
   // Force layout re-renders to show the new name in Navbar
   revalidatePath('/profile')

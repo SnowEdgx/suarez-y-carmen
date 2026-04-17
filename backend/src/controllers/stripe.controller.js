@@ -1,69 +1,350 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const { createClient } = require('@supabase/supabase-js');
 
-// Crear una sesión de pago para comprar un curso
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+const stripe = stripeSecretKey ? require('stripe')(stripeSecretKey) : null;
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY
+);
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const PURCHASE_STATUS = Object.freeze({
+  PENDING: 'pending',
+  PAID: 'paid',
+  REFUNDED: 'refunded',
+  CANCELED: 'canceled',
+});
+
+function requireStripe() {
+  if (!stripe) {
+    const error = new Error('Stripe no está configurado en el backend. Falta STRIPE_SECRET_KEY.');
+    error.status = 503;
+    throw error;
+  }
+
+  return stripe;
+}
+
+async function getAuthenticatedUser(req) {
+  const authHeader = req.headers.authorization || '';
+  if (!authHeader.startsWith('Bearer ')) return null;
+
+  const token = authHeader.replace('Bearer ', '').trim();
+  if (!token) return null;
+
+  const { data, error } = await supabase.auth.getUser(token);
+  if (error || !data.user) return null;
+
+  return data.user;
+}
+
+function isEmailVerified(user) {
+  return Boolean(user?.email_confirmed_at || user?.confirmed_at);
+}
+
+async function markStripeEventReceived(event) {
+  const { error } = await supabase
+    .from('stripe_events')
+    .insert({ id: event.id, type: event.type });
+
+  if (!error) return { duplicate: false };
+  if (error.code === '23505') return { duplicate: true };
+  throw error;
+}
+
+async function rollbackStripeEvent(eventId) {
+  const { error } = await supabase
+    .from('stripe_events')
+    .delete()
+    .eq('id', eventId);
+
+  if (error) {
+    console.error('[Stripe Webhook] Event rollback failed:', error.message);
+  }
+}
+
+async function upsertCoursePurchase({
+  userId,
+  courseId,
+  checkoutSessionId,
+  paymentIntentId,
+  amountCents,
+  currency,
+  status,
+}) {
+  const { error } = await supabase
+    .from('user_courses')
+    .upsert(
+      {
+        user_id: userId,
+        course_id: courseId,
+        stripe_checkout_session_id: checkoutSessionId,
+        stripe_payment_intent_id: paymentIntentId,
+        amount_cents: amountCents,
+        currency,
+        status,
+      },
+      { onConflict: 'user_id,course_id' }
+    );
+
+  if (error) throw error;
+}
+
+async function getReusableCheckoutSession(stripeClient, checkoutSessionId) {
+  if (!checkoutSessionId) return null;
+
+  try {
+    const existingSession = await stripeClient.checkout.sessions.retrieve(checkoutSessionId);
+    if (
+      existingSession &&
+      existingSession.status === 'open' &&
+      existingSession.payment_status !== 'paid' &&
+      existingSession.url
+    ) {
+      return existingSession;
+    }
+  } catch (error) {
+    console.warn('[Stripe Controller] Could not retrieve prior checkout session:', error.message);
+  }
+
+  return null;
+}
+
+async function handleCheckoutSessionCompleted(session) {
+  if (session.payment_status !== 'paid') return;
+
+  const userId = session.metadata?.userId;
+  const courseId = session.metadata?.courseId;
+
+  if (!userId || !courseId) {
+    throw new Error('Missing checkout metadata (userId/courseId).');
+  }
+
+  const amountCents = session.amount_total || 0;
+  const currency = session.currency || 'eur';
+  const paymentIntentId =
+    typeof session.payment_intent === 'string'
+      ? session.payment_intent
+      : session.payment_intent?.id || null;
+
+  await upsertCoursePurchase({
+    userId,
+    courseId,
+    checkoutSessionId: session.id,
+    paymentIntentId,
+    amountCents,
+    currency,
+    status: PURCHASE_STATUS.PAID,
+  });
+}
+
+async function updatePurchaseStatusByPaymentIntent(paymentIntentId, status) {
+  if (!paymentIntentId) return;
+
+  const { error } = await supabase
+    .from('user_courses')
+    .update({ status })
+    .eq('stripe_payment_intent_id', paymentIntentId);
+
+  if (error) throw error;
+}
+
+async function updatePurchaseStatusBySessionId(checkoutSessionId, status) {
+  if (!checkoutSessionId) return;
+
+  const { error } = await supabase
+    .from('user_courses')
+    .update({ status })
+    .eq('stripe_checkout_session_id', checkoutSessionId);
+
+  if (error) throw error;
+}
+
+function extractPaymentIntentId(value) {
+  if (!value) return null;
+  if (typeof value === 'string') return value;
+  if (typeof value === 'object' && typeof value.id === 'string') return value.id;
+  return null;
+}
+
+// Creates a secure Checkout session for a single-course purchase.
 exports.createCheckoutSession = async (req, res) => {
   try {
-    const { courseId, courseName, price, userId } = req.body;
+    const stripeClient = requireStripe();
 
-    if (!courseId || !price || !userId) {
-      return res.status(400).json({ error: 'Faltan parámetros requeridos.' });
+    const { courseId } = req.body;
+    if (!courseId) {
+      return res.status(400).json({ error: 'courseId es obligatorio.' });
+    }
+    if (typeof courseId !== 'string' || !UUID_REGEX.test(courseId)) {
+      return res.status(400).json({ error: 'courseId no es válido.' });
     }
 
-    const session = await stripe.checkout.sessions.create({
+    const user = await getAuthenticatedUser(req);
+    if (!user) {
+      return res.status(401).json({ error: 'No autorizado. Inicia sesión para continuar.' });
+    }
+    if (!isEmailVerified(user)) {
+      return res.status(403).json({ error: 'Debes verificar tu correo para completar una compra.' });
+    }
+
+    const { data: course, error: courseError } = await supabase
+      .from('courses')
+      .select('id, title, price_cents, is_published')
+      .eq('id', courseId)
+      .maybeSingle();
+
+    if (courseError) throw courseError;
+    if (!course) {
+      return res.status(404).json({ error: 'Curso no encontrado.' });
+    }
+
+    if (!course.is_published) {
+      return res.status(403).json({ error: 'Este curso no está disponible para compra.' });
+    }
+
+    const { data: existingPurchase, error: existingPurchaseError } = await supabase
+      .from('user_courses')
+      .select('id, status, stripe_checkout_session_id')
+      .eq('user_id', user.id)
+      .eq('course_id', course.id)
+      .maybeSingle();
+
+    if (existingPurchaseError) throw existingPurchaseError;
+    if (existingPurchase?.status === PURCHASE_STATUS.PAID) {
+      return res.status(409).json({ error: 'Ya tienes acceso a este curso.' });
+    }
+
+    if (existingPurchase?.status === PURCHASE_STATUS.PENDING) {
+      const reusableSession = await getReusableCheckoutSession(
+        stripeClient,
+        existingPurchase.stripe_checkout_session_id
+      );
+      if (reusableSession) {
+        return res.json({ id: reusableSession.id, url: reusableSession.url, reused: true });
+      }
+    }
+
+    if (!Number.isInteger(course.price_cents) || course.price_cents <= 0) {
+      return res.status(500).json({ error: 'El curso tiene un precio inválido en configuración.' });
+    }
+
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+
+    const session = await stripeClient.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
         {
           price_data: {
             currency: 'eur',
             product_data: {
-              name: courseName || 'Curso en Suárez y Carmen',
+              name: course.title || 'Curso en Suárez y Carmen',
             },
-            unit_amount: Math.round(price * 100), // En céntimos
+            unit_amount: course.price_cents,
           },
           quantity: 1,
         },
       ],
       mode: 'payment',
-      // Metadata importante para el Webhook (Saber a quién darle acceso al curso tras pagar)
       metadata: {
-        userId,
-        courseId,
+        userId: user.id,
+        courseId: course.id,
       },
-      success_url: `${process.env.FRONTEND_URL}/courses?success=true&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.FRONTEND_URL}/courses?canceled=true`,
+      client_reference_id: user.id,
+      success_url: `${frontendUrl}/courses?success=true&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${frontendUrl}/courses?canceled=true`,
     });
 
-    res.json({ id: session.id, url: session.url });
+    const paymentIntentId =
+      typeof session.payment_intent === 'string'
+        ? session.payment_intent
+        : session.payment_intent?.id || null;
+
+    await upsertCoursePurchase({
+      userId: user.id,
+      courseId: course.id,
+      checkoutSessionId: session.id,
+      paymentIntentId,
+      amountCents: course.price_cents,
+      currency: 'eur',
+      status: PURCHASE_STATUS.PENDING,
+    });
+
+    return res.json({ id: session.id, url: session.url });
   } catch (err) {
-    console.error('[Stripe Controller] Error creando Checkout Session:', err.message);
-    res.status(500).json({ error: 'Error procesando la solicitud de pago.' });
+    const status = err.status || 500;
+    console.error('[Stripe Controller] Error creating Checkout Session:', err.message);
+    return res.status(status).json({ error: 'Error procesando la solicitud de pago.' });
   }
 };
 
-// Escudo Webhook seguro preparado para Stripe
+// Verifies Stripe events and grants course access after successful payment.
 exports.webhook = async (req, res) => {
-  const sig = req.headers['stripe-signature'];
   let event;
 
   try {
-    // req.body DEBE SER un buffer raw para validar la firma de seguridad
-    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    const stripeClient = requireStripe();
+    const signature = req.headers['stripe-signature'];
+
+    if (!process.env.STRIPE_WEBHOOK_SECRET) {
+      return res.status(503).json({ error: 'Webhook no configurado.' });
+    }
+
+    event = stripeClient.webhooks.constructEvent(
+      req.body,
+      signature,
+      process.env.STRIPE_WEBHOOK_SECRET
+    );
   } catch (err) {
-    console.warn(`[Stripe Webhook] Error verificando firma criptográfica:`, err.message);
+    console.warn('[Stripe Webhook] Signature verification error:', err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  // Manejar el evento de cuando el pago se completa de forma final
-  if (event.type === 'checkout.session.completed') {
-    const session = event.data.object;
-    
-    // Aquí es donde en el futuro le darás acceso al curso al usuario
-    const userId = session.metadata.userId;
-    const courseId = session.metadata.courseId;
-
-    console.log(`[Extito] Pago recibido para el usuario ${userId} y curso ${courseId}`);
-    // Ejemplo (TODO): await supabase.from('user_courses').insert({ user_id: userId, course_id: courseId });
+  try {
+    const eventState = await markStripeEventReceived(event);
+    if (eventState.duplicate) {
+      return res.json({ received: true, duplicate: true });
+    }
+  } catch (err) {
+    console.error('[Stripe Webhook] Error storing event:', err.message);
+    return res.status(500).json({ error: 'No se pudo registrar el evento de Stripe.' });
   }
 
-  res.json({ received: true });
+  try {
+    if (event.type === 'checkout.session.completed') {
+      await handleCheckoutSessionCompleted(event.data.object);
+      const userId = event.data.object.metadata?.userId || 'unknown';
+      const courseId = event.data.object.metadata?.courseId || 'unknown';
+      console.log(`[Stripe Webhook] Access granted to user ${userId} for course ${courseId}`);
+    }
+
+    if (event.type === 'checkout.session.expired') {
+      await updatePurchaseStatusBySessionId(event.data.object.id, PURCHASE_STATUS.CANCELED);
+      console.log(`[Stripe Webhook] Checkout session expired: ${event.data.object.id}`);
+    }
+
+    if (event.type === 'checkout.session.async_payment_failed') {
+      await updatePurchaseStatusBySessionId(event.data.object.id, PURCHASE_STATUS.CANCELED);
+      console.log(`[Stripe Webhook] Checkout session payment failed: ${event.data.object.id}`);
+    }
+
+    if (event.type === 'charge.refunded') {
+      const paymentIntentId = extractPaymentIntentId(event.data.object.payment_intent);
+      await updatePurchaseStatusByPaymentIntent(paymentIntentId, PURCHASE_STATUS.REFUNDED);
+      console.log(`[Stripe Webhook] Purchase refunded for payment_intent ${paymentIntentId}`);
+    }
+
+    if (event.type === 'charge.dispute.created') {
+      const paymentIntentId = extractPaymentIntentId(event.data.object.payment_intent);
+      await updatePurchaseStatusByPaymentIntent(paymentIntentId, PURCHASE_STATUS.CANCELED);
+      console.log(`[Stripe Webhook] Purchase marked canceled due dispute for payment_intent ${paymentIntentId}`);
+    }
+  } catch (err) {
+    console.error('[Stripe Webhook] Processing error:', err.message);
+    await rollbackStripeEvent(event.id);
+    return res.status(500).json({ error: 'No se pudo completar el procesamiento del evento.' });
+  }
+
+  return res.json({ received: true });
 };

@@ -3,13 +3,15 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
+import type { User } from "@supabase/supabase-js";
 import UserMenu from "./UserMenu";
+import { signOutAction } from "@/app/auth/actions";
 
 interface NavbarProps {
-  user?: any;
+  user?: User | null;
 }
 
-export default function Navbar({ user }: NavbarProps = {}) {
+export default function Navbar({ user = null }: NavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -32,7 +34,6 @@ export default function Navbar({ user }: NavbarProps = {}) {
           S&C
         </Link>
 
-        {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-8">
           <Link href="/courses" className="text-sm font-medium text-neutral-300 hover:text-white transition-colors">Cursos</Link>
           <Link href="/#methodology" className="text-sm font-medium text-neutral-300 hover:text-white transition-colors">Metodología</Link>
@@ -55,8 +56,7 @@ export default function Navbar({ user }: NavbarProps = {}) {
           )}
         </div>
 
-        {/* Mobile Menu Button */}
-        <button 
+        <button
           className="md:hidden text-white"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         >
@@ -74,16 +74,15 @@ export default function Navbar({ user }: NavbarProps = {}) {
           {user ? (
             <>
               <Link href="/profile" className="text-neutral-200" onClick={() => setIsMobileMenuOpen(false)}>Mi Perfil</Link>
-              <button 
-                className="mt-2 text-center py-3 bg-red-600 text-white font-semibold rounded-full w-full" 
-                onClick={async () => {
-                  const { createClient } = await import("@/lib/supabase/client");
-                  await createClient().auth.signOut();
-                  window.location.reload();
-                }}
-              >
-                Cerrar Sesión
-              </button>
+              <form action={signOutAction}>
+                <button
+                  type="submit"
+                  className="mt-2 text-center py-3 bg-red-600 text-white font-semibold rounded-full w-full"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Cerrar Sesión
+                </button>
+              </form>
             </>
           ) : (
             <>

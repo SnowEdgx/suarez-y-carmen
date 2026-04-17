@@ -2,43 +2,30 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { User, LogOut, CreditCard, ChevronDown } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
+import { User as UserIcon, LogOut, CreditCard, ChevronDown } from "lucide-react";
+import type { User } from "@supabase/supabase-js";
+import { signOutAction } from "@/app/auth/actions";
 
 interface UserMenuProps {
-  user: {
-    email?: string;
-    user_metadata?: {
-      name?: string;
-      avatar_url?: string;
-    };
-  } | null;
+  user: User | null;
 }
 
 export default function UserMenu({ user }: UserMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
-  const supabase = createClient();
 
-  // Close dropdown on outside click
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     }
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   if (!user) return null;
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    router.refresh();
-  };
 
   const name = user.user_metadata?.name || user.email?.split("@")[0] || "Usuario";
 
@@ -67,7 +54,7 @@ export default function UserMenu({ user }: UserMenuProps) {
               onClick={() => setIsOpen(false)}
               className="flex items-center gap-3 px-4 py-2.5 text-sm text-neutral-300 hover:text-white hover:bg-neutral-800 transition-colors"
             >
-              <User size={16} /> Mi Perfil
+              <UserIcon size={16} /> Mi Perfil
             </Link>
             <Link
               href="/profile#payments"
@@ -78,12 +65,14 @@ export default function UserMenu({ user }: UserMenuProps) {
             </Link>
           </div>
           <div className="py-2">
-            <button
-              onClick={handleSignOut}
-              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:text-red-400 hover:bg-neutral-800 transition-colors text-left"
-            >
-              <LogOut size={16} /> Cerrar Sesión
-            </button>
+            <form action={signOutAction}>
+              <button
+                type="submit"
+                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:text-red-400 hover:bg-neutral-800 transition-colors text-left"
+              >
+                <LogOut size={16} /> Cerrar Sesión
+              </button>
+            </form>
           </div>
         </div>
       )}

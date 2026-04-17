@@ -84,3 +84,9 @@ Las credenciales maestras (Supabase y Stripe) han sido excluidas intencionalment
 1. Navegar a las carpetas `/frontend/` y `/backend/`.
 2. Duplicar sus respectivos ficheros `.env.example`.
 3. Renombrar las nuevas copias a `.env.local` e inyectar las claves proporcionadas en el apéndice de la memoria.
+
+## Seguridad SQL y Email Auth
+- Las migraciones versionadas viven en `supabase/migrations`.
+- Las consultas ad-hoc de Studio se ignoran en `supabase/snippets`.
+- El flujo de emails de autenticacion se configura con Supabase + SMTP (Resend) y plantillas HTML generadas desde React.
+- Detalles de setup: `docs/email-and-sql-policy.md`.

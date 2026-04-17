@@ -6,7 +6,8 @@
     "dev": "next dev --hostname 0.0.0.0",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "build:auth-emails": "node scripts/build-auth-email-templates.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.9.0",
