@@ -104,6 +104,7 @@ export default function CourseGrid({ courses, purchasedCourseIds, isAuthenticate
                       ) : isAuthenticated ? (
                         <form action={startCourseCheckout}>
                           <input type="hidden" name="courseId" value={course.id} />
+                          <input type="hidden" name="returnTo" value="/courses" />
                           <button
                             type="submit"
                             className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors"

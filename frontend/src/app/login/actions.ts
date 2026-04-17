@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 
 const EMAIL_VERIFICATION_ERROR =
-  'Debes verificar tu correo antes de iniciar sesión. Revisa tu bandeja de entrada.'
+  'Debes verificar tu correo antes de iniciar sesion. Revisa tu bandeja de entrada.'
 
 type AuthUser = {
   email_confirmed_at?: string | null
@@ -16,17 +16,8 @@ function isEmailVerified(user: AuthUser) {
   return Boolean(user?.email_confirmed_at ?? user?.confirmed_at)
 }
 
-function getEmailRedirectUrl() {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
-  return `${siteUrl.replace(/\/$/, '')}/login?verified=1`
-}
-
-function normalizeEmail(value: FormDataEntryValue | null) {
-  return typeof value === 'string' ? value.trim().toLowerCase() : ''
-}
-
-function isValidEmail(email: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+function getSiteUrl() {
+  return (process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000').replace(/\/$/, '')
 }
 
 function getSafeRedirectPath(rawValue: FormDataEntryValue | null) {
@@ -37,6 +28,35 @@ function getSafeRedirectPath(rawValue: FormDataEntryValue | null) {
   return rawValue
 }
 
+function getAuthCallbackUrl(nextPath: string) {
+  return `${getSiteUrl()}/auth/callback?next=${encodeURIComponent(nextPath)}`
+}
+
+function getEmailRedirectUrl() {
+  return getAuthCallbackUrl('/login?verified=1')
+}
+
+function getRecoveryRedirectUrl() {
+  return getAuthCallbackUrl('/auth/update-password')
+}
+
+function getPasswordUpdatedRedirectUrl() {
+  return `${getSiteUrl()}/login?password_updated=1`
+}
+
+function normalizeEmail(value: FormDataEntryValue | null) {
+  return typeof value === 'string' ? value.trim().toLowerCase() : ''
+}
+
+function isValidEmail(email: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+}
+
+function getSafeEmail(rawValue: FormDataEntryValue | null) {
+  const email = normalizeEmail(rawValue)
+  return isValidEmail(email) ? email : ''
+}
+
 export async function login(formData: FormData) {
   const supabase = await createClient()
 
@@ -44,22 +64,20 @@ export async function login(formData: FormData) {
   const password = typeof formData.get('password') === 'string' ? (formData.get('password') as string) : ''
 
   if (!isValidEmail(email) || password.length < 1) {
-    return { error: 'Introduce un correo válido y tu contraseña.' }
+    return { error: 'Introduce un correo valido y tu contrasena.' }
   }
 
-  const data = {
+  const { data: authData, error } = await supabase.auth.signInWithPassword({
     email,
     password,
-  }
-
-  const { data: authData, error } = await supabase.auth.signInWithPassword(data)
+  })
 
   if (error) {
     console.warn('[Login Action] Login failed')
     if (error.message.toLowerCase().includes('email not confirmed')) {
       return { error: EMAIL_VERIFICATION_ERROR }
     }
-    return { error: 'Credenciales inválidas. Por favor, verifica tu correo y contraseña.' }
+    return { error: 'Credenciales invalidas. Verifica tu correo y contrasena.' }
   }
 
   if (!isEmailVerified(authData.user)) {
@@ -80,33 +98,29 @@ export async function signup(formData: FormData) {
   const name = typeof formData.get('name') === 'string' ? (formData.get('name') as string).trim() : ''
 
   if (password.length < 6) {
-    return { error: 'La contraseña debe tener al menos 6 caracteres.' }
+    return { error: 'La contrasena debe tener al menos 6 caracteres.' }
   }
   if (!isValidEmail(email)) {
-    return { error: 'Introduce un correo válido.' }
+    return { error: 'Introduce un correo valido.' }
   }
   if (name.length < 2) {
     return { error: 'El nombre debe tener al menos 2 caracteres.' }
   }
 
-  const data = {
+  const { error, data: authData } = await supabase.auth.signUp({
     email,
     password,
     options: {
       emailRedirectTo: getEmailRedirectUrl(),
-      data: {
-        name,
-      },
+      data: { name },
     },
-  }
-
-  const { error, data: authData } = await supabase.auth.signUp(data)
+  })
 
   if (error) {
     console.error('[Login Action] Signup error details:', error)
     return {
       error:
-        'Ocurrió un error al procesar tu solicitud. Por favor, reintenta más tarde o contáctanos si el problema persiste.',
+        'Ocurrio un error al procesar tu solicitud. Reintenta mas tarde o contactanos si persiste.',
     }
   }
 
@@ -114,7 +128,7 @@ export async function signup(formData: FormData) {
     await supabase.auth.signOut()
     return {
       success:
-        'Te enviamos un correo de verificación. Confirma tu cuenta para poder iniciar sesión y acceder a tus cursos.',
+        'Te enviamos un correo de verificacion. Confirma tu cuenta para iniciar sesion y acceder a tus cursos.',
       requiresEmailVerification: true,
       email,
     }
@@ -124,16 +138,40 @@ export async function signup(formData: FormData) {
   redirect('/courses')
 }
 
+export async function signInWithGoogle(formData: FormData) {
+  const supabase = await createClient()
+  const nextPath = getSafeRedirectPath(formData.get('next'))
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: getAuthCallbackUrl(nextPath),
+      queryParams: {
+        access_type: 'offline',
+        prompt: 'consent',
+      },
+    },
+  })
+
+  if (error || !data?.url) {
+    return {
+      error:
+        'No pudimos iniciar el acceso con Google. Verifica la configuracion del proveedor en Supabase.',
+    }
+  }
+
+  redirect(data.url)
+}
+
 export async function resendSignupVerification(formData: FormData) {
   const supabase = await createClient()
-
   const email = normalizeEmail(formData.get('email'))
 
   if (!email) {
-    return { error: 'Indica tu correo para reenviar la verificación.' }
+    return { error: 'Indica tu correo para reenviar la verificacion.' }
   }
   if (!isValidEmail(email)) {
-    return { error: 'El correo indicado no es válido.' }
+    return { error: 'El correo indicado no es valido.' }
   }
 
   const { error } = await supabase.auth.resend({
@@ -146,8 +184,65 @@ export async function resendSignupVerification(formData: FormData) {
 
   if (error) {
     console.error('[Login Action] Resend verification error:', error)
-    return { error: 'No pudimos reenviar el correo en este momento. Inténtalo de nuevo en unos minutos.' }
+    return { error: 'No pudimos reenviar el correo en este momento. Intentalo de nuevo.' }
   }
 
-  return { success: 'Correo de verificación reenviado. Revisa tu bandeja de entrada.' }
+  return { success: 'Correo de verificacion reenviado. Revisa tu bandeja de entrada.' }
+}
+
+export async function requestPasswordRecovery(formData: FormData) {
+  const supabase = await createClient()
+  const email = getSafeEmail(formData.get('email'))
+
+  if (!email) {
+    return { error: 'Introduce un correo valido para recuperar tu cuenta.' }
+  }
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: getRecoveryRedirectUrl(),
+  })
+
+  if (error) {
+    console.error('[Login Action] Password recovery request error:', error)
+    return { error: 'No pudimos iniciar la recuperacion en este momento. Intentalo de nuevo.' }
+  }
+
+  return {
+    success:
+      'Si el correo existe en la plataforma, te hemos enviado un enlace para restablecer tu contrasena.',
+  }
+}
+
+export async function updatePassword(formData: FormData) {
+  const supabase = await createClient()
+  const password = typeof formData.get('password') === 'string' ? (formData.get('password') as string) : ''
+  const confirmPassword =
+    typeof formData.get('confirmPassword') === 'string' ? (formData.get('confirmPassword') as string) : ''
+
+  if (password.length < 8) {
+    return { error: 'La nueva contrasena debe tener al menos 8 caracteres.' }
+  }
+
+  if (password !== confirmPassword) {
+    return { error: 'Las contrasenas no coinciden.' }
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { error: 'La sesion de recuperacion ha expirado. Solicita un nuevo enlace.' }
+  }
+
+  const { error } = await supabase.auth.updateUser({ password })
+
+  if (error) {
+    console.error('[Login Action] Password update error:', error)
+    return { error: 'No pudimos actualizar la contrasena. Intentalo de nuevo.' }
+  }
+
+  await supabase.auth.signOut()
+  revalidatePath('/', 'layout')
+  redirect(getPasswordUpdatedRedirectUrl())
 }

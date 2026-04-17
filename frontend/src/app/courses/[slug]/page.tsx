@@ -116,6 +116,7 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
               ) : user ? (
                 <form action={startCourseCheckout}>
                   <input type="hidden" name="courseId" value={course.id} />
+                  <input type="hidden" name="returnTo" value={`/courses/${course.slug}`} />
                   <button
                     type="submit"
                     className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors"

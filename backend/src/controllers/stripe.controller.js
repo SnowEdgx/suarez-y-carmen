@@ -3,12 +3,34 @@ const { createClient } = require('@supabase/supabase-js');
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const stripe = stripeSecretKey ? require('stripe')(stripeSecretKey) : null;
 
+function resolveSupabaseUrl() {
+  const rawUrl = process.env.SUPABASE_URL;
+  if (!rawUrl) return rawUrl;
+
+  // Running node outside Docker can fail resolving host.docker.internal on some Windows setups.
+  if (!process.env.RUNNING_IN_DOCKER && rawUrl.includes('host.docker.internal')) {
+    return rawUrl.replace('host.docker.internal', '127.0.0.1');
+  }
+
+  return rawUrl;
+}
+
+const resolvedSupabaseUrl = resolveSupabaseUrl();
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
+
+if (!resolvedSupabaseUrl || !supabaseServiceKey) {
+  throw new Error(
+    'Missing required Supabase env vars in stripe controller (SUPABASE_URL and service role key).'
+  );
+}
+
 const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY
+  resolvedSupabaseUrl,
+  supabaseServiceKey
 );
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const CHECKOUT_SESSION_REGEX = /^cs_[A-Za-z0-9_]+$/;
 const PURCHASE_STATUS = Object.freeze({
   PENDING: 'pending',
   PAID: 'paid',
@@ -168,11 +190,16 @@ function extractPaymentIntentId(value) {
   return null;
 }
 
+function sanitizeCheckoutSessionId(rawValue) {
+  if (typeof rawValue !== 'string') return null;
+  const value = rawValue.trim();
+  if (!CHECKOUT_SESSION_REGEX.test(value)) return null;
+  return value;
+}
+
 // Creates a secure Checkout session for a single-course purchase.
 exports.createCheckoutSession = async (req, res) => {
   try {
-    const stripeClient = requireStripe();
-
     const { courseId } = req.body;
     if (!courseId) {
       return res.status(400).json({ error: 'courseId es obligatorio.' });
@@ -203,6 +230,8 @@ exports.createCheckoutSession = async (req, res) => {
     if (!course.is_published) {
       return res.status(403).json({ error: 'Este curso no está disponible para compra.' });
     }
+
+    const stripeClient = requireStripe();
 
     const { data: existingPurchase, error: existingPurchaseError } = await supabase
       .from('user_courses')
@@ -276,6 +305,120 @@ exports.createCheckoutSession = async (req, res) => {
     const status = err.status || 500;
     console.error('[Stripe Controller] Error creating Checkout Session:', err.message);
     return res.status(status).json({ error: 'Error procesando la solicitud de pago.' });
+  }
+};
+
+// Verifies checkout status for the authenticated user and repairs access when payment succeeded.
+exports.getCheckoutSessionStatus = async (req, res) => {
+  try {
+    const rawSessionId = req.query.session_id || req.body?.session_id || req.body?.sessionId;
+    const checkoutSessionId = sanitizeCheckoutSessionId(rawSessionId);
+
+    if (!checkoutSessionId) {
+      return res.status(400).json({ error: 'session_id no es valido.' });
+    }
+
+    const user = await getAuthenticatedUser(req);
+    if (!user) {
+      return res.status(401).json({ error: 'No autorizado. Inicia sesion para continuar.' });
+    }
+
+    const stripeClient = requireStripe();
+
+    let session;
+    try {
+      session = await stripeClient.checkout.sessions.retrieve(checkoutSessionId);
+    } catch (error) {
+      if (error?.type === 'StripeInvalidRequestError') {
+        return res.status(404).json({ error: 'No encontramos la sesion de checkout.' });
+      }
+      throw error;
+    }
+
+    const sessionUserId = session.metadata?.userId || session.client_reference_id;
+    if (!sessionUserId || sessionUserId !== user.id) {
+      return res.status(403).json({ error: 'No tienes permisos para consultar esta sesion.' });
+    }
+
+    const paymentIntentId = extractPaymentIntentId(session.payment_intent);
+    const courseId = session.metadata?.courseId;
+    const amountCents = Number.isInteger(session.amount_total) ? session.amount_total : 0;
+    const currency = session.currency || 'eur';
+
+    if (session.payment_status === 'paid') {
+      if (courseId && UUID_REGEX.test(courseId)) {
+        let normalizedAmountCents = amountCents;
+
+        if (!Number.isInteger(normalizedAmountCents) || normalizedAmountCents <= 0) {
+          const { data: existingPurchase } = await supabase
+            .from('user_courses')
+            .select('amount_cents')
+            .eq('user_id', user.id)
+            .eq('course_id', courseId)
+            .maybeSingle();
+
+          if (existingPurchase && Number.isInteger(existingPurchase.amount_cents)) {
+            normalizedAmountCents = existingPurchase.amount_cents;
+          }
+        }
+
+        if (!Number.isInteger(normalizedAmountCents) || normalizedAmountCents <= 0) {
+          return res.json({
+            status: PURCHASE_STATUS.PAID,
+            sessionId: session.id,
+            courseId,
+            accessGranted: false,
+            warning: 'Pago confirmado, pero no se pudo inferir el importe para registrar la compra.',
+          });
+        }
+
+        await upsertCoursePurchase({
+          userId: user.id,
+          courseId,
+          checkoutSessionId: session.id,
+          paymentIntentId,
+          amountCents: normalizedAmountCents,
+          currency,
+          status: PURCHASE_STATUS.PAID,
+        });
+
+        return res.json({
+          status: PURCHASE_STATUS.PAID,
+          sessionId: session.id,
+          courseId,
+          accessGranted: true,
+        });
+      }
+
+      return res.json({
+        status: PURCHASE_STATUS.PAID,
+        sessionId: session.id,
+        accessGranted: false,
+        warning: 'Pago confirmado, pero no se pudo identificar el curso en metadata.',
+      });
+    }
+
+    if (session.status === 'open') {
+      await updatePurchaseStatusBySessionId(session.id, PURCHASE_STATUS.PENDING);
+      return res.json({
+        status: PURCHASE_STATUS.PENDING,
+        sessionId: session.id,
+        courseId: courseId && UUID_REGEX.test(courseId) ? courseId : null,
+        accessGranted: false,
+      });
+    }
+
+    await updatePurchaseStatusBySessionId(session.id, PURCHASE_STATUS.CANCELED);
+    return res.json({
+      status: PURCHASE_STATUS.CANCELED,
+      sessionId: session.id,
+      courseId: courseId && UUID_REGEX.test(courseId) ? courseId : null,
+      accessGranted: false,
+    });
+  } catch (err) {
+    const status = err.status || 500;
+    console.error('[Stripe Controller] Error checking checkout session status:', err.message);
+    return res.status(status).json({ error: 'No se pudo consultar el estado del checkout.' });
   }
 };
 

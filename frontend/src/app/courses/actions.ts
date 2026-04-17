@@ -1,4 +1,4 @@
-﻿'use server'
+'use server'
 
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
@@ -7,11 +7,32 @@ function getBackendUrl() {
   return process.env.BACKEND_URL ?? 'http://localhost:4000'
 }
 
+function getSafePath(rawPath: FormDataEntryValue | null, fallback = '/courses') {
+  if (!rawPath || typeof rawPath !== 'string') return fallback
+  if (!rawPath.startsWith('/')) return fallback
+  if (rawPath.startsWith('//')) return fallback
+  return rawPath
+}
+
+function buildPathWithCheckoutCode(pathname: string, code: string) {
+  const separator = pathname.includes('?') ? '&' : '?'
+  return `${pathname}${separator}checkout=${encodeURIComponent(code)}`
+}
+
+async function readJsonSafely(response: Response) {
+  try {
+    return await response.json()
+  } catch {
+    return null
+  }
+}
+
 export async function startCourseCheckout(formData: FormData) {
   const courseId = formData.get('courseId')
+  const returnTo = getSafePath(formData.get('returnTo'), '/courses')
 
   if (!courseId || typeof courseId !== 'string') {
-    redirect('/courses?checkout=invalid_course')
+    redirect(buildPathWithCheckoutCode(returnTo, 'invalid_course'))
   }
 
   const supabase = await createClient()
@@ -22,7 +43,7 @@ export async function startCourseCheckout(formData: FormData) {
   const user = session?.user ?? null
 
   if (!user || !session?.access_token) {
-    redirect(`/login?next=/courses`)
+    redirect(`/login?next=${encodeURIComponent(returnTo)}`)
   }
 
   let response: Response
@@ -37,20 +58,51 @@ export async function startCourseCheckout(formData: FormData) {
       cache: 'no-store',
     })
   } catch {
-    redirect('/courses?checkout=service_unavailable')
+    redirect(buildPathWithCheckoutCode(returnTo, 'service_unavailable'))
+  }
+
+  if (response.status === 401) {
+    redirect(`/login?next=${encodeURIComponent(returnTo)}`)
   }
 
   if (response.status === 409) {
-    redirect('/courses?checkout=already_owned')
+    redirect(buildPathWithCheckoutCode(returnTo, 'already_owned'))
+  }
+
+  if (response.status === 404) {
+    redirect(buildPathWithCheckoutCode(returnTo, 'course_not_found'))
+  }
+
+  if (response.status === 400) {
+    redirect(buildPathWithCheckoutCode(returnTo, 'invalid_course'))
+  }
+
+  if (response.status === 429) {
+    redirect(buildPathWithCheckoutCode(returnTo, 'rate_limited'))
+  }
+
+  if (response.status === 503) {
+    redirect(buildPathWithCheckoutCode(returnTo, 'service_unavailable'))
+  }
+
+  if (response.status === 403) {
+    const payload = await readJsonSafely(response)
+    const backendMessage = typeof payload?.error === 'string' ? payload.error.toLowerCase() : ''
+
+    if (backendMessage.includes('verificar')) {
+      redirect(`/login?next=${encodeURIComponent(returnTo)}&error=verify_email_required`)
+    }
+
+    redirect(buildPathWithCheckoutCode(returnTo, 'forbidden'))
   }
 
   if (!response.ok) {
-    redirect('/courses?checkout=error')
+    redirect(buildPathWithCheckoutCode(returnTo, 'error'))
   }
 
-  const payload = await response.json()
-  if (!payload?.url) {
-    redirect('/courses?checkout=error')
+  const payload = await readJsonSafely(response)
+  if (!payload?.url || typeof payload.url !== 'string') {
+    redirect(buildPathWithCheckoutCode(returnTo, 'error'))
   }
 
   redirect(payload.url)

@@ -1,9 +1,16 @@
 'use client'
 
-import { Suspense, useState } from 'react'
+import { Suspense, useMemo, useState } from 'react'
+import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { isRedirectError } from 'next/dist/client/components/redirect-error'
-import { login, resendSignupVerification, signup } from './actions'
+import {
+  login,
+  resendSignupVerification,
+  requestPasswordRecovery,
+  signInWithGoogle,
+  signup,
+} from './actions'
 import Navbar from '@/components/home/Navbar'
 import Footer from '@/components/home/Footer'
 
@@ -14,50 +21,106 @@ type ActionResult = {
   email?: string
 }
 
+function getQueryErrorMessage(code: string | null) {
+  switch (code) {
+    case 'verify_email_required':
+      return 'Debes verificar tu correo antes de iniciar sesion.'
+    case 'oauth_failed':
+      return 'No pudimos completar el acceso con Google. Intentalo de nuevo.'
+    case 'invalid_or_expired_link':
+      return 'El enlace de verificacion no es valido o ha caducado.'
+    case 'auth_callback_failed':
+      return 'No pudimos validar tu sesion. Intenta acceder de nuevo.'
+    default:
+      return null
+  }
+}
+
 function LoginPageContent() {
   const searchParams = useSearchParams()
   const nextPath = searchParams.get('next') ?? '/courses'
+  const callbackError = getQueryErrorMessage(searchParams.get('error'))
   const isVerifiedRedirect = searchParams.get('verified') === '1'
+  const isPasswordUpdated = searchParams.get('password_updated') === '1'
 
-  const [isLogin, setIsLogin] = useState(true)
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
-  const [successMsg, setSuccessMsg] = useState<string | null>(null)
+  const [isLoginMode, setIsLoginMode] = useState(true)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string | null>(null)
   const [isPending, setIsPending] = useState(false)
+  const [isGooglePending, setIsGooglePending] = useState(false)
   const [isResendingVerification, setIsResendingVerification] = useState(false)
+  const [isRecoveryPending, setIsRecoveryPending] = useState(false)
+
+  const visibleErrorMessage = errorMessage ?? callbackError
+  const defaultEmail = pendingVerificationEmail ?? searchParams.get('email') ?? ''
+
+  const topInfoMessage = useMemo(() => {
+    if (successMessage) return { type: 'success' as const, text: successMessage }
+    if (isVerifiedRedirect) {
+      return { type: 'success' as const, text: 'Correo verificado correctamente. Ya puedes iniciar sesion.' }
+    }
+    if (isPasswordUpdated) {
+      return { type: 'success' as const, text: 'Contrasena actualizada. Ya puedes iniciar sesion.' }
+    }
+    return null
+  }, [successMessage, isVerifiedRedirect, isPasswordUpdated])
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setIsPending(true)
-    setErrorMsg(null)
-    setSuccessMsg(null)
+    setErrorMessage(null)
+    setSuccessMessage(null)
 
     const formData = new FormData(event.currentTarget)
-    const action = isLogin ? login : signup
+    const action = isLoginMode ? login : signup
 
     try {
       const result = (await action(formData)) as ActionResult | undefined
 
       if (result?.error) {
-        setErrorMsg(result.error)
+        setErrorMessage(result.error)
         return
       }
 
       if (result?.success) {
-        setSuccessMsg(result.success)
+        setSuccessMessage(result.success)
       }
 
       if (result?.requiresEmailVerification) {
         setPendingVerificationEmail(result.email ?? (formData.get('email') as string))
-        setIsLogin(true)
+        setIsLoginMode(true)
       }
     } catch (error) {
       if (isRedirectError(error)) {
         throw error
       }
-      setErrorMsg('Ocurrió un error inesperado al contactar con el servidor.')
+      setErrorMessage('Ocurrio un error inesperado al contactar con el servidor.')
     } finally {
       setIsPending(false)
+    }
+  }
+
+  async function handleGoogleSignIn() {
+    setIsGooglePending(true)
+    setErrorMessage(null)
+    setSuccessMessage(null)
+
+    const formData = new FormData()
+    formData.append('next', nextPath)
+
+    try {
+      const result = (await signInWithGoogle(formData)) as ActionResult | undefined
+      if (result?.error) {
+        setErrorMessage(result.error)
+      }
+    } catch (error) {
+      if (isRedirectError(error)) {
+        throw error
+      }
+      setErrorMessage('No se pudo iniciar el acceso con Google. Intentalo de nuevo.')
+    } finally {
+      setIsGooglePending(false)
     }
   }
 
@@ -65,8 +128,8 @@ function LoginPageContent() {
     if (!pendingVerificationEmail) return
 
     setIsResendingVerification(true)
-    setErrorMsg(null)
-    setSuccessMsg(null)
+    setErrorMessage(null)
+    setSuccessMessage(null)
 
     const formData = new FormData()
     formData.append('email', pendingVerificationEmail)
@@ -74,15 +137,38 @@ function LoginPageContent() {
     try {
       const result = (await resendSignupVerification(formData)) as ActionResult
       if (result.error) {
-        setErrorMsg(result.error)
+        setErrorMessage(result.error)
         return
       }
 
       if (result.success) {
-        setSuccessMsg(result.success)
+        setSuccessMessage(result.success)
       }
     } finally {
       setIsResendingVerification(false)
+    }
+  }
+
+  async function handlePasswordRecovery(email: string) {
+    setIsRecoveryPending(true)
+    setErrorMessage(null)
+    setSuccessMessage(null)
+
+    const formData = new FormData()
+    formData.append('email', email)
+
+    try {
+      const result = (await requestPasswordRecovery(formData)) as ActionResult
+      if (result.error) {
+        setErrorMessage(result.error)
+        return
+      }
+
+      if (result.success) {
+        setSuccessMessage(result.success)
+      }
+    } finally {
+      setIsRecoveryPending(false)
     }
   }
 
@@ -91,55 +177,64 @@ function LoginPageContent() {
       <Navbar />
 
       <main className="flex-1 flex items-center justify-center p-6 mt-16 relative z-10 w-full">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg h-[400px] bg-red-600/10 blur-[100px] rounded-full pointer-events-none"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg h-[400px] bg-red-600/10 blur-[100px] rounded-full pointer-events-none" />
 
         <div className="relative w-full max-w-md bg-neutral-900/60 backdrop-blur-xl border border-neutral-800 p-8 rounded-3xl shadow-2xl">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-serif font-bold text-white mb-2">
-              {isLogin ? 'Bienvenido de nuevo' : 'Crea tu cuenta'}
+              {isLoginMode ? 'Bienvenido de nuevo' : 'Crea tu cuenta'}
             </h1>
             <p className="text-neutral-400">
-              {isLogin
+              {isLoginMode
                 ? 'Accede a tus cursos y sigue perfeccionando tu baile.'
-                : 'Únete a Suárez y Carmen y domina tu estilo.'}
+                : 'Unete a Suarez y Carmen y domina tu estilo.'}
             </p>
           </div>
 
-          {errorMsg && (
-            <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-sm font-medium text-center">
-              {errorMsg}
+          {visibleErrorMessage && (
+            <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium text-center">
+              {visibleErrorMessage}
             </div>
           )}
 
-          {successMsg && (
+          {topInfoMessage && (
             <div className="mb-6 p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-sm font-medium text-center">
-              {successMsg}
-            </div>
-          )}
-
-          {!successMsg && isVerifiedRedirect && (
-            <div className="mb-6 p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-sm font-medium text-center">
-              Correo verificado correctamente. Ya puedes iniciar sesión.
+              {topInfoMessage.text}
             </div>
           )}
 
           {pendingVerificationEmail && (
-            <div className="mb-6 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-300 text-sm">
-              <p className="text-center font-medium mb-3">Cuenta pendiente de verificación: {pendingVerificationEmail}</p>
+            <div className="mb-6 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-200 text-sm">
+              <p className="text-center font-medium mb-3">
+                Cuenta pendiente de verificacion: {pendingVerificationEmail}
+              </p>
               <button
                 type="button"
                 onClick={handleResendVerification}
                 disabled={isResendingVerification}
                 className="w-full py-2.5 bg-blue-500/20 hover:bg-blue-500/30 text-blue-200 rounded-lg transition-colors disabled:opacity-50 disabled:pointer-events-none"
               >
-                {isResendingVerification ? 'Reenviando...' : 'Reenviar correo de verificación'}
+                {isResendingVerification ? 'Reenviando...' : 'Reenviar correo de verificacion'}
               </button>
             </div>
           )}
 
+          <div className="space-y-3 mb-5">
+            <button
+              type="button"
+              onClick={handleGoogleSignIn}
+              disabled={isGooglePending || isPending}
+              className="w-full py-3 rounded-xl border border-neutral-700 bg-neutral-950/70 hover:bg-neutral-900 text-white font-semibold transition-colors disabled:opacity-50 disabled:pointer-events-none"
+            >
+              {isGooglePending ? 'Conectando con Google...' : 'Continuar con Google'}
+            </button>
+            <div className="text-center text-xs text-neutral-500">o continua con correo y contrasena</div>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <input type="hidden" name="next" value={nextPath} />
-            {!isLogin && (
+
+            {!isLoginMode && (
               <div>
                 <label className="block text-sm font-medium text-neutral-400 mb-1.5" htmlFor="name">
                   Nombre completo
@@ -150,14 +245,14 @@ function LoginPageContent() {
                   type="text"
                   required
                   className="w-full bg-neutral-950 border border-neutral-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-600/50 transition-all font-medium placeholder-neutral-600"
-                  placeholder="Ej. Juan Pérez"
+                  placeholder="Ej. Juan Perez"
                 />
               </div>
             )}
 
             <div>
               <label className="block text-sm font-medium text-neutral-400 mb-1.5" htmlFor="email">
-                Correo Electrónico
+                Correo electronico
               </label>
               <input
                 id="email"
@@ -166,15 +261,23 @@ function LoginPageContent() {
                 required
                 className="w-full bg-neutral-950 border border-neutral-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-600/50 transition-all font-medium placeholder-neutral-600"
                 placeholder="tu@email.com"
-                defaultValue={pendingVerificationEmail ?? ''}
+                defaultValue={defaultEmail}
               />
             </div>
 
             <div>
-              <div className="flex justify-between mb-1.5">
+              <div className="flex justify-between items-center mb-1.5">
                 <label className="block text-sm font-medium text-neutral-400" htmlFor="password">
-                  Contraseña
+                  Contrasena
                 </label>
+                {isLoginMode && (
+                  <Link
+                    href="/auth/recover"
+                    className="text-xs text-neutral-400 hover:text-white transition-colors"
+                  >
+                    He olvidado mi contrasena
+                  </Link>
+                )}
               </div>
               <input
                 id="password"
@@ -182,30 +285,43 @@ function LoginPageContent() {
                 type="password"
                 required
                 className="w-full bg-neutral-950 border border-neutral-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-600/50 transition-all font-medium placeholder-neutral-600"
-                placeholder="••••••••"
+                placeholder="********"
               />
             </div>
 
             <button
               type="submit"
-              disabled={isPending}
+              disabled={isPending || isGooglePending}
               className="w-full py-3.5 mt-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
             >
-              {isPending ? 'Cargando...' : isLogin ? 'Iniciar Sesión' : 'Registrarse'}
+              {isPending ? 'Cargando...' : isLoginMode ? 'Iniciar sesion' : 'Registrarse'}
             </button>
           </form>
 
+          {isLoginMode && (
+            <button
+              type="button"
+              onClick={() => handlePasswordRecovery(defaultEmail)}
+              disabled={isRecoveryPending}
+              className="mt-3 w-full text-xs text-neutral-500 hover:text-neutral-300 transition-colors disabled:opacity-60"
+            >
+              {isRecoveryPending
+                ? 'Enviando enlace de recuperacion...'
+                : 'Enviar enlace de recuperacion al correo introducido'}
+            </button>
+          )}
+
           <div className="mt-8 text-center text-sm text-neutral-400">
-            {isLogin ? '¿No tienes cuenta?' : '¿Ya tienes una cuenta?'}{' '}
+            {isLoginMode ? 'No tienes cuenta?' : 'Ya tienes una cuenta?'}{' '}
             <button
               onClick={() => {
-                setIsLogin(!isLogin)
-                setErrorMsg(null)
-                setSuccessMsg(null)
+                setIsLoginMode(!isLoginMode)
+                setErrorMessage(null)
+                setSuccessMessage(null)
               }}
               className="text-white hover:text-red-500 font-semibold transition-colors"
             >
-              {isLogin ? 'Regístrate' : 'Inicia Sesión'}
+              {isLoginMode ? 'Registrate' : 'Inicia sesion'}
             </button>
           </div>
         </div>
