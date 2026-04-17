@@ -5,6 +5,7 @@ const stripeController = require('../controllers/stripe.controller');
 const CHECKOUT_RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const CHECKOUT_RATE_LIMIT_MAX_REQUESTS = 20;
 const checkoutRequestBuckets = new Map();
+const parseCheckoutJson = express.json({ limit: '100kb' });
 
 function getRequestIp(req) {
   const forwardedFor = req.headers['x-forwarded-for'];
@@ -33,6 +34,15 @@ function checkoutRateLimit(req, res, next) {
   return next();
 }
 
+function parseCheckoutJsonSafely(req, res, next) {
+  parseCheckoutJson(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({ error: 'JSON malformado en la solicitud.' });
+    }
+    return next();
+  });
+}
+
 setInterval(() => {
   const now = Date.now();
   for (const [ip, bucket] of checkoutRequestBuckets.entries()) {
@@ -46,7 +56,7 @@ setInterval(() => {
 router.post(
   '/create-checkout-session',
   checkoutRateLimit,
-  express.json({ limit: '100kb' }),
+  parseCheckoutJsonSafely,
   stripeController.createCheckoutSession
 );
 

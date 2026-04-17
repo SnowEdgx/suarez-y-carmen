@@ -62,7 +62,7 @@ schema_paths = []
 enabled = true
 # Specifies an ordered list of seed files to load during db reset.
 # Supports glob patterns relative to supabase directory: "./seeds/*.sql"
-sql_paths = ["./seed.sql"]
+sql_paths = ["./supabase/seed.sql"]
 
 [db.network_restrictions]
 # Enable management of network restrictions.
@@ -222,7 +222,7 @@ otp_length = 6
 otp_expiry = 3600
 
 [auth.email.smtp]
-enabled = false
+enabled = true
 host = "smtp.resend.com"
 port = 587
 user = "resend"
@@ -232,11 +232,11 @@ sender_name = "Suarez y Carmen Academy"
 
 [auth.email.template.confirmation]
 subject = "Confirma tu cuenta en Suarez y Carmen Academy"
-content_path = "./templates/confirm-signup.html"
+content_path = "./supabase/templates/confirm-signup.html"
 
 [auth.email.template.recovery]
 subject = "Recupera tu contrasena en Suarez y Carmen Academy"
-content_path = "./templates/recover-password.html"
+content_path = "./supabase/templates/recover-password.html"
 
 # Uncomment to customize notification email template
 # [auth.email.notification.password_changed]

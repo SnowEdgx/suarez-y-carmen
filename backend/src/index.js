@@ -96,6 +96,10 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 app.use((err, _req, res, next) => {
+  if (err && (err.type === 'entity.parse.failed' || (err instanceof SyntaxError && 'body' in err))) {
+    return res.status(400).json({ error: 'JSON malformado en la solicitud.' });
+  }
+
   if (err && err.message === 'Origin not allowed by CORS') {
     return res.status(403).json({ error: 'CORS origin denied.' });
   }
