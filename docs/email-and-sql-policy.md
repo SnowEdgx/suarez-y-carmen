@@ -21,6 +21,8 @@ Definir en el entorno de Supabase (local o cloud):
 
 - `SUPABASE_AUTH_SMTP_PASS`: SMTP password de Resend
 - `SUPABASE_AUTH_SMTP_FROM`: remitente verificado (ej. `academy@mail.tudominio.com`)
+- Plantilla local: `supabase/.env.example`
+- Archivo local recomendado (no versionado): `supabase/.env.local`
 
 ## Arranque local correcto
 
@@ -31,6 +33,22 @@ npx supabase start
 ```
 
 No usar `--workdir supabase`, porque puede crear un workspace anidado `supabase/supabase` con configuración por defecto.
+
+Para evitar exportar variables manualmente en cada sesión:
+
+1. Copiar `supabase/.env.example` a `supabase/.env.local`.
+2. Completar valores reales de SMTP.
+3. Iniciar con:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\supabase-start.ps1
+```
+
+Opcional (reinicio limpio):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\supabase-start.ps1 -Restart
+```
 
 ## Dominio y entregabilidad (Resend)
 
