@@ -34,6 +34,13 @@ function pickSingleParam(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] ?? null : value ?? null
 }
 
+function shouldFallbackMissingPriceColumn(error: { code?: string | null; message?: string | null; details?: string | null } | null) {
+  if (!error) return false
+  if (error.code === '42703') return true
+  const combined = `${error.message || ''} ${error.details || ''}`.toLowerCase()
+  return combined.includes('price_cents')
+}
+
 function resolveCheckoutCodeMessage(code: string | null): CheckoutMessage | null {
   switch (code) {
     case 'already_owned':
@@ -204,7 +211,7 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
 
   let courses: CourseRow[] = []
 
-  if (coursesResult.error && coursesResult.error.message.includes('price_cents')) {
+  if (shouldFallbackMissingPriceColumn(coursesResult.error)) {
     const fallback = await supabase
       .from('courses')
       .select('id, title, slug, description, level, cover_image_url, is_published')

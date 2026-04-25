@@ -8,7 +8,6 @@ import {
   login,
   resendSignupVerification,
   requestPasswordRecovery,
-  signInWithGoogle,
   signup,
 } from './actions'
 import Navbar from '@/components/home/Navbar'
@@ -26,7 +25,7 @@ function getQueryErrorMessage(code: string | null) {
     case 'verify_email_required':
       return 'Debes verificar tu correo antes de iniciar sesion.'
     case 'oauth_failed':
-      return 'No pudimos completar el acceso con Google. Intentalo de nuevo.'
+      return 'No pudimos completar el acceso externo. Intentalo de nuevo.'
     case 'invalid_or_expired_link':
       return 'El enlace de verificacion no es valido o ha caducado.'
     case 'auth_callback_failed':
@@ -48,7 +47,6 @@ function LoginPageContent() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string | null>(null)
   const [isPending, setIsPending] = useState(false)
-  const [isGooglePending, setIsGooglePending] = useState(false)
   const [isResendingVerification, setIsResendingVerification] = useState(false)
   const [isRecoveryPending, setIsRecoveryPending] = useState(false)
 
@@ -98,29 +96,6 @@ function LoginPageContent() {
       setErrorMessage('Ocurrio un error inesperado al contactar con el servidor.')
     } finally {
       setIsPending(false)
-    }
-  }
-
-  async function handleGoogleSignIn() {
-    setIsGooglePending(true)
-    setErrorMessage(null)
-    setSuccessMessage(null)
-
-    const formData = new FormData()
-    formData.append('next', nextPath)
-
-    try {
-      const result = (await signInWithGoogle(formData)) as ActionResult | undefined
-      if (result?.error) {
-        setErrorMessage(result.error)
-      }
-    } catch (error) {
-      if (isRedirectError(error)) {
-        throw error
-      }
-      setErrorMessage('No se pudo iniciar el acceso con Google. Intentalo de nuevo.')
-    } finally {
-      setIsGooglePending(false)
     }
   }
 
@@ -219,18 +194,6 @@ function LoginPageContent() {
             </div>
           )}
 
-          <div className="space-y-3 mb-5">
-            <button
-              type="button"
-              onClick={handleGoogleSignIn}
-              disabled={isGooglePending || isPending}
-              className="w-full py-3 rounded-xl border border-neutral-700 bg-neutral-950/70 hover:bg-neutral-900 text-white font-semibold transition-colors disabled:opacity-50 disabled:pointer-events-none"
-            >
-              {isGooglePending ? 'Conectando con Google...' : 'Continuar con Google'}
-            </button>
-            <div className="text-center text-xs text-neutral-500">o continua con correo y contrasena</div>
-          </div>
-
           <form onSubmit={handleSubmit} className="space-y-4">
             <input type="hidden" name="next" value={nextPath} />
 
@@ -291,7 +254,7 @@ function LoginPageContent() {
 
             <button
               type="submit"
-              disabled={isPending || isGooglePending}
+              disabled={isPending}
               className="w-full py-3.5 mt-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
             >
               {isPending ? 'Cargando...' : isLoginMode ? 'Iniciar sesion' : 'Registrarse'}

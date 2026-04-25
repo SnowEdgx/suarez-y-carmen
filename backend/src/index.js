@@ -91,7 +91,8 @@ if (process.env.NODE_ENV !== 'production') {
       if (error) throw error;
       res.json({ supabase: 'connected', courses_query: data });
     } catch (err) {
-      res.status(500).json({ supabase: 'error', message: err.message });
+      console.error('[Supabase Test] Connection check failed:', err.message);
+      res.status(500).json({ supabase: 'error', message: 'Supabase connection test failed.' });
     }
   });
 }

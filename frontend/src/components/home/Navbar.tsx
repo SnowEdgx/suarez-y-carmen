@@ -47,9 +47,6 @@ export default function Navbar({ user = null }: NavbarProps) {
           <Link href="/#about" className="text-sm font-medium text-neutral-300 hover:text-white transition-colors">
             Sobre nosotros
           </Link>
-          <Link href="/#pricing" className="text-sm font-medium text-neutral-300 hover:text-white transition-colors">
-            Modelo
-          </Link>
         </nav>
 
         <div className="hidden md:flex items-center gap-6">
@@ -88,9 +85,6 @@ export default function Navbar({ user = null }: NavbarProps) {
           </Link>
           <Link href="/#about" className="text-neutral-200" onClick={() => setIsMobileMenuOpen(false)}>
             Sobre nosotros
-          </Link>
-          <Link href="/#pricing" className="text-neutral-200" onClick={() => setIsMobileMenuOpen(false)}>
-            Modelo
           </Link>
           <hr className="border-neutral-800 my-2" />
           {user ? (

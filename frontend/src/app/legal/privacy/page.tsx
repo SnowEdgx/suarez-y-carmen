@@ -53,8 +53,8 @@ export default async function PrivacyPage() {
           <section className="border border-neutral-800 rounded-2xl p-6 bg-neutral-900/40">
             <h2 className="text-white font-semibold mb-2">5. Encargados y terceros</h2>
             <p>
-              Para la prestacion tecnica se utilizan servicios de terceros como Supabase (autenticacion y base de datos), Stripe
-              (procesamiento de pagos) y Resend (envio de correos transaccionales), bajo sus condiciones y medidas de seguridad.
+              Para la prestacion tecnica se utilizan servicios de terceros para autenticacion, base de datos, pasarela de pago y envio de
+              correos transaccionales, bajo sus condiciones y medidas de seguridad.
             </p>
           </section>
 

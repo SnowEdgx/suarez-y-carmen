@@ -40,7 +40,7 @@ const PURCHASE_STATUS = Object.freeze({
 
 function requireStripe() {
   if (!stripe) {
-    const error = new Error('Stripe no está configurado en el backend. Falta STRIPE_SECRET_KEY.');
+    const error = new Error('Stripe is not configured in backend. STRIPE_SECRET_KEY is missing.');
     error.status = 503;
     throw error;
   }
@@ -205,12 +205,12 @@ exports.createCheckoutSession = async (req, res) => {
       return res.status(400).json({ error: 'courseId es obligatorio.' });
     }
     if (typeof courseId !== 'string' || !UUID_REGEX.test(courseId)) {
-      return res.status(400).json({ error: 'courseId no es válido.' });
+      return res.status(400).json({ error: 'courseId no es valido.' });
     }
 
     const user = await getAuthenticatedUser(req);
     if (!user) {
-      return res.status(401).json({ error: 'No autorizado. Inicia sesión para continuar.' });
+      return res.status(401).json({ error: 'No autorizado. Inicia sesion para continuar.' });
     }
     if (!isEmailVerified(user)) {
       return res.status(403).json({ error: 'Debes verificar tu correo para completar una compra.' });
@@ -228,7 +228,7 @@ exports.createCheckoutSession = async (req, res) => {
     }
 
     if (!course.is_published) {
-      return res.status(403).json({ error: 'Este curso no está disponible para compra.' });
+      return res.status(403).json({ error: 'Este curso no esta disponible para compra.' });
     }
 
     const stripeClient = requireStripe();
@@ -256,7 +256,7 @@ exports.createCheckoutSession = async (req, res) => {
     }
 
     if (!Number.isInteger(course.price_cents) || course.price_cents <= 0) {
-      return res.status(500).json({ error: 'El curso tiene un precio inválido en configuración.' });
+      return res.status(500).json({ error: 'El curso tiene un precio invalido en configuracion.' });
     }
 
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
@@ -268,7 +268,7 @@ exports.createCheckoutSession = async (req, res) => {
           price_data: {
             currency: 'eur',
             product_data: {
-              name: course.title || 'Curso en Suárez y Carmen',
+              name: course.title || 'Curso en Suarez y Carmen',
             },
             unit_amount: course.price_cents,
           },
@@ -441,7 +441,7 @@ exports.webhook = async (req, res) => {
     );
   } catch (err) {
     console.warn('[Stripe Webhook] Signature verification error:', err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
+    return res.status(400).json({ error: 'Firma de webhook invalida.' });
   }
 
   try {
@@ -491,3 +491,4 @@ exports.webhook = async (req, res) => {
 
   return res.json({ received: true });
 };
+

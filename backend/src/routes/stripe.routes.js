@@ -26,7 +26,7 @@ function checkoutRateLimit(req, res, next) {
   }
 
   if (bucket.count >= CHECKOUT_RATE_LIMIT_MAX_REQUESTS) {
-    return res.status(429).json({ error: 'Demasiadas solicitudes. Inténtalo de nuevo en un minuto.' });
+    return res.status(429).json({ error: 'Demasiadas solicitudes. Intentalo de nuevo en un minuto.' });
   }
 
   bucket.count += 1;
@@ -70,3 +70,4 @@ router.get(
 router.post('/webhook', express.raw({ type: 'application/json' }), stripeController.webhook);
 
 module.exports = router;
+

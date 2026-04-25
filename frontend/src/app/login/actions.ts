@@ -138,31 +138,6 @@ export async function signup(formData: FormData) {
   redirect('/courses')
 }
 
-export async function signInWithGoogle(formData: FormData) {
-  const supabase = await createClient()
-  const nextPath = getSafeRedirectPath(formData.get('next'))
-
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: getAuthCallbackUrl(nextPath),
-      queryParams: {
-        access_type: 'offline',
-        prompt: 'consent',
-      },
-    },
-  })
-
-  if (error || !data?.url) {
-    return {
-      error:
-        'No pudimos iniciar el acceso con Google. Verifica la configuracion del proveedor en Supabase.',
-    }
-  }
-
-  redirect(data.url)
-}
-
 export async function resendSignupVerification(formData: FormData) {
   const supabase = await createClient()
   const email = normalizeEmail(formData.get('email'))

@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Suárez y Carmen | Academia Online de Bachata",
-  description: "La academia online definitiva para dominar el estilo, la sensualidad y la musicalidad de la bachata con Suárez y Carmen.",
+  title: "Suarez y Carmen | Academia Online de Bachata",
+  description: "La academia online para dominar estilo, sensualidad y musicalidad en bachata con Suarez y Carmen.",
 };
 
 export default function RootLayout({

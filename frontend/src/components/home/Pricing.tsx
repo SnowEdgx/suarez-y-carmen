@@ -3,13 +3,13 @@ import Link from "next/link";
 
 export default function Pricing() {
   return (
-    <section id="pricing" className="py-24 px-6 md:px-12 max-w-7xl mx-auto">
+    <section id="courses-section" className="py-24 px-6 md:px-12 max-w-7xl mx-auto">
       <div className="text-center mb-16">
         <h2 className="text-3xl md:text-5xl font-bold font-serif text-white mb-6">
-          Modelo comercial
+          Cursos
         </h2>
         <p className="text-neutral-400 text-lg">
-          Pago singular por curso. Compras solo lo que necesitas.
+          Entrena a tu ritmo y compra solo los cursos que necesitas.
         </p>
       </div>
 
@@ -34,7 +34,7 @@ export default function Pricing() {
               "Acceso al curso comprado",
               "Lecciones desbloqueadas por compra",
               "Actualizaciones del curso incluidas",
-              "Pago unico seguro con Stripe",
+              "Pago unico seguro",
             ].map((feature, index) => (
               <div key={index} className="flex items-center gap-3">
                 <Check className="w-5 h-5 text-neutral-500" />
