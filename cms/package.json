@@ -21,8 +21,5 @@
   "engines": {
     "node": ">=20.0.0 <=24.x.x",
     "npm": ">=9.0.0"
-  },
-  "strapi": {
-    "uuid": "97df3ca0-6c6f-4af3-89a6-c5e3c64d6a41"
   }
 }
