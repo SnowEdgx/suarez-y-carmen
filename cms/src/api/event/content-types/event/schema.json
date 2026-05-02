@@ -1,0 +1,53 @@
+{
+  "kind": "collectionType",
+  "collectionName": "cms_events",
+  "info": {
+    "singularName": "event",
+    "pluralName": "events",
+    "displayName": "Event",
+    "description": "Public agenda items synced into Supabase."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true,
+      "maxLength": 255
+    },
+    "city": {
+      "type": "string",
+      "required": true,
+      "maxLength": 255
+    },
+    "eventDate": {
+      "type": "datetime",
+      "required": true
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": ["Clase", "Taller", "Social", "Congreso"],
+      "default": "Taller",
+      "required": true
+    },
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "locationUrl": {
+      "type": "string",
+      "maxLength": 2000
+    },
+    "ticketUrl": {
+      "type": "string",
+      "maxLength": 2000
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true,
+      "required": true
+    }
+  }
+}

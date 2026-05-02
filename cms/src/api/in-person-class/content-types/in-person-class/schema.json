@@ -1,0 +1,57 @@
+{
+  "kind": "collectionType",
+  "collectionName": "cms_in_person_classes",
+  "info": {
+    "singularName": "in-person-class",
+    "pluralName": "in-person-classes",
+    "displayName": "In-person Class",
+    "description": "Editable public information for regular in-person classes."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true,
+      "maxLength": 255
+    },
+    "city": {
+      "type": "string",
+      "maxLength": 255
+    },
+    "venue": {
+      "type": "string",
+      "maxLength": 255
+    },
+    "schedule": {
+      "type": "string",
+      "maxLength": 255
+    },
+    "description": {
+      "type": "text"
+    },
+    "mapUrl": {
+      "type": "string",
+      "maxLength": 2000
+    },
+    "contactUrl": {
+      "type": "string",
+      "maxLength": 2000
+    },
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true,
+      "required": true
+    },
+    "position": {
+      "type": "integer",
+      "default": 0
+    }
+  }
+}

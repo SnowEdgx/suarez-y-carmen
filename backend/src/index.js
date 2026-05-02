@@ -1,4 +1,4 @@
-require('dotenv').config({ path: '.env.local' });
+require('dotenv').config({ path: '.env.local', quiet: true });
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -74,6 +74,7 @@ app.use(
 // Register integration routes before express.json().
 // Stripe webhooks need the raw body for signature verification.
 app.use('/api/stripe', require('./routes/stripe.routes'));
+app.use('/api/cms', require('./routes/cms.routes'));
 
 app.use(express.json({ limit: '100kb' }));
 app.use('/api/lessons', require('./routes/lesson.routes'));

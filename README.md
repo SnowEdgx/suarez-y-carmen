@@ -16,6 +16,7 @@ Plataforma full-stack de e-learning para Suarez y Carmen. El sistema cubre:
 | Frontend | Next.js (App Router), React, Tailwind | 3000 |
 | Backend | Node.js, Express, Helmet | 4000 |
 | Base de datos | Supabase (PostgreSQL, Auth, RLS) | 54321/54322 local |
+| CMS editorial | Strapi | 1337 |
 | Pagos | Stripe (Checkout + Webhooks) | - |
 
 ## Estructura
@@ -34,6 +35,11 @@ suarez-y-carmen/
 |   |   |-- controllers/
 |   |   |-- routes/
 |   |   `-- index.js
+|   |-- Dockerfile.dev
+|   `-- .env.example
+|-- cms/
+|   |-- src/
+|   |-- config/
 |   |-- Dockerfile.dev
 |   `-- .env.example
 |-- supabase/
@@ -71,6 +77,7 @@ npm run seed:local-content
 URLs:
 - Frontend: http://localhost:3000
 - Backend health: http://localhost:4000/api/health
+- Strapi CMS: http://localhost:1337/admin
 - Supabase Studio: http://localhost:54323
 - Inbucket/Mailpit local: http://localhost:54324
 
@@ -88,6 +95,7 @@ npx supabase stop
 No se versionan claves reales. Crea:
 - `frontend/.env.local` desde `frontend/.env.example`
 - `backend/.env.local` desde `backend/.env.example`
+- `cms/.env.local` desde `cms/.env.example` si se ejecuta Strapi fuera de Docker Compose
 - `supabase/.env.local` desde `supabase/.env.example` (SMTP local)
 
 ## Politica SQL y email auth
@@ -97,5 +105,7 @@ No se versionan claves reales. Crea:
 - Email auth: Supabase Auth + SMTP (Resend)
 - Templates: `supabase/templates/*.html` (fuente en `frontend/scripts/build-auth-email-templates.mjs`)
 - Seed local: `backend/scripts/seed-local-content.mjs`
+- CMS editorial: `cms` (Strapi), sincronizado con Supabase mediante `POST /api/cms/sync`
 
 Mas detalle en `docs/email-and-sql-policy.md`.
+Integracion CMS en `docs/cms-strapi-integration.md`.

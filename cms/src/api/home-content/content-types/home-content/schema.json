@@ -1,0 +1,46 @@
+{
+  "kind": "singleType",
+  "collectionName": "cms_home_content",
+  "info": {
+    "singularName": "home-content",
+    "pluralName": "home-contents",
+    "displayName": "Home Content",
+    "description": "Editable public home page copy and calls to action."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "heroEyebrow": {
+      "type": "string",
+      "maxLength": 160
+    },
+    "heroTitle": {
+      "type": "string",
+      "maxLength": 255
+    },
+    "heroSubtitle": {
+      "type": "text"
+    },
+    "heroVideoUrl": {
+      "type": "string",
+      "maxLength": 2000
+    },
+    "primaryCtaLabel": {
+      "type": "string",
+      "maxLength": 120
+    },
+    "primaryCtaHref": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "secondaryCtaLabel": {
+      "type": "string",
+      "maxLength": 120
+    },
+    "secondaryCtaHref": {
+      "type": "string",
+      "maxLength": 500
+    }
+  }
+}

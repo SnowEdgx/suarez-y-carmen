@@ -1,0 +1,28 @@
+{
+  "name": "suarez-y-carmen-cms",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Editorial CMS for Suarez y Carmen content.",
+  "scripts": {
+    "develop": "strapi develop",
+    "start": "strapi start",
+    "build": "strapi build",
+    "strapi": "strapi"
+  },
+  "dependencies": {
+    "@strapi/strapi": "5.43.0",
+    "esbuild": "0.25.12",
+    "pg": "8.16.3",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-router-dom": "6.30.3",
+    "styled-components": "6.1.19"
+  },
+  "engines": {
+    "node": ">=20.0.0 <=24.x.x",
+    "npm": ">=9.0.0"
+  },
+  "strapi": {
+    "uuid": "97df3ca0-6c6f-4af3-89a6-c5e3c64d6a41"
+  }
+}

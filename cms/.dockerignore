@@ -1,0 +1,15 @@
+node_modules
+.tmp
+.strapi
+.strapi-updater.json
+build
+dist
+types/generated
+public/uploads
+.env
+.env.*
+!.env.example
+package-lock.json
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*

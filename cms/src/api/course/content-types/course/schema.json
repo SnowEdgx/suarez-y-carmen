@@ -1,0 +1,55 @@
+{
+  "kind": "collectionType",
+  "collectionName": "cms_courses",
+  "info": {
+    "singularName": "course",
+    "pluralName": "courses",
+    "displayName": "Course",
+    "description": "Editorial course metadata synced into Supabase."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true,
+      "maxLength": 255
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "title",
+      "required": true
+    },
+    "description": {
+      "type": "text"
+    },
+    "level": {
+      "type": "enumeration",
+      "enum": ["B\u00e1sico", "Intermedio", "Avanzado", "Masterclass"],
+      "default": "B\u00e1sico",
+      "required": true
+    },
+    "priceCents": {
+      "type": "integer",
+      "min": 1,
+      "default": 2900,
+      "required": true
+    },
+    "order": {
+      "type": "integer",
+      "default": 0
+    },
+    "cover": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "lessons": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::lesson.lesson",
+      "mappedBy": "course"
+    }
+  }
+}

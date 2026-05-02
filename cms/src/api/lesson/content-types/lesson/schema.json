@@ -1,0 +1,48 @@
+{
+  "kind": "collectionType",
+  "collectionName": "cms_lessons",
+  "info": {
+    "singularName": "lesson",
+    "pluralName": "lessons",
+    "displayName": "Lesson",
+    "description": "Editorial lesson metadata synced into Supabase."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "course": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::course.course",
+      "inversedBy": "lessons",
+      "required": true
+    },
+    "title": {
+      "type": "string",
+      "required": true,
+      "maxLength": 255
+    },
+    "description": {
+      "type": "text"
+    },
+    "position": {
+      "type": "integer",
+      "min": 1,
+      "required": true
+    },
+    "durationSeconds": {
+      "type": "integer",
+      "min": 0
+    },
+    "isFreePreview": {
+      "type": "boolean",
+      "default": false,
+      "required": true
+    },
+    "videoStoragePath": {
+      "type": "string",
+      "maxLength": 1000
+    }
+  }
+}

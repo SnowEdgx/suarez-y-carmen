@@ -1,0 +1,28 @@
+{
+  "kind": "collectionType",
+  "collectionName": "cms_faqs",
+  "info": {
+    "singularName": "faq",
+    "pluralName": "faqs",
+    "displayName": "FAQ",
+    "description": "Editable frequently asked questions."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "question": {
+      "type": "string",
+      "required": true,
+      "maxLength": 255
+    },
+    "answer": {
+      "type": "richtext",
+      "required": true
+    },
+    "position": {
+      "type": "integer",
+      "default": 0
+    }
+  }
+}

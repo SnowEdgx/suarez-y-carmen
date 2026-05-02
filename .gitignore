@@ -23,9 +23,22 @@ frontend/build/
 
 # Node.js
 node_modules/
+cms/node_modules/
 npm-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+
+# Strapi CMS
+cms/.tmp/
+cms/.strapi/
+cms/.strapi-updater.json
+cms/build/
+cms/dist/
+cms/types/generated/
+cms/package-lock.json
+cms/public/uploads/*
+!cms/public/uploads/.gitkeep
+cms-build.log
 
 # OS
 .DS_Store

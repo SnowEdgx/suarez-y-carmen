@@ -18,6 +18,7 @@ services:
       - "host.docker.internal:host-gateway"
     depends_on:
       - backend
+      - cms
 
   backend:
     build:
@@ -34,5 +35,55 @@ services:
       - NODE_ENV=development
       - RUNNING_IN_DOCKER=true
       - SUPABASE_URL=http://host.docker.internal:54321
+      - CMS_SYNC_TOKEN=${CMS_SYNC_TOKEN:-local-cms-sync-token-change-me}
     extra_hosts:
       - "host.docker.internal:host-gateway"
+
+  cms-db:
+    image: postgres:16-alpine
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_DB=syc_cms
+      - POSTGRES_USER=syc_cms
+      - POSTGRES_PASSWORD=syc_cms_password
+    volumes:
+      - cms-db-data:/var/lib/postgresql/data
+
+  cms:
+    build:
+      context: ./cms
+      dockerfile: Dockerfile.dev
+    ports:
+      - "1337:1337"
+    volumes:
+      - ./cms:/app
+      - /app/node_modules
+      - /app/.tmp
+      - /app/build
+    environment:
+      - NODE_ENV=development
+      - HOST=0.0.0.0
+      - PORT=1337
+      - PUBLIC_URL=http://localhost:1337
+      - DATABASE_CLIENT=postgres
+      - DATABASE_HOST=cms-db
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=syc_cms
+      - DATABASE_USERNAME=syc_cms
+      - DATABASE_PASSWORD=syc_cms_password
+      - APP_KEYS=local-app-key-a,local-app-key-b
+      - API_TOKEN_SALT=local-api-token-salt
+      - ADMIN_JWT_SECRET=local-admin-jwt-secret
+      - ADMIN_ENCRYPTION_KEY=local-admin-encryption-key-change-me
+      - TRANSFER_TOKEN_SALT=local-transfer-token-salt
+      - JWT_SECRET=local-jwt-secret
+      - CMS_SYNC_BACKEND_URL=http://backend:4000
+      - CMS_SYNC_TOKEN=${CMS_SYNC_TOKEN:-local-cms-sync-token-change-me}
+      - STRAPI_TELEMETRY_DISABLED=true
+    depends_on:
+      - backend
+      - cms-db
+
+volumes:
+  cms-db-data:

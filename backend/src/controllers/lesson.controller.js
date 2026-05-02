@@ -154,13 +154,16 @@ exports.getLessonVideoUrl = async (req, res) => {
 
     const { data: lesson, error: lessonError } = await supabase
       .from('lessons')
-      .select('id, course_id, is_free_preview, video_url, video_storage_path')
+      .select('id, course_id, is_free_preview, is_published, video_url, video_storage_path')
       .eq('id', lessonId)
       .maybeSingle();
 
     if (lessonError) throw lessonError;
     if (!lesson) {
       return res.status(404).json({ error: 'Leccion no encontrada.' });
+    }
+    if (!lesson.is_published) {
+      return res.status(404).json({ error: 'Leccion no disponible.' });
     }
 
     const isPublishedCourse = await lessonBelongsToPublishedCourse(lesson.course_id);
