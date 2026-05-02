@@ -61,6 +61,13 @@ powershell -ExecutionPolicy Bypass -File .\scripts\supabase-start.ps1
 docker compose up -d --build
 ```
 
+3. Cargar contenido local de demo (cursos, lecciones, eventos y videos privados de prueba):
+
+```bash
+cd backend
+npm run seed:local-content
+```
+
 URLs:
 - Frontend: http://localhost:3000
 - Backend health: http://localhost:4000/api/health
@@ -89,5 +96,6 @@ No se versionan claves reales. Crea:
 - SQL ad-hoc no versionado: `supabase/snippets`
 - Email auth: Supabase Auth + SMTP (Resend)
 - Templates: `supabase/templates/*.html` (fuente en `frontend/scripts/build-auth-email-templates.mjs`)
+- Seed local: `backend/scripts/seed-local-content.mjs`
 
 Mas detalle en `docs/email-and-sql-policy.md`.
