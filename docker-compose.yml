@@ -17,8 +17,16 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
-      - backend
-      - cms
+      backend:
+        condition: service_healthy
+      cms:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000').then((res) => process.exit(res.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
 
   backend:
     build:
@@ -38,6 +46,12 @@ services:
       - CMS_SYNC_TOKEN=${CMS_SYNC_TOKEN:-local-cms-sync-token-change-me}
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:4000/api/health').then((res) => process.exit(res.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
 
   cms-db:
     image: postgres:16-alpine
@@ -49,6 +63,12 @@ services:
       - POSTGRES_PASSWORD=syc_cms_password
     volumes:
       - cms-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U syc_cms -d syc_cms"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
   cms:
     build:
@@ -82,8 +102,16 @@ services:
       - CMS_SYNC_TOKEN=${CMS_SYNC_TOKEN:-local-cms-sync-token-change-me}
       - STRAPI_TELEMETRY_DISABLED=true
     depends_on:
-      - backend
-      - cms-db
+      backend:
+        condition: service_healthy
+      cms-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:1337/admin').then((res) => process.exit(res.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 45s
 
 volumes:
   cms-db-data:
