@@ -10,6 +10,7 @@
 
 # Supabase (versionar solo migraciones)
 supabase/snippets/*.sql
+supabase/.branches/
 supabase/.temp/
 
 # Next.js

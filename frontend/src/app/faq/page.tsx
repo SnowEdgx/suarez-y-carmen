@@ -26,16 +26,16 @@ export default async function FaqPage() {
           </section>
 
           <section className="border border-neutral-800 rounded-2xl p-6 bg-neutral-900/40">
-            <h2 className="text-white font-semibold mb-2">Existe suscripcion mensual</h2>
+            <h2 className="text-white font-semibold mb-2">Como accedo al contenido comprado</h2>
             <p className="text-neutral-400 text-sm">
-              No. El modelo vigente es pago singular por curso.
+              Inicia sesion con tu cuenta verificada y entra en el detalle del curso. Si el pago esta confirmado, las lecciones completas aparecen desbloqueadas.
             </p>
           </section>
 
           <section className="border border-neutral-800 rounded-2xl p-6 bg-neutral-900/40">
-            <h2 className="text-white font-semibold mb-2">Como accedo al contenido comprado</h2>
+            <h2 className="text-white font-semibold mb-2">Que acceso incluye la compra</h2>
             <p className="text-neutral-400 text-sm">
-              Inicia sesion con tu cuenta verificada y entra en el detalle del curso. Si el pago esta confirmado, las lecciones completas aparecen desbloqueadas.
+              La compra desbloquea las lecciones completas del curso adquirido y permite guardar tu progreso dentro de la cuenta.
             </p>
           </section>
 

@@ -46,21 +46,34 @@ suarez-y-carmen/
 
 Requisitos:
 - Docker Desktop activo
+- Supabase CLI disponible via `npx`
+- Variables locales creadas desde los `.env.example`
 
-Comando:
+1. Arrancar Supabase local desde la raiz del repo:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\supabase-start.ps1
+```
+
+2. Arrancar frontend y backend:
 
 ```bash
-docker compose up --build
+docker compose up -d --build
 ```
 
 URLs:
 - Frontend: http://localhost:3000
 - Backend health: http://localhost:4000/api/health
+- Supabase Studio: http://localhost:54323
+- Inbucket/Mailpit local: http://localhost:54324
+
+Nota: no ejecutes comandos de Supabase con `--workdir supabase`; este proyecto usa `supabase/` como carpeta de configuracion dentro de la raiz del repo.
 
 Parada:
 
 ```bash
 docker compose down
+npx supabase stop
 ```
 
 ## Variables de entorno
