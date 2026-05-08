@@ -1,7 +1,7 @@
-import Image from "next/image";
 import Link from "next/link";
 import { PlayCircle } from "lucide-react";
 import { startCourseCheckout } from "@/app/courses/actions";
+import { getCourseImageUrl } from "@/lib/course-images";
 
 type CourseItem = {
   id: string;
@@ -52,33 +52,29 @@ export default function CourseGrid({ courses, purchasedCourseIds, isAuthenticate
             {courses.map((course) => {
               const isOwned = purchasedSet.has(course.id);
               const hasPrice = Number.isInteger(course.price_cents) && (course.price_cents as number) > 0;
+              const imageSrc = getCourseImageUrl(course.cover_image_url);
 
               return (
                 <article key={course.id} className="group relative rounded-xl overflow-hidden bg-neutral-900 border border-neutral-800 flex flex-col min-h-[420px]">
-                  <div className="relative aspect-[3/4] bg-neutral-950">
-                    <Image
-                      src={
-                        course.cover_image_url ||
-                        "https://images.unsplash.com/photo-1516997121675-4c2d1684aa3e?q=80&w=900&auto=format&fit=crop"
-                      }
-                      alt={course.title}
-                      fill
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-75 group-hover:opacity-100"
+                  <div className="relative isolate aspect-[3/4] shrink-0 overflow-hidden bg-neutral-950">
+                    <div
+                      aria-hidden="true"
+                      className="absolute inset-0 h-full w-full bg-cover bg-center opacity-75 transition-opacity duration-500 group-hover:opacity-100"
+                      style={{ backgroundImage: `url(${JSON.stringify(imageSrc)})` }}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent"></div>
+                    <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/90 via-black/25 to-transparent"></div>
 
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                    <div className="absolute inset-0 z-20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
                       <PlayCircle className="w-14 h-14 text-white drop-shadow-2xl" />
                     </div>
 
-                    <div className="absolute bottom-0 left-0 w-full p-5">
+                    <div className="absolute bottom-0 left-0 z-20 w-full p-5">
                       <span className="text-xs font-bold uppercase tracking-wider text-red-500 mb-2 block">{course.level || "Curso"}</span>
                       <h3 className="text-xl font-bold text-white leading-tight">{course.title}</h3>
                     </div>
                   </div>
 
-                  <div className="p-5 flex-1 flex flex-col gap-4">
+                  <div className="relative z-30 bg-neutral-900 p-5 flex-1 flex flex-col gap-4">
                     <p className="text-sm text-neutral-400 line-clamp-3 min-h-[60px]">
                       {course.description || "Contenido completo para mejorar tecnica, musicalidad y conexion."}
                     </p>

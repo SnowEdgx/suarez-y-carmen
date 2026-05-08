@@ -1,5 +1,6 @@
 import { Check } from "lucide-react";
 import Link from "next/link";
+import HomeSectionLink from "./HomeSectionLink";
 
 export default function Pricing() {
   return (
@@ -52,12 +53,12 @@ export default function Pricing() {
           <div className="mb-8">
             <span className="text-neutral-300 text-lg">Informacion actualizada en la web y redes.</span>
           </div>
-          <Link
-            href="/#about"
+          <HomeSectionLink
+            sectionId="about"
             className="w-full text-center py-4 border border-neutral-700 hover:bg-neutral-800 text-white rounded-full font-semibold transition-colors mb-8 block"
           >
             Conocer mas
-          </Link>
+          </HomeSectionLink>
           <div className="space-y-4 mt-auto">
             {[
               "Agenda publica con redireccion a ticketera oficial",

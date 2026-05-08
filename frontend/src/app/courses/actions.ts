@@ -2,10 +2,7 @@
 
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-
-function getBackendUrl() {
-  return process.env.BACKEND_URL ?? 'http://localhost:4000'
-}
+import { getBackendUrl } from '@/lib/backend-url'
 
 function getSafePath(rawPath: FormDataEntryValue | null, fallback = '/courses') {
   if (!rawPath || typeof rawPath !== 'string') return fallback
@@ -38,9 +35,11 @@ export async function startCourseCheckout(formData: FormData) {
   const supabase = await createClient()
 
   const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  const {
     data: { session },
   } = await supabase.auth.getSession()
-  const user = session?.user ?? null
 
   if (!user || !session?.access_token) {
     redirect(`/login?next=${encodeURIComponent(returnTo)}`)

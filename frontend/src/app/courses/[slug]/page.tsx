@@ -3,6 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
+import { getBackendUrl } from "@/lib/backend-url";
+import { getCourseImageUrl, shouldBypassImageOptimization } from "@/lib/course-images";
 import { createClient } from "@/lib/supabase/server";
 import { startCourseCheckout } from "../actions";
 import { setLessonProgress } from "./actions";
@@ -35,10 +37,6 @@ type CourseDetailPageProps = {
   params: Promise<{ slug: string }>;
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
-
-function getBackendUrl() {
-  return process.env.BACKEND_URL ?? "http://localhost:4000";
-}
 
 function formatPrice(priceCents: number | null) {
   if (!Number.isInteger(priceCents ?? null) || (priceCents as number) <= 0) {
@@ -113,10 +111,12 @@ export default async function CourseDetailPage({ params, searchParams }: CourseD
 
   const supabase = await createClient();
   const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const {
     data: { session },
   } = await supabase.auth.getSession();
 
-  const user = session?.user ?? null;
   const accessToken = session?.access_token ?? null;
 
   const courseResponse = await supabase
@@ -182,6 +182,7 @@ export default async function CourseDetailPage({ params, searchParams }: CourseD
   const completedAccessibleLessons = accessibleLessons.filter((lesson) => completedLessonSet.has(lesson.id)).length;
   const progressPercent =
     accessibleLessons.length > 0 ? Math.round((completedAccessibleLessons / accessibleLessons.length) * 100) : 0;
+  const imageSrc = getCourseImageUrl(course.cover_image_url);
 
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 font-sans selection:bg-red-600 selection:text-white flex flex-col">
@@ -251,12 +252,10 @@ export default async function CourseDetailPage({ params, searchParams }: CourseD
 
           <div className="relative rounded-2xl overflow-hidden border border-neutral-800 bg-neutral-900/50 min-h-[420px]">
             <Image
-              src={
-                course.cover_image_url ||
-                "https://images.unsplash.com/photo-1516997121675-4c2d1684aa3e?q=80&w=1200&auto=format&fit=crop"
-              }
+              src={imageSrc}
               alt={course.title}
               fill
+              unoptimized={shouldBypassImageOptimization(imageSrc)}
               sizes="(max-width: 1024px) 100vw, 50vw"
               className="w-full h-full object-cover"
             />

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Play } from "lucide-react";
 import { STORAGE_ASSETS } from "@/lib/constants";
+import HomeSectionLink from "./HomeSectionLink";
 
 export default function Hero() {
   return (
@@ -34,12 +35,12 @@ export default function Hero() {
           >
             Ver catalogo
           </Link>
-          <Link
-            href="/courses"
+          <HomeSectionLink
+            sectionId="methodology"
             className="flex items-center justify-center gap-2 px-10 py-4 sm:px-12 sm:py-5 bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-sm text-white text-lg md:text-xl font-semibold rounded-full transition-all duration-300"
           >
-            <Play size={20} fill="currentColor" /> Ver trailer
-          </Link>
+            <Play size={20} fill="currentColor" /> Ver metodologia
+          </HomeSectionLink>
         </div>
       </div>
     </section>

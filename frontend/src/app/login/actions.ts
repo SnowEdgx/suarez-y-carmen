@@ -64,7 +64,7 @@ export async function login(formData: FormData) {
   const password = typeof formData.get('password') === 'string' ? (formData.get('password') as string) : ''
 
   if (!isValidEmail(email) || password.length < 1) {
-    return { error: 'Introduce un correo valido y tu contrasena.' }
+    return { error: 'Introduce un correo valido y tu contrase\u00f1a.' }
   }
 
   const { data: authData, error } = await supabase.auth.signInWithPassword({
@@ -77,7 +77,7 @@ export async function login(formData: FormData) {
     if (error.message.toLowerCase().includes('email not confirmed')) {
       return { error: EMAIL_VERIFICATION_ERROR }
     }
-    return { error: 'Credenciales invalidas. Verifica tu correo y contrasena.' }
+    return { error: 'Credenciales invalidas. Verifica tu correo y contrase\u00f1a.' }
   }
 
   if (!isEmailVerified(authData.user)) {
@@ -98,7 +98,7 @@ export async function signup(formData: FormData) {
   const name = typeof formData.get('name') === 'string' ? (formData.get('name') as string).trim() : ''
 
   if (password.length < 6) {
-    return { error: 'La contrasena debe tener al menos 6 caracteres.' }
+    return { error: 'La contrase\u00f1a debe tener al menos 6 caracteres.' }
   }
   if (!isValidEmail(email)) {
     return { error: 'Introduce un correo valido.' }
@@ -184,7 +184,7 @@ export async function requestPasswordRecovery(formData: FormData) {
 
   return {
     success:
-      'Si el correo existe en la plataforma, te hemos enviado un enlace para restablecer tu contrasena.',
+      'Si el correo existe en la plataforma, te hemos enviado un enlace para restablecer tu contrase\u00f1a.',
   }
 }
 
@@ -195,11 +195,11 @@ export async function updatePassword(formData: FormData) {
     typeof formData.get('confirmPassword') === 'string' ? (formData.get('confirmPassword') as string) : ''
 
   if (password.length < 8) {
-    return { error: 'La nueva contrasena debe tener al menos 8 caracteres.' }
+    return { error: 'La nueva contrase\u00f1a debe tener al menos 8 caracteres.' }
   }
 
   if (password !== confirmPassword) {
-    return { error: 'Las contrasenas no coinciden.' }
+    return { error: 'Las contrase\u00f1as no coinciden.' }
   }
 
   const {
@@ -214,7 +214,7 @@ export async function updatePassword(formData: FormData) {
 
   if (error) {
     console.error('[Login Action] Password update error:', error)
-    return { error: 'No pudimos actualizar la contrasena. Intentalo de nuevo.' }
+    return { error: 'No pudimos actualizar la contrase\u00f1a. Intentalo de nuevo.' }
   }
 
   await supabase.auth.signOut()

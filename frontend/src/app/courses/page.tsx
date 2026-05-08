@@ -1,6 +1,7 @@
 import Navbar from '@/components/home/Navbar'
 import Footer from '@/components/home/Footer'
 import CourseGrid from '@/components/home/CourseGrid'
+import { getBackendUrl } from '@/lib/backend-url'
 import { createClient } from '@/lib/supabase/server'
 
 type CourseRow = {
@@ -24,10 +25,6 @@ type CoursesPageProps = {
 type CheckoutMessage = {
   type: 'error' | 'info' | 'success'
   text: string
-}
-
-function getBackendUrl() {
-  return process.env.BACKEND_URL ?? 'http://localhost:4000'
 }
 
 function pickSingleParam(value: string | string[] | undefined) {
@@ -190,10 +187,12 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
 
   const supabase = await createClient()
   const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  const {
     data: { session },
   } = await supabase.auth.getSession()
 
-  const user = session?.user ?? null
   const accessToken = session?.access_token ?? null
 
   const stripeReturnMessage = await resolveStripeReturnMessage({

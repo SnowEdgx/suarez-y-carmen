@@ -1,6 +1,26 @@
 import Image from "next/image";
 import { STORAGE_ASSETS } from "@/lib/constants";
 
+type AboutImageProps = {
+  src: string;
+  alt: string;
+  heightClassName: string;
+};
+
+function AboutImage({ src, alt, heightClassName }: AboutImageProps) {
+  return (
+    <div className={`relative overflow-hidden rounded-2xl shadow-lg ${heightClassName}`}>
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        sizes="(max-width: 1024px) 50vw, 25vw"
+        className="object-cover"
+      />
+    </div>
+  );
+}
+
 export default function About() {
   return (
     <section id="about" className="py-24 px-6 md:px-12 max-w-7xl mx-auto">
@@ -31,35 +51,27 @@ export default function About() {
 
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-4">
-            <Image
+            <AboutImage
               src={STORAGE_ASSETS.IMG_2681}
               alt="Suarez y Carmen 1"
-              width={800}
-              height={1200}
-              className="rounded-2xl object-cover h-64 w-full shadow-lg"
+              heightClassName="h-64"
             />
-            <Image
+            <AboutImage
               src={STORAGE_ASSETS.IMG_2872}
               alt="Suarez y Carmen 2"
-              width={800}
-              height={1000}
-              className="rounded-2xl object-cover h-48 w-full shadow-lg"
+              heightClassName="h-48"
             />
           </div>
           <div className="flex flex-col gap-4 pt-12">
-            <Image
+            <AboutImage
               src={STORAGE_ASSETS.IMG_4784}
               alt="Suarez y Carmen 3"
-              width={800}
-              height={1000}
-              className="rounded-2xl object-cover h-48 w-full shadow-lg"
+              heightClassName="h-48"
             />
-            <Image
+            <AboutImage
               src={STORAGE_ASSETS.IMG_4587}
               alt="Suarez y Carmen 4"
-              width={800}
-              height={1200}
-              className="rounded-2xl object-cover h-64 w-full shadow-lg"
+              heightClassName="h-64"
             />
           </div>
         </div>

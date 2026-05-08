@@ -59,7 +59,7 @@ function LoginPageContent() {
       return { type: 'success' as const, text: 'Correo verificado correctamente. Ya puedes iniciar sesion.' }
     }
     if (isPasswordUpdated) {
-      return { type: 'success' as const, text: 'Contrasena actualizada. Ya puedes iniciar sesion.' }
+      return { type: 'success' as const, text: 'Contrase\u00f1a actualizada. Ya puedes iniciar sesion.' }
     }
     return null
   }, [successMessage, isVerifiedRedirect, isPasswordUpdated])
@@ -231,14 +231,14 @@ function LoginPageContent() {
             <div>
               <div className="flex justify-between items-center mb-1.5">
                 <label className="block text-sm font-medium text-neutral-400" htmlFor="password">
-                  Contrasena
+                  {'Contrase\u00f1a'}
                 </label>
                 {isLoginMode && (
                   <Link
                     href="/auth/recover"
                     className="text-xs text-neutral-400 hover:text-white transition-colors"
                   >
-                    He olvidado mi contrasena
+                    {'He olvidado mi contrase\u00f1a'}
                   </Link>
                 )}
               </div>

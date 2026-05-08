@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import UserMenu from "./UserMenu";
+import HomeSectionLink from "./HomeSectionLink";
 import { signOutAction } from "@/app/auth/actions";
 
 interface NavbarProps {
@@ -41,12 +42,18 @@ export default function Navbar({ user = null }: NavbarProps) {
           <Link href="/courses" className="text-sm font-medium text-neutral-300 hover:text-white transition-colors">
             Cursos
           </Link>
-          <Link href="/#methodology" className="text-sm font-medium text-neutral-300 hover:text-white transition-colors">
+          <HomeSectionLink
+            sectionId="methodology"
+            className="text-sm font-medium text-neutral-300 hover:text-white transition-colors"
+          >
             Metodologia
-          </Link>
-          <Link href="/#about" className="text-sm font-medium text-neutral-300 hover:text-white transition-colors">
+          </HomeSectionLink>
+          <HomeSectionLink
+            sectionId="about"
+            className="text-sm font-medium text-neutral-300 hover:text-white transition-colors"
+          >
             Sobre nosotros
-          </Link>
+          </HomeSectionLink>
         </nav>
 
         <div className="hidden md:flex items-center gap-6">
@@ -80,12 +87,20 @@ export default function Navbar({ user = null }: NavbarProps) {
           <Link href="/courses" className="text-neutral-200" onClick={() => setIsMobileMenuOpen(false)}>
             Cursos
           </Link>
-          <Link href="/#methodology" className="text-neutral-200" onClick={() => setIsMobileMenuOpen(false)}>
+          <HomeSectionLink
+            sectionId="methodology"
+            className="text-neutral-200"
+            onNavigate={() => setIsMobileMenuOpen(false)}
+          >
             Metodologia
-          </Link>
-          <Link href="/#about" className="text-neutral-200" onClick={() => setIsMobileMenuOpen(false)}>
+          </HomeSectionLink>
+          <HomeSectionLink
+            sectionId="about"
+            className="text-neutral-200"
+            onNavigate={() => setIsMobileMenuOpen(false)}
+          >
             Sobre nosotros
-          </Link>
+          </HomeSectionLink>
           <hr className="border-neutral-800 my-2" />
           {user ? (
             <>

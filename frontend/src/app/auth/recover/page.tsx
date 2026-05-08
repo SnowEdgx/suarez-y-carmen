@@ -56,7 +56,7 @@ export default function RecoverPasswordPage() {
 
         <div className="relative w-full max-w-md bg-neutral-900/60 backdrop-blur-xl border border-neutral-800 p-8 rounded-3xl shadow-2xl">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-serif font-bold text-white mb-2">Recuperar contrasena</h1>
+            <h1 className="text-3xl font-serif font-bold text-white mb-2">{'Recuperar contrase\u00f1a'}</h1>
             <p className="text-neutral-400">
               Introduce tu correo y te enviaremos un enlace seguro para restablecer tu acceso.
             </p>

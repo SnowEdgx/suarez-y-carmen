@@ -29,7 +29,7 @@ export default function UpdatePasswordForm() {
       if (isRedirectError(error)) {
         throw error
       }
-      setErrorMessage('No pudimos actualizar tu contrasena. Intentalo de nuevo.')
+      setErrorMessage('No pudimos actualizar tu contrase\u00f1a. Intentalo de nuevo.')
     } finally {
       setIsPending(false)
     }
@@ -38,8 +38,8 @@ export default function UpdatePasswordForm() {
   return (
     <div className="relative w-full max-w-md bg-neutral-900/60 backdrop-blur-xl border border-neutral-800 p-8 rounded-3xl shadow-2xl">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-serif font-bold text-white mb-2">Nueva contrasena</h1>
-        <p className="text-neutral-400">Define una contrasena segura para volver a entrar en tu cuenta.</p>
+        <h1 className="text-3xl font-serif font-bold text-white mb-2">{'Nueva contrase\u00f1a'}</h1>
+        <p className="text-neutral-400">{'Define una contrase\u00f1a segura para volver a entrar en tu cuenta.'}</p>
       </div>
 
       {errorMessage && (
@@ -51,7 +51,7 @@ export default function UpdatePasswordForm() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-neutral-400 mb-1.5" htmlFor="password">
-            Nueva contrasena
+            {'Nueva contrase\u00f1a'}
           </label>
           <input
             id="password"
@@ -66,7 +66,7 @@ export default function UpdatePasswordForm() {
 
         <div>
           <label className="block text-sm font-medium text-neutral-400 mb-1.5" htmlFor="confirmPassword">
-            Repite la contrasena
+            {'Repite la contrase\u00f1a'}
           </label>
           <input
             id="confirmPassword"
@@ -75,7 +75,7 @@ export default function UpdatePasswordForm() {
             minLength={8}
             required
             className="w-full bg-neutral-950 border border-neutral-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-600/50 transition-all font-medium placeholder-neutral-600"
-            placeholder="Repite tu contrasena"
+            placeholder="Repite tu contrase\u00f1a"
           />
         </div>
 
@@ -84,7 +84,7 @@ export default function UpdatePasswordForm() {
           disabled={isPending}
           className="w-full py-3.5 mt-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
         >
-          {isPending ? 'Guardando...' : 'Actualizar contrasena'}
+          {isPending ? 'Guardando...' : 'Actualizar contrase\u00f1a'}
         </button>
       </form>
 
