@@ -13,9 +13,10 @@ function getCoursePath(rawSlug: FormDataEntryValue | null) {
   return `/courses/${slug}`
 }
 
-function buildProgressPath(coursePath: string, code: string) {
+function buildProgressPath(coursePath: string, code: string, lessonId?: string) {
   const separator = coursePath.includes('?') ? '&' : '?'
-  return `${coursePath}${separator}progress=${encodeURIComponent(code)}`
+  const lessonParam = lessonId && UUID_REGEX.test(lessonId) ? `lesson=${encodeURIComponent(lessonId)}&` : ''
+  return `${coursePath}${separator}${lessonParam}progress=${encodeURIComponent(code)}`
 }
 
 export async function setLessonProgress(formData: FormData) {
@@ -50,9 +51,9 @@ export async function setLessonProgress(formData: FormData) {
 
   if (error) {
     console.error('[Course Progress Action] Failed to update lesson progress:', error.message)
-    redirect(buildProgressPath(coursePath, 'error'))
+    redirect(buildProgressPath(coursePath, 'error', lessonId))
   }
 
   revalidatePath(coursePath)
-  redirect(buildProgressPath(coursePath, shouldComplete ? 'completed' : 'updated'))
+  redirect(buildProgressPath(coursePath, shouldComplete ? 'completed' : 'updated', lessonId))
 }

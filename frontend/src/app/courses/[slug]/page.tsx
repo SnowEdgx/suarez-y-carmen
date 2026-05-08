@@ -3,6 +3,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
+import {
+  pickSingleParam,
+  resolveCheckoutCodeMessage,
+  resolveStripeReturnMessage,
+  type CheckoutMessage,
+} from "@/lib/checkout-status";
 import { getBackendUrl } from "@/lib/backend-url";
 import { getCourseImageUrl, shouldBypassImageOptimization } from "@/lib/course-images";
 import { createClient } from "@/lib/supabase/server";
@@ -37,6 +43,8 @@ type CourseDetailPageProps = {
   params: Promise<{ slug: string }>;
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{12}$/i;
 
 function formatPrice(priceCents: number | null) {
   if (!Number.isInteger(priceCents ?? null) || (priceCents as number) <= 0) {
@@ -85,29 +93,54 @@ async function resolveLessonVideoUrl(options: {
   return typeof payload?.url === "string" ? payload.url : null;
 }
 
-function pickSingleParam(value: string | string[] | undefined) {
-  return Array.isArray(value) ? value[0] ?? null : value ?? null;
-}
-
 function resolveProgressMessage(code: string | null) {
   switch (code) {
     case "completed":
-      return { type: "success" as const, text: "Leccion marcada como completada." };
+      return { type: "success" as const, text: "Lecci\u00f3n marcada como completada." };
     case "updated":
       return { type: "info" as const, text: "Progreso actualizado." };
     case "invalid_lesson":
-      return { type: "error" as const, text: "No pudimos identificar la leccion seleccionada." };
+      return { type: "error" as const, text: "No pudimos identificar la lecci\u00f3n seleccionada." };
     case "error":
-      return { type: "error" as const, text: "No pudimos guardar tu progreso. Intentalo de nuevo." };
+      return { type: "error" as const, text: "No pudimos guardar tu progreso. Int\u00e9ntalo de nuevo." };
     default:
       return null;
   }
+}
+
+function resolveLessonMessage(options: {
+  requestedLessonId: string | null;
+  requestedLesson: LessonRow | null;
+  isRequestedLessonAccessible: boolean;
+}): CheckoutMessage | null {
+  const { requestedLessonId, requestedLesson, isRequestedLessonAccessible } = options;
+
+  if (!requestedLessonId) return null;
+
+  if (!UUID_REGEX.test(requestedLessonId)) {
+    return { type: "error", text: "No pudimos abrir la lecci\u00f3n seleccionada." };
+  }
+
+  if (!requestedLesson) {
+    return { type: "error", text: "La lecci\u00f3n seleccionada no est\u00e1 disponible." };
+  }
+
+  if (!isRequestedLessonAccessible) {
+    return { type: "info", text: "Esta lecci\u00f3n forma parte del contenido completo del curso." };
+  }
+
+  return null;
 }
 
 export default async function CourseDetailPage({ params, searchParams }: CourseDetailPageProps) {
   const { slug } = await params;
   const resolvedSearchParams = searchParams ? await searchParams : {};
   const progressMessage = resolveProgressMessage(pickSingleParam(resolvedSearchParams?.progress));
+  const checkoutMessage = resolveCheckoutCodeMessage(pickSingleParam(resolvedSearchParams?.checkout));
+  const stripeSuccessParam = pickSingleParam(resolvedSearchParams?.success);
+  const stripeCanceledParam = pickSingleParam(resolvedSearchParams?.canceled);
+  const stripeSessionId = pickSingleParam(resolvedSearchParams?.session_id);
+  const requestedLessonId = pickSingleParam(resolvedSearchParams?.lesson);
 
   const supabase = await createClient();
   const {
@@ -118,6 +151,12 @@ export default async function CourseDetailPage({ params, searchParams }: CourseD
   } = await supabase.auth.getSession();
 
   const accessToken = session?.access_token ?? null;
+  const stripeReturnMessage = await resolveStripeReturnMessage({
+    sessionId: stripeSessionId,
+    wasSuccessful: stripeSuccessParam === "true",
+    wasCanceled: stripeCanceledParam === "true",
+    accessToken,
+  });
 
   const courseResponse = await supabase
     .from("courses")
@@ -155,7 +194,19 @@ export default async function CourseDetailPage({ params, searchParams }: CourseD
   const previewLessons = lessons.filter((lesson) => lesson.is_free_preview);
   const accessibleLessons = hasPurchased ? lessons : previewLessons;
   const accessibleLessonIds = new Set(accessibleLessons.map((lesson) => lesson.id));
-  const featuredLesson = accessibleLessons[0] ?? null;
+  const requestedLesson =
+    requestedLessonId && UUID_REGEX.test(requestedLessonId)
+      ? lessons.find((lesson) => lesson.id === requestedLessonId) ?? null
+      : null;
+  const isRequestedLessonAccessible = Boolean(
+    requestedLesson && accessibleLessonIds.has(requestedLesson.id)
+  );
+  const lessonMessage = resolveLessonMessage({
+    requestedLessonId,
+    requestedLesson,
+    isRequestedLessonAccessible,
+  });
+  const featuredLesson = isRequestedLessonAccessible ? requestedLesson : accessibleLessons[0] ?? null;
   const featuredLessonVideoUrl = featuredLesson
     ? await resolveLessonVideoUrl({
         lessonId: featuredLesson.id,
@@ -183,6 +234,12 @@ export default async function CourseDetailPage({ params, searchParams }: CourseD
   const progressPercent =
     accessibleLessons.length > 0 ? Math.round((completedAccessibleLessons / accessibleLessons.length) * 100) : 0;
   const imageSrc = getCourseImageUrl(course.cover_image_url);
+  const statusMessages = [checkoutMessage, stripeReturnMessage, progressMessage, lessonMessage].filter(
+    Boolean
+  ) as CheckoutMessage[];
+  const coursePath = `/courses/${course.slug}`;
+  const selectedLessonPath = featuredLesson ? `${coursePath}?lesson=${featuredLesson.id}` : coursePath;
+  const checkoutReturnPath = requestedLesson ? `${coursePath}?lesson=${requestedLesson.id}` : selectedLessonPath;
 
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 font-sans selection:bg-red-600 selection:text-white flex flex-col">
@@ -190,20 +247,25 @@ export default async function CourseDetailPage({ params, searchParams }: CourseD
 
       <main className="pt-28 pb-20 px-6 md:px-12 max-w-7xl mx-auto w-full flex-1">
         <Link href="/courses" className="text-sm text-neutral-400 hover:text-white transition-colors">
-          Volver al catalogo
+          Volver al catálogo
         </Link>
 
-        {progressMessage && (
-          <div
-            className={`mt-6 rounded-xl border px-5 py-4 text-sm ${
-              progressMessage.type === "error"
-                ? "border-red-500/30 bg-red-500/10 text-red-300"
-                : progressMessage.type === "success"
-                  ? "border-green-500/30 bg-green-500/10 text-green-200"
-                  : "border-blue-500/30 bg-blue-500/10 text-blue-200"
-            }`}
-          >
-            {progressMessage.text}
+        {statusMessages.length > 0 && (
+          <div className="mt-6 space-y-3">
+            {statusMessages.map((message) => (
+              <div
+                key={`${message.type}-${message.text}`}
+                className={`rounded-xl border px-5 py-4 text-sm ${
+                  message.type === "error"
+                    ? "border-red-500/30 bg-red-500/10 text-red-300"
+                    : message.type === "success"
+                      ? "border-green-500/30 bg-green-500/10 text-green-200"
+                      : "border-blue-500/30 bg-blue-500/10 text-blue-200"
+                }`}
+              >
+                {message.text}
+              </div>
+            ))}
           </div>
         )}
 
@@ -214,7 +276,7 @@ export default async function CourseDetailPage({ params, searchParams }: CourseD
             </span>
             <h1 className="text-4xl md:text-5xl font-bold font-serif text-white mb-4">{course.title}</h1>
             <p className="text-neutral-400 text-lg leading-relaxed">
-              {course.description || "Entrena tecnica, musicalidad y conexion con metodologia profesional."}
+              {course.description || "Entrena t\u00e9cnica, musicalidad y conexi\u00f3n con metodolog\u00eda profesional."}
             </p>
 
             <div className="mt-8 space-y-3">
@@ -231,7 +293,7 @@ export default async function CourseDetailPage({ params, searchParams }: CourseD
               ) : user ? (
                 <form action={startCourseCheckout}>
                   <input type="hidden" name="courseId" value={course.id} />
-                  <input type="hidden" name="returnTo" value={`/courses/${course.slug}`} />
+                  <input type="hidden" name="returnTo" value={checkoutReturnPath} />
                   <button
                     type="submit"
                     className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors"
@@ -241,10 +303,10 @@ export default async function CourseDetailPage({ params, searchParams }: CourseD
                 </form>
               ) : (
                 <Link
-                  href={`/login?next=/courses/${course.slug}`}
+                  href={`/login?next=${encodeURIComponent(checkoutReturnPath)}`}
                   className="inline-block px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors"
                 >
-                  Inicia sesion para comprar
+                  Inicia sesión para comprar
                 </Link>
               )}
             </div>
@@ -266,7 +328,7 @@ export default async function CourseDetailPage({ params, searchParams }: CourseD
           <div className="lg:col-span-2 rounded-2xl border border-neutral-800 bg-neutral-900/40 p-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
               <div>
-                <h2 className="text-2xl font-semibold text-white">Leccion destacada</h2>
+                <h2 className="text-2xl font-semibold text-white">Lección seleccionada</h2>
                 {user && accessibleLessons.length > 0 && (
                   <p className="text-sm text-neutral-500 mt-1">
                     {completedAccessibleLessons} de {accessibleLessons.length} lecciones completadas
@@ -300,7 +362,7 @@ export default async function CourseDetailPage({ params, searchParams }: CourseD
                   />
                 ) : (
                   <div className="rounded-xl border border-neutral-700 bg-black/60 p-6 text-sm text-neutral-400">
-                    No pudimos cargar el video ahora mismo. Recarga la pagina en unos segundos.
+                    No pudimos cargar el vídeo ahora mismo. Recarga la página en unos segundos.
                   </div>
                 )}
                 {user && accessibleLessonIds.has(featuredLesson.id) && (
@@ -324,12 +386,43 @@ export default async function CourseDetailPage({ params, searchParams }: CourseD
                 )}
               </div>
             ) : (
-              <p className="text-neutral-400">Aun no hay lecciones disponibles para este curso.</p>
+              <div className="rounded-xl border border-neutral-800 bg-neutral-950/40 p-6">
+                {lessons.length > 0 ? (
+                  <div className="space-y-4">
+                    <p className="text-neutral-300">
+                      Las lecciones completas se desbloquean al comprar el curso.
+                    </p>
+                    {!hasPurchased && hasValidPrice && (
+                      user ? (
+                        <form action={startCourseCheckout}>
+                          <input type="hidden" name="courseId" value={course.id} />
+                          <input type="hidden" name="returnTo" value={checkoutReturnPath} />
+                          <button
+                            type="submit"
+                            className="px-4 py-2 rounded-lg bg-red-600 text-sm font-semibold text-white hover:bg-red-700 transition-colors"
+                          >
+                            Comprar curso
+                          </button>
+                        </form>
+                      ) : (
+                        <Link
+                          href={`/login?next=${encodeURIComponent(checkoutReturnPath)}`}
+                          className="inline-block px-4 py-2 rounded-lg bg-red-600 text-sm font-semibold text-white hover:bg-red-700 transition-colors"
+                        >
+                          Inicia sesión para comprar
+                        </Link>
+                      )
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-neutral-400">Aún no hay lecciones disponibles para este curso.</p>
+                )}
+              </div>
             )}
 
             {!hasPurchased && previewLessons.length > 0 && (
               <p className="mt-4 text-xs text-neutral-500">
-                Estas viendo contenido de preview. Compra el curso para desbloquear todas las lecciones.
+                Estás viendo contenido de preview. Compra el curso para desbloquear todas las lecciones.
               </p>
             )}
           </div>
@@ -341,19 +434,29 @@ export default async function CourseDetailPage({ params, searchParams }: CourseD
                 const isLocked = !hasPurchased && !lesson.is_free_preview;
                 const isAccessible = accessibleLessonIds.has(lesson.id);
                 const isCompleted = completedLessonSet.has(lesson.id);
+                const isSelected = featuredLesson?.id === lesson.id;
+                const lessonPath = `${coursePath}?lesson=${lesson.id}`;
 
                 return (
                   <li
                     key={lesson.id}
                     className={`rounded-lg border px-4 py-3 ${
-                      isLocked
+                      isSelected
+                        ? "border-red-500/40 bg-red-500/10 text-white"
+                        : isLocked
                         ? "border-neutral-800 bg-neutral-900/40 text-neutral-500"
                         : "border-neutral-700 bg-neutral-900/70 text-neutral-200"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-sm font-medium">{lesson.position}. {lesson.title}</p>
+                        {isAccessible ? (
+                          <Link href={lessonPath} className="text-sm font-medium hover:text-white transition-colors">
+                            {lesson.position}. {lesson.title}
+                          </Link>
+                        ) : (
+                          <p className="text-sm font-medium">{lesson.position}. {lesson.title}</p>
+                        )}
                         {isCompleted && (
                           <p className="mt-1 text-xs text-green-400">Completada</p>
                         )}
@@ -362,18 +465,27 @@ export default async function CourseDetailPage({ params, searchParams }: CourseD
                         <span className="text-[11px] uppercase tracking-wide">
                           {lesson.is_free_preview ? "Preview" : isLocked ? "Bloqueada" : "Disponible"}
                         </span>
-                        {user && isAccessible && (
-                          <form action={setLessonProgress}>
-                            <input type="hidden" name="lessonId" value={lesson.id} />
-                            <input type="hidden" name="courseSlug" value={course.slug} />
-                            <input type="hidden" name="completed" value={isCompleted ? "false" : "true"} />
-                            <button
-                              type="submit"
-                              className="text-[11px] text-neutral-400 hover:text-white transition-colors"
-                            >
-                              {isCompleted ? "Reabrir" : "Completar"}
-                            </button>
-                          </form>
+                        {isAccessible && (
+                          <>
+                            {!isSelected && (
+                              <Link href={lessonPath} className="text-[11px] text-neutral-400 hover:text-white transition-colors">
+                                Ver lección
+                              </Link>
+                            )}
+                            {user && (
+                              <form action={setLessonProgress}>
+                                <input type="hidden" name="lessonId" value={lesson.id} />
+                                <input type="hidden" name="courseSlug" value={course.slug} />
+                                <input type="hidden" name="completed" value={isCompleted ? "false" : "true"} />
+                                <button
+                                  type="submit"
+                                  className="text-[11px] text-neutral-400 hover:text-white transition-colors"
+                                >
+                                  {isCompleted ? "Reabrir" : "Completar"}
+                                </button>
+                              </form>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>

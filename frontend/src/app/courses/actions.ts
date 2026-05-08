@@ -53,7 +53,7 @@ export async function startCourseCheckout(formData: FormData) {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${session.access_token}`,
       },
-      body: JSON.stringify({ courseId }),
+      body: JSON.stringify({ courseId, returnPath: returnTo }),
       cache: 'no-store',
     })
   } catch {

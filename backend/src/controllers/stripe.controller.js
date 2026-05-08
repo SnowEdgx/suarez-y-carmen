@@ -197,10 +197,32 @@ function sanitizeCheckoutSessionId(rawValue) {
   return value;
 }
 
+function sanitizeReturnPath(rawValue) {
+  if (typeof rawValue !== 'string') return '/courses';
+
+  const value = rawValue.trim();
+  if (!value || value.length > 500) return '/courses';
+  if (!value.startsWith('/') || value.startsWith('//')) return '/courses';
+  if (/[\r\n\t]/.test(value)) return '/courses';
+  if (value !== '/courses' && !value.startsWith('/courses/')) return '/courses';
+
+  return value;
+}
+
+function buildFrontendReturnUrl(frontendUrl, returnPath, params) {
+  const baseUrl = frontendUrl.replace(/\/+$/, '');
+  const separator = returnPath.includes('?') ? '&' : '?';
+  const query = Object.entries(params)
+    .map(([key, value]) => `${encodeURIComponent(key)}=${value}`)
+    .join('&');
+
+  return `${baseUrl}${returnPath}${separator}${query}`;
+}
+
 // Creates a secure Checkout session for a single-course purchase.
 exports.createCheckoutSession = async (req, res) => {
   try {
-    const { courseId } = req.body;
+    const { courseId, returnPath } = req.body;
     if (!courseId) {
       return res.status(400).json({ error: 'courseId es obligatorio.' });
     }
@@ -260,6 +282,7 @@ exports.createCheckoutSession = async (req, res) => {
     }
 
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const safeReturnPath = sanitizeReturnPath(returnPath);
 
     const session = await stripeClient.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -281,8 +304,13 @@ exports.createCheckoutSession = async (req, res) => {
         courseId: course.id,
       },
       client_reference_id: user.id,
-      success_url: `${frontendUrl}/courses?success=true&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${frontendUrl}/courses?canceled=true`,
+      success_url: buildFrontendReturnUrl(frontendUrl, safeReturnPath, {
+        success: 'true',
+        session_id: '{CHECKOUT_SESSION_ID}',
+      }),
+      cancel_url: buildFrontendReturnUrl(frontendUrl, safeReturnPath, {
+        canceled: 'true',
+      }),
     });
 
     const paymentIntentId =
