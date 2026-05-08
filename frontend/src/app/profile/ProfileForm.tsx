@@ -35,7 +35,7 @@ export default function ProfileForm({ initialName, email }: { initialName: strin
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div>
           <label className="block text-sm font-medium text-neutral-400 mb-1.5" htmlFor="fullName">
-            Nombre Completo
+            Nombre completo
           </label>
           <input
             id="fullName"
@@ -67,7 +67,7 @@ export default function ProfileForm({ initialName, email }: { initialName: strin
           disabled={isPending}
           className="px-8 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-xl shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
         >
-          {isPending ? 'Guardando...' : 'Guardar Cambios'}
+          {isPending ? 'Guardando...' : 'Guardar cambios'}
         </button>
       </div>
     </form>

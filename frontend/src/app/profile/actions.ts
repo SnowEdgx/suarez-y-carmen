@@ -10,7 +10,7 @@ export async function updateProfileName(formData: FormData) {
   } = await supabase.auth.getUser()
 
   if (!user) {
-    return { error: 'No autorizado / Sesion expirada' }
+    return { error: 'No autorizado / sesión expirada' }
   }
 
   const fullName = formData.get('fullName') as string
@@ -25,7 +25,7 @@ export async function updateProfileName(formData: FormData) {
 
   if (error) {
     console.error('[Profile Update] Backend error:', error)
-    return { error: 'No pudimos actualizar tu perfil en este momento. Reintenta mas tarde.' }
+    return { error: 'No pudimos actualizar tu perfil en este momento. Reintenta más tarde.' }
   }
 
   // Keep auth metadata aligned so navbar/profile names stay in sync.
