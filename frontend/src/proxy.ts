@@ -1,5 +1,10 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import {
+  applyAuthSessionMaxAge,
+  AUTH_SESSION_PREFERENCE_COOKIE,
+  resolveRememberSession,
+} from './lib/auth-session'
 
 const PROTECTED_ROUTES = ['/profile', '/admin', '/dashboard', '/account']
 
@@ -9,6 +14,9 @@ function requiresAuth(pathname: string) {
 
 export async function proxy(request: NextRequest) {
   const response = NextResponse.next({ request })
+  const rememberSession = resolveRememberSession({
+    preferenceCookie: request.cookies.get(AUTH_SESSION_PREFERENCE_COOKIE)?.value,
+  })
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -21,7 +29,7 @@ export async function proxy(request: NextRequest) {
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) => {
             request.cookies.set(name, value)
-            response.cookies.set(name, value, options)
+            response.cookies.set(name, value, applyAuthSessionMaxAge(options, rememberSession))
           })
         },
       },

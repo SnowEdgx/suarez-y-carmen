@@ -252,6 +252,25 @@ function LoginPageContent() {
               />
             </div>
 
+            {isLoginMode && (
+              <label className="flex items-start gap-3 rounded-xl border border-neutral-800 bg-neutral-950/60 px-4 py-3 text-sm text-neutral-400">
+                <input
+                  name="rememberSession"
+                  type="checkbox"
+                  value="true"
+                  className="mt-1 h-4 w-4 rounded border-neutral-700 bg-neutral-950 text-red-600 focus:ring-red-600/40"
+                />
+                <span>
+                  <span className="block font-medium text-neutral-200">
+                    {'Mantener sesi\u00f3n iniciada'}
+                  </span>
+                  <span className="block text-xs text-neutral-500">
+                    {'No recomendado en ordenadores compartidos.'}
+                  </span>
+                </span>
+              </label>
+            )}
+
             <button
               type="submit"
               disabled={isPending}

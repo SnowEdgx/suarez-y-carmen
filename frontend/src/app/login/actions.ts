@@ -1,7 +1,13 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import {
+  AUTH_SESSION_PREFERENCE_COOKIE,
+  getSessionPreferenceCookieOptions,
+  getSessionPreferenceCookieValue,
+} from '@/lib/auth-session'
 import { createClient } from '@/lib/supabase/server'
 
 const EMAIL_VERIFICATION_ERROR =
@@ -57,9 +63,22 @@ function getSafeEmail(rawValue: FormDataEntryValue | null) {
   return isValidEmail(email) ? email : ''
 }
 
-export async function login(formData: FormData) {
-  const supabase = await createClient()
+function shouldRememberSession(value: FormDataEntryValue | null) {
+  return value === 'true' || value === 'on'
+}
 
+async function persistSessionPreference(rememberSession: boolean) {
+  const cookieStore = await cookies()
+  cookieStore.set(
+    AUTH_SESSION_PREFERENCE_COOKIE,
+    getSessionPreferenceCookieValue(rememberSession),
+    getSessionPreferenceCookieOptions(rememberSession)
+  )
+}
+
+export async function login(formData: FormData) {
+  const rememberSession = shouldRememberSession(formData.get('rememberSession'))
+  const supabase = await createClient({ rememberSession })
   const email = normalizeEmail(formData.get('email'))
   const password = typeof formData.get('password') === 'string' ? (formData.get('password') as string) : ''
 
@@ -86,6 +105,7 @@ export async function login(formData: FormData) {
   }
 
   const redirectPath = getSafeRedirectPath(formData.get('next'))
+  await persistSessionPreference(rememberSession)
   revalidatePath('/', 'layout')
   redirect(redirectPath)
 }
