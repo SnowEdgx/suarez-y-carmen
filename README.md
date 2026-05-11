@@ -61,7 +61,7 @@ Requisitos:
 powershell -ExecutionPolicy Bypass -File .\scripts\supabase-start.ps1
 ```
 
-2. Arrancar frontend y backend:
+2. Arrancar los servicios de aplicacion:
 
 ```bash
 docker compose up -d --build
@@ -109,3 +109,43 @@ No se versionan claves reales. Crea:
 
 Mas detalle en `docs/email-and-sql-policy.md`.
 Integracion CMS en `docs/cms-strapi-integration.md`.
+
+## Endpoints backend
+
+Endpoints publicos por diseno:
+- `GET /api/health`: comprobacion basica de estado.
+- `POST /api/stripe/webhook`: webhook de Stripe, protegido mediante firma.
+- `POST /api/stripe/create-checkout-session`: requiere sesion de usuario.
+- `GET /api/stripe/checkout-session-status`: requiere sesion de usuario y valida pertenencia de la sesion.
+- `GET /api/lessons/:lessonId/video-url`: devuelve URLs firmadas solo para previews o usuarios con compra valida.
+- `POST /api/cms/sync`: sincronizacion Strapi -> Express, protegida con `CMS_SYNC_TOKEN`.
+
+`GET /api/supabase-test` existe solo en desarrollo (`NODE_ENV !== production`) para verificar conectividad local.
+
+## Validacion local
+
+Comandos recomendados antes de subir cambios:
+
+```bash
+cd frontend
+npm run lint
+npx tsc --noEmit --incremental false
+```
+
+```bash
+cd backend
+node --check src/index.js
+```
+
+```bash
+node scripts/check-secrets.mjs
+```
+
+## Notas de seguridad y produccion
+
+- Los `.env.local` no se versionan.
+- Los valores por defecto de `docker-compose.yml` son solo para desarrollo local.
+- En produccion hay que sustituir `CMS_SYNC_TOKEN`, secretos de Strapi, credenciales de base de datos, claves de Stripe, Supabase service role y SMTP.
+- `NODE_ENV=production` debe estar definido en el backend desplegado para desactivar endpoints de diagnostico.
+- Configurar correctamente `FRONTEND_URL`, `CORS_ORIGINS`, `NEXT_PUBLIC_SITE_URL`, `BACKEND_URL`, `BACKEND_INTERNAL_URL` y `PUBLIC_URL` segun el dominio real.
+- El backend Express mantiene la logica sensible: checkout, webhooks, sincronizacion CMS y URLs firmadas de video.
