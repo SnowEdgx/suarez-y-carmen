@@ -43,6 +43,8 @@ setInterval(() => {
 }, VIDEO_URL_RATE_LIMIT_WINDOW_MS).unref();
 
 router.get('/playback/:token', videoUrlRateLimit, lessonController.streamLessonVideo);
+router.get('/hls/:token/manifest', videoUrlRateLimit, lessonController.serveHlsManifest);
+router.get('/hls/:token/resource', videoUrlRateLimit, lessonController.serveHlsResource);
 router.get('/:lessonId/video-url', videoUrlRateLimit, lessonController.getLessonVideoUrl);
 
 module.exports = router;

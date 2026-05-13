@@ -1,4 +1,5 @@
 const { createHmac, randomUUID, timingSafeEqual } = require('crypto');
+const path = require('path');
 const { Readable } = require('stream');
 const { createClient } = require('@supabase/supabase-js');
 
@@ -28,6 +29,7 @@ const supabase = createClient(
 );
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const HASH_REGEX = /^[a-f0-9]{64}$/i;
 const DEFAULT_VIDEO_BUCKET = (process.env.SUPABASE_VIDEO_BUCKET || 'course-videos').trim();
 const RAW_SIGNED_URL_TTL_SECONDS = Number.parseInt(
   process.env.VIDEO_SIGNED_URL_TTL_SECONDS || '900',
@@ -83,11 +85,12 @@ function signPlaybackPayload(encodedPayload) {
     .digest('base64url');
 }
 
-function createPlaybackToken({ lessonId, userId }) {
+function createPlaybackToken({ lessonId, userId, deviceIdHash }) {
   const nonce = randomUUID();
   const payload = {
     lessonId,
     userId: userId || null,
+    deviceIdHash: userId && deviceIdHash ? deviceIdHash : null,
     exp: Math.floor(Date.now() / 1000) + PLAYBACK_TOKEN_TTL_SECONDS,
     nonce,
   };
@@ -117,6 +120,7 @@ function parsePlaybackToken(rawToken) {
     if (!UUID_REGEX.test(payload.lessonId)) return null;
     if (!UUID_REGEX.test(payload.nonce)) return null;
     if (payload.userId !== null && !UUID_REGEX.test(payload.userId)) return null;
+    if (payload.deviceIdHash !== null && !HASH_REGEX.test(payload.deviceIdHash)) return null;
     if (!Number.isInteger(payload.exp) || payload.exp < Math.floor(Date.now() / 1000)) return null;
     return payload;
   } catch {
@@ -264,7 +268,7 @@ async function assertVideoDeviceAccess({ req, userId }) {
       .eq('id', existingDevice.id);
 
     if (updateError) throw updateError;
-    return;
+    return { deviceIdHash };
   }
 
   const { count, error: countError } = await supabase
@@ -292,6 +296,34 @@ async function assertVideoDeviceAccess({ req, userId }) {
     });
 
   if (insertError) throw insertError;
+  return { deviceIdHash };
+}
+
+async function assertPlaybackDeviceStillActive({ userId, deviceIdHash }) {
+  if (!userId) return;
+
+  if (!HASH_REGEX.test(deviceIdHash || '')) {
+    const error = new Error('Playback token is missing a valid device hash.');
+    error.status = 403;
+    error.code = 'missing_token_device_hash';
+    throw error;
+  }
+
+  const { data, error: deviceError } = await supabase
+    .from('user_video_devices')
+    .select('id, revoked_at')
+    .eq('user_id', userId)
+    .eq('device_id_hash', deviceIdHash)
+    .maybeSingle();
+
+  if (deviceError) throw deviceError;
+
+  if (!data || data.revoked_at) {
+    const error = new Error('Playback device is no longer active.');
+    error.status = 403;
+    error.code = 'playback_device_revoked';
+    throw error;
+  }
 }
 
 function isHttpUrl(value) {
@@ -421,9 +453,76 @@ async function assertLessonAccess({ lesson, user, req, enforceDevice = false }) 
     }
 
     if (enforceDevice) {
-      await assertVideoDeviceAccess({ req, userId: user.id });
+      return assertVideoDeviceAccess({ req, userId: user.id });
     }
   }
+
+  return null;
+}
+
+function isHlsManifestPath(objectPath) {
+  return typeof objectPath === 'string' && objectPath.toLowerCase().endsWith('.m3u8');
+}
+
+function isExternalHlsUri(uri) {
+  return /^[a-z][a-z0-9+.-]*:/i.test(uri) || uri.startsWith('//');
+}
+
+function getHlsRootDirectory(rootManifestPath) {
+  const directory = path.posix.dirname(rootManifestPath);
+  return directory === '.' ? '' : directory;
+}
+
+function normalizeHlsResourcePath(value) {
+  if (typeof value !== 'string') return null;
+
+  const resourcePath = value.trim().replace(/^\/+/, '');
+  if (!resourcePath || isExternalHlsUri(resourcePath)) return null;
+
+  const normalized = path.posix.normalize(resourcePath);
+  if (normalized === '.' || normalized.startsWith('../') || normalized.includes('/../')) {
+    return null;
+  }
+
+  return normalized;
+}
+
+function resolveHlsStorageReference(rootReference, resourcePath) {
+  const normalizedResourcePath = normalizeHlsResourcePath(resourcePath);
+  if (!normalizedResourcePath) return null;
+
+  const rootDirectory = getHlsRootDirectory(rootReference.path);
+  const objectPath = rootDirectory
+    ? path.posix.join(rootDirectory, normalizedResourcePath)
+    : normalizedResourcePath;
+
+  if (rootDirectory && objectPath !== rootDirectory && !objectPath.startsWith(`${rootDirectory}/`)) {
+    return null;
+  }
+
+  return {
+    bucket: rootReference.bucket,
+    path: objectPath,
+  };
+}
+
+function getRelativeHlsPath(rootReference, objectPath) {
+  const rootDirectory = getHlsRootDirectory(rootReference.path);
+  if (!rootDirectory) return objectPath;
+  if (objectPath === rootDirectory) return '';
+  if (!objectPath.startsWith(`${rootDirectory}/`)) return null;
+  return objectPath.slice(rootDirectory.length + 1);
+}
+
+function getHlsContentType(objectPath) {
+  const extension = path.posix.extname(objectPath).toLowerCase();
+  if (extension === '.m3u8') return 'application/vnd.apple.mpegurl';
+  if (extension === '.ts') return 'video/mp2t';
+  if (extension === '.m4s') return 'video/iso.segment';
+  if (extension === '.mp4' || extension === '.m4v') return 'video/mp4';
+  if (extension === '.vtt') return 'text/vtt; charset=utf-8';
+  if (extension === '.key') return 'application/octet-stream';
+  return 'application/octet-stream';
 }
 
 async function recordPlaybackEvent({
@@ -492,12 +591,71 @@ async function createStorageSignedUrl(storageReference) {
   return data.signedUrl;
 }
 
-async function streamStorageObject({ req, res, storageReference, audit }) {
+async function fetchStorageObject(storageReference, options = {}) {
   const signedUrl = await createStorageSignedUrl(storageReference);
-  const rangeHeader = typeof req.headers.range === 'string' ? req.headers.range : undefined;
-  const upstreamResponse = await fetch(signedUrl, {
-    headers: rangeHeader ? { Range: rangeHeader } : {},
+  return fetch(signedUrl, {
+    headers: options.rangeHeader ? { Range: options.rangeHeader } : {},
   });
+}
+
+function buildHlsResourceUrl(rawToken, resourcePath) {
+  return `/api/lessons/hls/${encodeURIComponent(rawToken)}/resource?path=${encodeURIComponent(resourcePath)}`;
+}
+
+function resolveManifestUri({ rootReference, currentReference, uri }) {
+  const trimmedUri = typeof uri === 'string' ? uri.trim() : '';
+  if (!trimmedUri || isExternalHlsUri(trimmedUri)) return null;
+
+  const rootDirectory = getHlsRootDirectory(rootReference.path);
+  const currentDirectory = path.posix.dirname(currentReference.path);
+  const safeCurrentDirectory = currentDirectory === '.' ? '' : currentDirectory;
+  const objectPath = path.posix.normalize(
+    safeCurrentDirectory ? path.posix.join(safeCurrentDirectory, trimmedUri) : trimmedUri
+  );
+
+  if (rootDirectory && objectPath !== rootDirectory && !objectPath.startsWith(`${rootDirectory}/`)) {
+    return null;
+  }
+
+  if (objectPath.startsWith('../') || objectPath.includes('/../')) return null;
+
+  return getRelativeHlsPath(rootReference, objectPath);
+}
+
+function rewriteHlsUriAttributes({ line, rootReference, currentReference, rawToken }) {
+  return line.replace(/URI="([^"]+)"/g, (match, uri) => {
+    const relativePath = resolveManifestUri({ rootReference, currentReference, uri });
+    if (!relativePath) return match;
+
+    return `URI="${buildHlsResourceUrl(rawToken, relativePath)}"`;
+  });
+}
+
+function rewriteHlsManifest({ manifestText, rootReference, currentReference, rawToken }) {
+  return manifestText
+    .split(/\r?\n/)
+    .map((line) => {
+      const trimmedLine = line.trim();
+      if (!trimmedLine) return line;
+
+      if (trimmedLine.startsWith('#')) {
+        return rewriteHlsUriAttributes({ line, rootReference, currentReference, rawToken });
+      }
+
+      const relativePath = resolveManifestUri({
+        rootReference,
+        currentReference,
+        uri: trimmedLine,
+      });
+
+      return relativePath ? buildHlsResourceUrl(rawToken, relativePath) : '# blocked external HLS URI';
+    })
+    .join('\n');
+}
+
+async function streamStorageObject({ req, res, storageReference, audit }) {
+  const rangeHeader = typeof req.headers.range === 'string' ? req.headers.range : undefined;
+  const upstreamResponse = await fetchStorageObject(storageReference, { rangeHeader });
 
   if (!upstreamResponse.ok && upstreamResponse.status !== 206) {
     console.error('[Lesson Controller] Storage stream failed:', upstreamResponse.status);
@@ -519,6 +677,92 @@ async function streamStorageObject({ req, res, storageReference, audit }) {
   applyVideoSecurityHeaders(res);
   res.status(upstreamResponse.status);
   copyHeader(upstreamResponse.headers, res, 'content-type', 'Content-Type');
+  if (!upstreamResponse.headers.get('content-type')) {
+    res.set('Content-Type', getHlsContentType(storageReference.path));
+  }
+  copyHeader(upstreamResponse.headers, res, 'content-length', 'Content-Length');
+  copyHeader(upstreamResponse.headers, res, 'content-range', 'Content-Range');
+  copyHeader(upstreamResponse.headers, res, 'etag', 'ETag');
+  copyHeader(upstreamResponse.headers, res, 'last-modified', 'Last-Modified');
+
+  if (!upstreamResponse.body) {
+    return res.end();
+  }
+
+  return Readable.fromWeb(upstreamResponse.body).pipe(res);
+}
+
+async function getPlaybackContextFromToken({ req, rawToken }) {
+  const payload = parsePlaybackToken(rawToken);
+  if (!payload) {
+    const error = new Error('Playback token is invalid or expired.');
+    error.status = 401;
+    error.code = 'invalid_or_expired_token';
+    throw error;
+  }
+
+  assertPlaybackTokenRateLimit(payload.nonce);
+
+  const lesson = await getPlayableLesson(payload.lessonId);
+  const user = payload.userId ? { id: payload.userId } : null;
+  await assertLessonAccess({ lesson, user, req });
+
+  if (!lesson.is_free_preview) {
+    await assertPlaybackDeviceStillActive({
+      userId: payload.userId,
+      deviceIdHash: payload.deviceIdHash,
+    });
+  }
+
+  const rootReference = resolveStorageReference(lesson.video_storage_path, lesson.video_url);
+  if (!rootReference) {
+    const error = new Error('Lesson storage reference is missing.');
+    error.status = 500;
+    error.code = 'missing_storage_reference';
+    throw error;
+  }
+
+  return { payload, lesson, rootReference };
+}
+
+async function serveHlsObject({ req, res, rawToken, resourceReference, rootReference, currentReference, audit }) {
+  const isManifest = isHlsManifestPath(resourceReference.path);
+  const rangeHeader = !isManifest && typeof req.headers.range === 'string' ? req.headers.range : undefined;
+  const upstreamResponse = await fetchStorageObject(resourceReference, { rangeHeader });
+
+  if (!upstreamResponse.ok) {
+    console.error('[Lesson Controller] HLS storage fetch failed:', upstreamResponse.status);
+    recordPlaybackEventSafe({
+      ...audit,
+      eventType: 'stream_error',
+      statusCode: 502,
+      errorCode: `hls_storage_${upstreamResponse.status}`,
+    });
+    return res.status(502).json({ error: 'No se pudo cargar el video en este momento.' });
+  }
+
+  recordPlaybackEventSafe({
+    ...audit,
+    eventType: 'stream_started',
+    statusCode: upstreamResponse.status,
+  });
+
+  applyVideoSecurityHeaders(res);
+  res.status(upstreamResponse.status);
+
+  if (isManifest) {
+    const manifestText = await upstreamResponse.text();
+    const rewrittenManifest = rewriteHlsManifest({
+      manifestText,
+      rootReference,
+      currentReference,
+      rawToken,
+    });
+    res.set('Content-Type', 'application/vnd.apple.mpegurl; charset=utf-8');
+    return res.send(rewrittenManifest);
+  }
+
+  res.set('Content-Type', getHlsContentType(resourceReference.path));
   copyHeader(upstreamResponse.headers, res, 'content-length', 'Content-Length');
   copyHeader(upstreamResponse.headers, res, 'content-range', 'Content-Range');
   copyHeader(upstreamResponse.headers, res, 'etag', 'ETag');
@@ -540,12 +784,16 @@ exports.getLessonVideoUrl = async (req, res) => {
 
     const user = await getAuthenticatedUser(req);
     const lesson = await getPlayableLesson(lessonId);
-    await assertLessonAccess({ lesson, user, req, enforceDevice: true });
+    const deviceAccess = await assertLessonAccess({ lesson, user, req, enforceDevice: true });
 
     const storageReference = resolveStorageReference(lesson.video_storage_path, lesson.video_url);
     if (storageReference) {
       res.set('Cache-Control', 'no-store');
-      const playbackToken = createPlaybackToken({ lessonId: lesson.id, userId: user?.id || null });
+      const playbackToken = createPlaybackToken({
+        lessonId: lesson.id,
+        userId: user?.id || null,
+        deviceIdHash: deviceAccess?.deviceIdHash || null,
+      });
       recordPlaybackEventSafe({
         req,
         lesson,
@@ -554,6 +802,15 @@ exports.getLessonVideoUrl = async (req, res) => {
         eventType: 'token_issued',
         statusCode: 200,
       });
+
+      if (isHlsManifestPath(storageReference.path)) {
+        return res.json({
+          path: `/api/lessons/hls/${encodeURIComponent(playbackToken.token)}/manifest`,
+          expiresInSeconds: PLAYBACK_TOKEN_TTL_SECONDS,
+          source: 'hls',
+        });
+      }
+
       return res.json({
         path: `/api/lessons/playback/${encodeURIComponent(playbackToken.token)}`,
         expiresInSeconds: PLAYBACK_TOKEN_TTL_SECONDS,
@@ -587,6 +844,96 @@ exports.getLessonVideoUrl = async (req, res) => {
   }
 };
 
+exports.serveHlsManifest = async (req, res) => {
+  let context = null;
+
+  try {
+    const rawToken = req.params.token;
+    context = await getPlaybackContextFromToken({ req, rawToken });
+
+    if (!isHlsManifestPath(context.rootReference.path)) {
+      return res.status(400).json({ error: 'El video no esta configurado como HLS.' });
+    }
+
+    return serveHlsObject({
+      req,
+      res,
+      rawToken,
+      resourceReference: context.rootReference,
+      rootReference: context.rootReference,
+      currentReference: context.rootReference,
+      audit: {
+        req,
+        lesson: context.lesson,
+        userId: context.payload.userId,
+        tokenNonce: context.payload.nonce,
+      },
+    });
+  } catch (err) {
+    const status = err.status || 500;
+    console.error('[Lesson Controller] Error serving HLS manifest:', err.message);
+    recordPlaybackEventSafe({
+      req,
+      lesson: context?.lesson || null,
+      lessonId: context?.payload?.lessonId || null,
+      userId: context?.payload?.userId || null,
+      tokenNonce: context?.payload?.nonce || null,
+      eventType: status === 401 || status === 403 || status === 429 ? 'stream_denied' : 'stream_error',
+      statusCode: status,
+      errorCode: err.code || 'hls_manifest_failed',
+    });
+    return res.status(status).json({ error: 'No se pudo cargar el video en este momento.' });
+  }
+};
+
+exports.serveHlsResource = async (req, res) => {
+  let context = null;
+
+  try {
+    const rawToken = req.params.token;
+    context = await getPlaybackContextFromToken({ req, rawToken });
+
+    if (!isHlsManifestPath(context.rootReference.path)) {
+      return res.status(400).json({ error: 'El video no esta configurado como HLS.' });
+    }
+
+    const requestedPath = typeof req.query.path === 'string' ? req.query.path : '';
+    const resourceReference = resolveHlsStorageReference(context.rootReference, requestedPath);
+    if (!resourceReference) {
+      return res.status(400).json({ error: 'Recurso de video no valido.' });
+    }
+
+    return serveHlsObject({
+      req,
+      res,
+      rawToken,
+      resourceReference,
+      rootReference: context.rootReference,
+      currentReference: resourceReference,
+      audit: {
+        req,
+        lesson: context.lesson,
+        userId: context.payload.userId,
+        tokenNonce: context.payload.nonce,
+      },
+    });
+  } catch (err) {
+    const status = err.status || 500;
+    console.error('[Lesson Controller] Error serving HLS resource:', err.message);
+    recordPlaybackEventSafe({
+      req,
+      lesson: context?.lesson || null,
+      lessonId: context?.payload?.lessonId || null,
+      userId: context?.payload?.userId || null,
+      tokenNonce: context?.payload?.nonce || null,
+      eventType: status === 401 || status === 403 || status === 429 ? 'stream_denied' : 'stream_error',
+      statusCode: status,
+      errorCode: err.code || 'hls_resource_failed',
+    });
+    return res.status(status).json({ error: 'No se pudo cargar el video en este momento.' });
+  }
+};
+
 exports.streamLessonVideo = async (req, res) => {
   let payload = null;
   let lesson = null;
@@ -608,6 +955,12 @@ exports.streamLessonVideo = async (req, res) => {
     lesson = await getPlayableLesson(payload.lessonId);
     const user = payload.userId ? { id: payload.userId } : null;
     await assertLessonAccess({ lesson, user, req });
+    if (!lesson.is_free_preview) {
+      await assertPlaybackDeviceStillActive({
+        userId: payload.userId,
+        deviceIdHash: payload.deviceIdHash,
+      });
+    }
 
     const storageReference = resolveStorageReference(lesson.video_storage_path, lesson.video_url);
     if (!storageReference) {

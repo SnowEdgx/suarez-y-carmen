@@ -119,6 +119,8 @@ Endpoints publicos por diseno:
 - `GET /api/stripe/checkout-session-status`: requiere sesion de usuario y valida pertenencia de la sesion.
 - `GET /api/lessons/:lessonId/video-url`: devuelve URLs firmadas solo para previews o usuarios con compra valida.
 - `GET /api/lessons/playback/:token`: sirve video protegido desde backend sin exponer la URL privada de Storage.
+- `GET /api/lessons/hls/:token/manifest`: sirve manifiestos HLS reescritos a rutas protegidas.
+- `GET /api/lessons/hls/:token/resource`: sirve playlists hijas y segmentos HLS protegidos.
 - `GET /api/video-devices`: lista dispositivos de video del usuario autenticado.
 - `POST /api/video-devices/:deviceId/revoke`: revoca un dispositivo de video del usuario autenticado.
 - `POST /api/cms/sync`: sincronizacion Strapi -> Express, protegida con `CMS_SYNC_TOKEN`.
@@ -167,3 +169,4 @@ Esta prueba crea una sesion real de Stripe Checkout en modo test, procesa un web
 - Los videos privados se sirven mediante proxy temporal del backend; no se debe exponer directamente el bucket privado ni sus URLs firmadas al cliente final.
 - Los accesos de video se auditan con hashes de IP y user-agent; no se guardan esos valores en claro.
 - El acceso a video comprado limita dispositivos activos por usuario mediante identificadores en cookie HttpOnly y hashes almacenados en base de datos.
+- Si una leccion apunta a un manifiesto `.m3u8`, el backend reescribe el HLS para que playlists y segmentos pasen por rutas protegidas.

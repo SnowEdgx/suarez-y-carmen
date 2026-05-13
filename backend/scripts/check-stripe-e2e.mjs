@@ -84,7 +84,7 @@ async function getCourseBySlug(supabase, slug) {
 async function getLesson(supabase, courseId, isFreePreview) {
   const { data, error } = await supabase
     .from('lessons')
-    .select('id, title')
+    .select('id, title, video_storage_path, video_url')
     .eq('course_id', courseId)
     .eq('is_free_preview', isFreePreview)
     .eq('is_published', true)
@@ -98,6 +98,71 @@ async function getLesson(supabase, courseId, isFreePreview) {
   }
 
   return data;
+}
+
+function storagePathToVideoUrl(storagePath) {
+  return `course-videos/${storagePath}`;
+}
+
+async function uploadHlsFixture(supabase) {
+  const fixtureRoot = `e2e/hls-${Date.now()}`;
+  const manifestPath = `${fixtureRoot}/master.m3u8`;
+  const segmentPath = `${fixtureRoot}/segment0.ts`;
+  const manifest = [
+    '#EXTM3U',
+    '#EXT-X-VERSION:3',
+    '#EXT-X-TARGETDURATION:1',
+    '#EXT-X-MEDIA-SEQUENCE:0',
+    '#EXTINF:1.0,',
+    'segment0.ts',
+    '#EXT-X-ENDLIST',
+    '',
+  ].join('\n');
+
+  const manifestUpload = await supabase.storage
+    .from('course-videos')
+    .upload(manifestPath, Buffer.from(manifest, 'utf8'), {
+      contentType: 'application/vnd.apple.mpegurl',
+      upsert: true,
+    });
+  if (manifestUpload.error) throw manifestUpload.error;
+
+  const segmentUpload = await supabase.storage
+    .from('course-videos')
+    .upload(segmentPath, Buffer.from([0x47, 0x40, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00]), {
+      contentType: 'video/mp2t',
+      upsert: true,
+    });
+  if (segmentUpload.error) throw segmentUpload.error;
+
+  return { manifestPath, segmentPath };
+}
+
+async function withTemporaryLessonVideo(supabase, lesson, storagePath, callback) {
+  const originalVideoStoragePath = lesson.video_storage_path;
+  const originalVideoUrl = lesson.video_url;
+
+  const { error: updateError } = await supabase
+    .from('lessons')
+    .update({
+      video_storage_path: storagePath,
+      video_url: storagePathToVideoUrl(storagePath),
+    })
+    .eq('id', lesson.id);
+  if (updateError) throw updateError;
+
+  try {
+    return await callback();
+  } finally {
+    const { error: restoreError } = await supabase
+      .from('lessons')
+      .update({
+        video_storage_path: originalVideoStoragePath,
+        video_url: originalVideoUrl,
+      })
+      .eq('id', lesson.id);
+    if (restoreError) throw restoreError;
+  }
 }
 
 async function resetTargetCourseAccess(supabase, userId, courseId) {
@@ -288,6 +353,45 @@ async function main() {
     throw new Error(`Playback proxy returned ${playbackResponse.status}, expected 200 or 206.`);
   }
 
+  const hlsFixture = await uploadHlsFixture(admin);
+  const hlsChecks = await withTemporaryLessonVideo(admin, lockedLesson, hlsFixture.manifestPath, async () => {
+    const hlsVideoResponse = await fetch(`${backendUrl}/api/lessons/${lockedLesson.id}/video-url`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'X-SYC-Device-Id': videoDeviceId,
+      },
+    });
+    const hlsVideoPayload = await readJson(hlsVideoResponse);
+    assertStatus(hlsVideoResponse, 200, 'HLS video access');
+    if (hlsVideoPayload.source !== 'hls' || typeof hlsVideoPayload.path !== 'string') {
+      throw new Error('HLS video access did not return a protected manifest path.');
+    }
+
+    const manifestResponse = await fetch(`${backendUrl}${hlsVideoPayload.path}`);
+    assertStatus(manifestResponse, 200, 'HLS manifest access');
+    const manifestText = await manifestResponse.text();
+    if (!manifestText.includes('/api/lessons/hls/') || manifestText.includes('\nsegment0.ts')) {
+      throw new Error('HLS manifest was not rewritten to protected segment URLs.');
+    }
+
+    const segmentPath = manifestText
+      .split(/\r?\n/)
+      .find((line) => line.includes('/api/lessons/hls/') && line.includes('/resource?path='));
+    if (!segmentPath) {
+      throw new Error('HLS manifest did not include a protected segment resource path.');
+    }
+
+    const segmentResponse = await fetch(`${backendUrl}${segmentPath}`);
+    assertStatus(segmentResponse, 200, 'HLS segment access');
+
+    return {
+      hlsVideoAccess: hlsVideoResponse.status,
+      hlsManifestAccess: manifestResponse.status,
+      hlsSegmentAccess: segmentResponse.status,
+    };
+  });
+
   const secondDeviceVideoResponse = await fetch(`${backendUrl}/api/lessons/${lockedLesson.id}/video-url`, {
     method: 'GET',
     headers: {
@@ -396,6 +500,9 @@ async function main() {
           paidVideoWithoutDevice: paidVideoWithoutDeviceResponse.status,
           paidVideoAccess: paidVideoResponse.status,
           playbackProxyAccess: playbackResponse.status,
+          hlsVideoAccess: hlsChecks.hlsVideoAccess,
+          hlsManifestAccess: hlsChecks.hlsManifestAccess,
+          hlsSegmentAccess: hlsChecks.hlsSegmentAccess,
           secondDeviceVideoAccess: secondDeviceVideoResponse.status,
           videoDeviceListing: devicesResponse.status,
           videoDeviceRevocation: revokeDeviceResponse.status,
