@@ -7,6 +7,7 @@
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
     "seed:local-content": "node scripts/seed-local-content.mjs",
+    "test:stripe-e2e": "node scripts/check-stripe-e2e.mjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

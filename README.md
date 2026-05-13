@@ -141,6 +141,17 @@ node --check src/index.js
 node scripts/check-secrets.mjs
 ```
 
+Stripe E2E local (requiere un usuario de prueba confirmado y variables locales completas):
+
+```bash
+cd backend
+$env:E2E_USER_EMAIL="student.e2e@suarezycarmen.test"
+$env:E2E_USER_PASSWORD="<password-local>"
+npm run test:stripe-e2e
+```
+
+Esta prueba crea una sesion real de Stripe Checkout en modo test, procesa un webhook firmado localmente y valida acceso a video protegido sin imprimir claves ni URLs firmadas.
+
 ## Notas de seguridad y produccion
 
 - Los `.env.local` no se versionan.
