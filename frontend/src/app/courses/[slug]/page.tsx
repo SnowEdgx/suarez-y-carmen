@@ -42,6 +42,11 @@ type ProgressRow = {
   is_completed: boolean;
 };
 
+type LessonVideoAccess = {
+  url: string | null;
+  errorCode: string | null;
+};
+
 type CourseDetailPageProps = {
   params: Promise<{ slug: string }>;
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
@@ -60,11 +65,11 @@ function formatPrice(priceCents: number | null) {
   }).format((priceCents as number) / 100);
 }
 
-async function resolveLessonVideoUrl(options: {
+async function resolveLessonVideoAccess(options: {
   lessonId: string;
   accessToken: string | null;
   deviceId: string | null;
-}) {
+}): Promise<LessonVideoAccess> {
   const { lessonId, accessToken, deviceId } = options;
   const headers: HeadersInit = {};
 
@@ -83,11 +88,19 @@ async function resolveLessonVideoUrl(options: {
       cache: "no-store",
     });
   } catch {
-    return null;
+    return { url: null, errorCode: "service_unavailable" };
   }
 
   if (!response.ok) {
-    return null;
+    try {
+      const payload = (await response.json()) as Record<string, unknown>;
+      return {
+        url: null,
+        errorCode: typeof payload.code === "string" ? payload.code : "video_unavailable",
+      };
+    } catch {
+      return { url: null, errorCode: "video_unavailable" };
+    }
   }
 
   let payload: Record<string, unknown> | null = null;
@@ -98,10 +111,39 @@ async function resolveLessonVideoUrl(options: {
   }
 
   if (typeof payload?.path === "string" && payload.path.startsWith("/")) {
-    return `${getPublicBackendUrl()}${payload.path}`;
+    return { url: `${getPublicBackendUrl()}${payload.path}`, errorCode: null };
   }
 
-  return typeof payload?.url === "string" ? payload.url : null;
+  return {
+    url: typeof payload?.url === "string" ? payload.url : null,
+    errorCode: typeof payload?.url === "string" ? null : "video_unavailable",
+  };
+}
+
+function resolveVideoAccessMessage(errorCode: string | null) {
+  switch (errorCode) {
+    case "authentication_required":
+      return "Inicia sesión para acceder a esta lección.";
+    case "email_not_verified":
+      return "Verifica tu correo antes de acceder al contenido del curso.";
+    case "course_not_purchased":
+      return "Esta lección forma parte del contenido completo del curso.";
+    case "missing_device_id":
+      return "No pudimos validar este dispositivo. Recarga la página e inténtalo de nuevo.";
+    case "device_revoked":
+    case "playback_device_revoked":
+      return "Este dispositivo ha sido revocado para la reproducción de vídeos.";
+    case "device_limit_exceeded":
+      return "Has alcanzado el límite de dispositivos activos para ver vídeos.";
+    case "playback_rate_limited":
+      return "Se han realizado demasiadas solicitudes de vídeo. Espera un minuto y vuelve a intentarlo.";
+    case "service_unavailable":
+      return "No pudimos contactar con el servicio de vídeo. Inténtalo de nuevo en unos segundos.";
+    case "video_unavailable":
+      return "No pudimos cargar el vídeo ahora mismo. Recarga la página en unos segundos.";
+    default:
+      return null;
+  }
 }
 
 function resolveProgressMessage(code: string | null) {
@@ -220,13 +262,15 @@ export default async function CourseDetailPage({ params, searchParams }: CourseD
     isRequestedLessonAccessible,
   });
   const featuredLesson = isRequestedLessonAccessible ? requestedLesson : accessibleLessons[0] ?? null;
-  const featuredLessonVideoUrl = featuredLesson
-    ? await resolveLessonVideoUrl({
+  const featuredLessonVideoAccess = featuredLesson
+    ? await resolveLessonVideoAccess({
         lessonId: featuredLesson.id,
         accessToken,
         deviceId,
       })
-    : null;
+    : { url: null, errorCode: null };
+  const featuredLessonVideoUrl = featuredLessonVideoAccess.url;
+  const featuredLessonVideoMessage = resolveVideoAccessMessage(featuredLessonVideoAccess.errorCode);
   const hasValidPrice = Number.isInteger(course.price_cents) && (course.price_cents as number) > 0;
 
   let completedLessonIds: string[] = [];
@@ -374,7 +418,18 @@ export default async function CourseDetailPage({ params, searchParams }: CourseD
                   />
                 ) : (
                   <div className="rounded-xl border border-neutral-700 bg-black/60 p-6 text-sm text-neutral-400">
-                    No pudimos cargar el vídeo ahora mismo. Recarga la página en unos segundos.
+                    <p>
+                      {featuredLessonVideoMessage ||
+                        "No pudimos cargar el vídeo ahora mismo. Recarga la página en unos segundos."}
+                    </p>
+                    {featuredLessonVideoAccess.errorCode === "device_limit_exceeded" && (
+                      <Link
+                        href="/profile"
+                        className="mt-4 inline-flex text-red-300 hover:text-red-200 transition-colors"
+                      >
+                        Gestionar dispositivos
+                      </Link>
+                    )}
                   </div>
                 )}
                 {user && accessibleLessonIds.has(featuredLesson.id) && (

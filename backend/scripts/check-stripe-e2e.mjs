@@ -353,6 +353,11 @@ async function main() {
     throw new Error(`Playback proxy returned ${playbackResponse.status}, expected 200 or 206.`);
   }
 
+  const invalidRangeResponse = await fetch(`${backendUrl}${paidVideoPayload.path}`, {
+    headers: { Range: 'bytes=-' },
+  });
+  assertStatus(invalidRangeResponse, 416, 'Invalid playback range');
+
   const hlsFixture = await uploadHlsFixture(admin);
   const hlsChecks = await withTemporaryLessonVideo(admin, lockedLesson, hlsFixture.manifestPath, async () => {
     const hlsVideoResponse = await fetch(`${backendUrl}/api/lessons/${lockedLesson.id}/video-url`, {
@@ -385,10 +390,21 @@ async function main() {
     const segmentResponse = await fetch(`${backendUrl}${segmentPath}`);
     assertStatus(segmentResponse, 200, 'HLS segment access');
 
+    const hlsTokenMatch = hlsVideoPayload.path.match(/^\/api\/lessons\/hls\/([^/]+)\/manifest$/);
+    if (!hlsTokenMatch) {
+      throw new Error('HLS manifest path did not include a token.');
+    }
+
+    const traversalResponse = await fetch(
+      `${backendUrl}/api/lessons/hls/${hlsTokenMatch[1]}/resource?path=${encodeURIComponent('../outside.ts')}`
+    );
+    assertStatus(traversalResponse, 400, 'HLS traversal resource access');
+
     return {
       hlsVideoAccess: hlsVideoResponse.status,
       hlsManifestAccess: manifestResponse.status,
       hlsSegmentAccess: segmentResponse.status,
+      hlsTraversalBlocked: traversalResponse.status,
     };
   });
 
@@ -500,9 +516,11 @@ async function main() {
           paidVideoWithoutDevice: paidVideoWithoutDeviceResponse.status,
           paidVideoAccess: paidVideoResponse.status,
           playbackProxyAccess: playbackResponse.status,
+          invalidPlaybackRange: invalidRangeResponse.status,
           hlsVideoAccess: hlsChecks.hlsVideoAccess,
           hlsManifestAccess: hlsChecks.hlsManifestAccess,
           hlsSegmentAccess: hlsChecks.hlsSegmentAccess,
+          hlsTraversalBlocked: hlsChecks.hlsTraversalBlocked,
           secondDeviceVideoAccess: secondDeviceVideoResponse.status,
           videoDeviceListing: devicesResponse.status,
           videoDeviceRevocation: revokeDeviceResponse.status,

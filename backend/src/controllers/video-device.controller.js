@@ -14,6 +14,7 @@ function resolveSupabaseUrl() {
 
 const resolvedSupabaseUrl = resolveSupabaseUrl();
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
+const isProduction = process.env.NODE_ENV === 'production';
 
 if (!resolvedSupabaseUrl || !supabaseServiceKey) {
   throw new Error(
@@ -28,6 +29,9 @@ const VIDEO_AUDIT_HASH_SECRET =
   process.env.VIDEO_AUDIT_HASH_SECRET ||
   process.env.VIDEO_PLAYBACK_TOKEN_SECRET ||
   supabaseServiceKey;
+if (isProduction && !process.env.VIDEO_AUDIT_HASH_SECRET) {
+  throw new Error('VIDEO_AUDIT_HASH_SECRET is required in production.');
+}
 const RAW_MAX_ACTIVE_VIDEO_DEVICES = Number.parseInt(
   process.env.VIDEO_MAX_ACTIVE_DEVICES || '2',
   10
@@ -79,6 +83,8 @@ function normalizeDevice(row, currentDeviceHash) {
 }
 
 exports.listVideoDevices = async (req, res) => {
+  res.set('Cache-Control', 'no-store');
+
   try {
     const user = await getAuthenticatedUser(req);
     if (!user) {
@@ -99,7 +105,6 @@ exports.listVideoDevices = async (req, res) => {
     const devices = (data || []).map((row) => normalizeDevice(row, currentDeviceHash));
     const activeDeviceCount = devices.filter((device) => device.isActive).length;
 
-    res.set('Cache-Control', 'no-store');
     return res.json({
       devices,
       activeDeviceCount,
@@ -112,6 +117,8 @@ exports.listVideoDevices = async (req, res) => {
 };
 
 exports.revokeVideoDevice = async (req, res) => {
+  res.set('Cache-Control', 'no-store');
+
   try {
     const user = await getAuthenticatedUser(req);
     if (!user) {
@@ -157,7 +164,6 @@ exports.revokeVideoDevice = async (req, res) => {
 
     if (updateError) throw updateError;
 
-    res.set('Cache-Control', 'no-store');
     return res.json({ revoked: true });
   } catch (err) {
     console.error('[Video Device Controller] Error revoking device:', err.message);

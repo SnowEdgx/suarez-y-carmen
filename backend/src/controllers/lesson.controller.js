@@ -16,6 +16,7 @@ function resolveSupabaseUrl() {
 
 const resolvedSupabaseUrl = resolveSupabaseUrl();
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
+const isProduction = process.env.NODE_ENV === 'production';
 
 if (!resolvedSupabaseUrl || !supabaseServiceKey) {
   throw new Error(
@@ -51,6 +52,12 @@ const PLAYBACK_TOKEN_SECRET =
   process.env.VIDEO_PLAYBACK_TOKEN_SECRET || supabaseServiceKey;
 const VIDEO_AUDIT_HASH_SECRET =
   process.env.VIDEO_AUDIT_HASH_SECRET || PLAYBACK_TOKEN_SECRET;
+if (isProduction && !process.env.VIDEO_PLAYBACK_TOKEN_SECRET) {
+  throw new Error('VIDEO_PLAYBACK_TOKEN_SECRET is required in production.');
+}
+if (isProduction && !process.env.VIDEO_AUDIT_HASH_SECRET) {
+  throw new Error('VIDEO_AUDIT_HASH_SECRET is required in production.');
+}
 const RAW_MAX_ACTIVE_VIDEO_DEVICES = Number.parseInt(
   process.env.VIDEO_MAX_ACTIVE_DEVICES || '2',
   10
@@ -67,6 +74,8 @@ const VIDEO_DEVICE_INACTIVITY_DAYS =
   Number.isInteger(RAW_VIDEO_DEVICE_INACTIVITY_DAYS) && RAW_VIDEO_DEVICE_INACTIVITY_DAYS >= 1
     ? Math.min(RAW_VIDEO_DEVICE_INACTIVITY_DAYS, 365)
     : 30;
+const MAX_PLAYBACK_TOKEN_LENGTH = 4096;
+const MAX_STORAGE_OBJECT_PATH_LENGTH = 1024;
 const PLAYBACK_STREAM_RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const PLAYBACK_STREAM_RATE_LIMIT_MAX_REQUESTS = 240;
 const playbackStreamBuckets = new Map();
@@ -103,10 +112,23 @@ function createPlaybackToken({ lessonId, userId, deviceIdHash }) {
 }
 
 function parsePlaybackToken(rawToken) {
-  if (typeof rawToken !== 'string' || !rawToken.includes('.')) return null;
+  if (
+    typeof rawToken !== 'string' ||
+    rawToken.length > MAX_PLAYBACK_TOKEN_LENGTH ||
+    !rawToken.includes('.')
+  ) {
+    return null;
+  }
 
-  const [encodedPayload, signature] = rawToken.split('.');
+  const parts = rawToken.split('.');
+  if (parts.length !== 2) return null;
+
+  const [encodedPayload, signature] = parts;
   if (!encodedPayload || !signature) return null;
+  if (encodedPayload.length > 2048 || signature.length > 128) return null;
+  if (!/^[A-Za-z0-9_-]+$/.test(encodedPayload) || !/^[A-Za-z0-9_-]+$/.test(signature)) {
+    return null;
+  }
 
   const expectedSignature = signPlaybackPayload(encodedPayload);
   const providedBuffer = Buffer.from(signature);
@@ -150,9 +172,24 @@ function sanitizeRangeHeader(value) {
 
   const trimmed = value.trim();
   if (trimmed.length > 80) return 'too-long';
-  if (!/^bytes=\d*-\d*(,\d*-\d*)?$/.test(trimmed)) return 'invalid';
+  if (!/^bytes=(?:\d+-\d*|\d*-\d+)$/.test(trimmed)) return 'invalid';
 
   return trimmed;
+}
+
+function getForwardableRangeHeader(req) {
+  const rawRangeHeader = req.headers.range;
+  if (rawRangeHeader === undefined) return undefined;
+
+  const sanitizedRangeHeader = sanitizeRangeHeader(rawRangeHeader);
+  if (!sanitizedRangeHeader || sanitizedRangeHeader === 'invalid' || sanitizedRangeHeader === 'too-long') {
+    const error = new Error('Invalid video Range header.');
+    error.status = 416;
+    error.code = 'invalid_range';
+    throw error;
+  }
+
+  return sanitizedRangeHeader;
 }
 
 function getPlaybackDeviceId(req) {
@@ -188,6 +225,7 @@ function assertPlaybackTokenRateLimit(tokenNonce) {
   if (bucket.count >= PLAYBACK_STREAM_RATE_LIMIT_MAX_REQUESTS) {
     const error = new Error('Playback token request limit exceeded.');
     error.status = 429;
+    error.code = 'playback_rate_limited';
     throw error;
   }
 
@@ -336,27 +374,42 @@ function isHttpUrl(value) {
   }
 }
 
+function isSafeStorageObjectPath(objectPath) {
+  if (typeof objectPath !== 'string') return false;
+  if (!objectPath || objectPath.length > MAX_STORAGE_OBJECT_PATH_LENGTH) return false;
+  if (objectPath.includes('\0') || /^[a-z][a-z0-9+.-]*:\/\//i.test(objectPath)) return false;
+
+  const normalized = path.posix.normalize(objectPath);
+  if (normalized === '.' || normalized.startsWith('../') || normalized.includes('/../')) return false;
+  return !path.posix.isAbsolute(normalized);
+}
+
 function parseStorageReferenceFromPath(rawValue) {
   if (typeof rawValue !== 'string') return null;
 
   const value = rawValue.trim().replace(/^\/+/, '');
   if (!value) return null;
+  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(value)) return null;
 
   const separatorIndex = value.indexOf(':');
   if (separatorIndex > 0) {
     const bucket = value.slice(0, separatorIndex).trim();
     const path = value.slice(separatorIndex + 1).trim().replace(/^\/+/, '');
     if (!bucket || !path) return null;
+    if (!isSafeStorageObjectPath(path)) return null;
     return { bucket, path };
   }
 
   if (value.startsWith(`${DEFAULT_VIDEO_BUCKET}/`)) {
+    const objectPath = value.slice(DEFAULT_VIDEO_BUCKET.length + 1);
+    if (!isSafeStorageObjectPath(objectPath)) return null;
     return {
       bucket: DEFAULT_VIDEO_BUCKET,
-      path: value.slice(DEFAULT_VIDEO_BUCKET.length + 1),
+      path: objectPath,
     };
   }
 
+  if (!isSafeStorageObjectPath(value)) return null;
   return { bucket: DEFAULT_VIDEO_BUCKET, path: value };
 }
 
@@ -383,6 +436,7 @@ function parseStorageReferenceFromUrl(rawValue) {
   const path = segments.slice(objectSegmentIndex + 3).join('/');
 
   if (!bucket || !path) return null;
+  if (!isSafeStorageObjectPath(path)) return null;
   return { bucket, path };
 }
 
@@ -442,6 +496,14 @@ async function assertLessonAccess({ lesson, user, req, enforceDevice = false }) 
     if (!user) {
       const error = new Error('Authentication is required for this lesson.');
       error.status = 401;
+      error.code = 'authentication_required';
+      throw error;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(user, 'email_confirmed_at') && !user.email_confirmed_at) {
+      const error = new Error('Verified email is required for this lesson.');
+      error.status = 403;
+      error.code = 'email_not_verified';
       throw error;
     }
 
@@ -449,6 +511,7 @@ async function assertLessonAccess({ lesson, user, req, enforceDevice = false }) 
     if (!hasPaidAccess) {
       const error = new Error('User does not have paid access to this lesson.');
       error.status = 403;
+      error.code = 'course_not_purchased';
       throw error;
     }
 
@@ -458,6 +521,29 @@ async function assertLessonAccess({ lesson, user, req, enforceDevice = false }) 
   }
 
   return null;
+}
+
+function getSafeVideoAccessCode(err) {
+  const code = typeof err?.code === 'string' ? err.code : '';
+  if (
+    [
+      'authentication_required',
+      'email_not_verified',
+      'course_not_purchased',
+      'missing_device_id',
+      'device_revoked',
+      'device_limit_exceeded',
+      'playback_device_revoked',
+      'playback_rate_limited',
+    ].includes(code)
+  ) {
+    return code;
+  }
+
+  if (err?.status === 401) return 'authentication_required';
+  if (err?.status === 403) return 'access_denied';
+  if (err?.status === 429) return 'playback_rate_limited';
+  return 'video_unavailable';
 }
 
 function isHlsManifestPath(objectPath) {
@@ -473,11 +559,21 @@ function getHlsRootDirectory(rootManifestPath) {
   return directory === '.' ? '' : directory;
 }
 
+function assertHlsRootDirectory(rootReference) {
+  if (!getHlsRootDirectory(rootReference.path)) {
+    const error = new Error('HLS root manifest must be stored inside a dedicated directory.');
+    error.status = 500;
+    error.code = 'hls_root_directory_required';
+    throw error;
+  }
+}
+
 function normalizeHlsResourcePath(value) {
   if (typeof value !== 'string') return null;
 
   const resourcePath = value.trim().replace(/^\/+/, '');
-  if (!resourcePath || isExternalHlsUri(resourcePath)) return null;
+  if (!resourcePath || resourcePath.length > MAX_STORAGE_OBJECT_PATH_LENGTH) return null;
+  if (resourcePath.includes('\0') || isExternalHlsUri(resourcePath)) return null;
 
   const normalized = path.posix.normalize(resourcePath);
   if (normalized === '.' || normalized.startsWith('../') || normalized.includes('/../')) {
@@ -605,6 +701,7 @@ function buildHlsResourceUrl(rawToken, resourcePath) {
 function resolveManifestUri({ rootReference, currentReference, uri }) {
   const trimmedUri = typeof uri === 'string' ? uri.trim() : '';
   if (!trimmedUri || isExternalHlsUri(trimmedUri)) return null;
+  if (trimmedUri.length > MAX_STORAGE_OBJECT_PATH_LENGTH || trimmedUri.includes('\0')) return null;
 
   const rootDirectory = getHlsRootDirectory(rootReference.path);
   const currentDirectory = path.posix.dirname(currentReference.path);
@@ -654,7 +751,7 @@ function rewriteHlsManifest({ manifestText, rootReference, currentReference, raw
 }
 
 async function streamStorageObject({ req, res, storageReference, audit }) {
-  const rangeHeader = typeof req.headers.range === 'string' ? req.headers.range : undefined;
+  const rangeHeader = getForwardableRangeHeader(req);
   const upstreamResponse = await fetchStorageObject(storageReference, { rangeHeader });
 
   if (!upstreamResponse.ok && upstreamResponse.status !== 206) {
@@ -721,13 +818,16 @@ async function getPlaybackContextFromToken({ req, rawToken }) {
     error.code = 'missing_storage_reference';
     throw error;
   }
+  if (isHlsManifestPath(rootReference.path)) {
+    assertHlsRootDirectory(rootReference);
+  }
 
   return { payload, lesson, rootReference };
 }
 
 async function serveHlsObject({ req, res, rawToken, resourceReference, rootReference, currentReference, audit }) {
   const isManifest = isHlsManifestPath(resourceReference.path);
-  const rangeHeader = !isManifest && typeof req.headers.range === 'string' ? req.headers.range : undefined;
+  const rangeHeader = !isManifest ? getForwardableRangeHeader(req) : undefined;
   const upstreamResponse = await fetchStorageObject(resourceReference, { rangeHeader });
 
   if (!upstreamResponse.ok) {
@@ -804,6 +904,7 @@ exports.getLessonVideoUrl = async (req, res) => {
       });
 
       if (isHlsManifestPath(storageReference.path)) {
+        assertHlsRootDirectory(storageReference);
         return res.json({
           path: `/api/lessons/hls/${encodeURIComponent(playbackToken.token)}/manifest`,
           expiresInSeconds: PLAYBACK_TOKEN_TTL_SECONDS,
@@ -840,7 +941,10 @@ exports.getLessonVideoUrl = async (req, res) => {
       statusCode: status,
       errorCode: err.code || 'video_token_failed',
     });
-    return res.status(status).json({ error: 'No se pudo resolver el acceso al video.' });
+    return res.status(status).json({
+      error: 'No se pudo resolver el acceso al video.',
+      code: getSafeVideoAccessCode(err),
+    });
   }
 };
 
@@ -998,7 +1102,7 @@ exports.streamLessonVideo = async (req, res) => {
       tokenNonce: payload?.nonce || null,
       eventType: status === 401 || status === 403 || status === 429 ? 'stream_denied' : 'stream_error',
       statusCode: status,
-      errorCode: status === 429 ? 'rate_limited' : 'playback_access_failed',
+      errorCode: err.code || (status === 429 ? 'rate_limited' : 'playback_access_failed'),
     });
     return res.status(status).json({ error: 'No se pudo cargar el video en este momento.' });
   }
