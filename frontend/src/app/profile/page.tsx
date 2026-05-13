@@ -1,8 +1,12 @@
 import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
 import { createClient } from "@/lib/supabase/server";
+import { getBackendUrl } from "@/lib/backend-url";
+import { DEVICE_ID_HEADER, isValidDeviceId } from "@/lib/device-session";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import ProfileForm from "./ProfileForm";
+import VideoDevicesPanel from "./VideoDevicesPanel";
 import { BookOpen, CreditCard, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 
@@ -25,6 +29,22 @@ type PurchaseCard = {
   course: PurchasedCourse | null;
   totalLessons: number;
   completedLessons: number;
+};
+
+type VideoDevice = {
+  id: string;
+  firstSeenAt: string | null;
+  lastSeenAt: string | null;
+  revokedAt: string | null;
+  isCurrent: boolean;
+  isActive: boolean;
+};
+
+type VideoDevicesResponse = {
+  devices: VideoDevice[];
+  activeDeviceCount: number;
+  maxActiveDevices: number;
+  loadError: string | null;
 };
 
 function normalizePurchaseStatus(status: unknown): PurchaseStatus {
@@ -85,6 +105,41 @@ function getStatusClass(status: PurchaseStatus) {
   return "border-neutral-700 bg-neutral-800 text-neutral-400";
 }
 
+async function loadVideoDevices(accessToken: string | null, deviceId: string | null): Promise<VideoDevicesResponse> {
+  const fallback = {
+    devices: [],
+    activeDeviceCount: 0,
+    maxActiveDevices: 2,
+    loadError: "No pudimos cargar tus dispositivos de vídeo.",
+  };
+
+  if (!accessToken || !isValidDeviceId(deviceId)) {
+    return fallback;
+  }
+
+  try {
+    const response = await fetch(`${getBackendUrl()}/api/video-devices`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        [DEVICE_ID_HEADER]: deviceId,
+      },
+      cache: "no-store",
+    });
+
+    if (!response.ok) return fallback;
+
+    const payload = await response.json() as Partial<VideoDevicesResponse>;
+    return {
+      devices: Array.isArray(payload.devices) ? payload.devices : [],
+      activeDeviceCount: Number.isInteger(payload.activeDeviceCount) ? payload.activeDeviceCount as number : 0,
+      maxActiveDevices: Number.isInteger(payload.maxActiveDevices) ? payload.maxActiveDevices as number : 2,
+      loadError: null,
+    };
+  } catch {
+    return fallback;
+  }
+}
+
 export default async function ProfilePage() {
   const supabase = await createClient();
   const {
@@ -94,6 +149,12 @@ export default async function ProfilePage() {
   if (!user) {
     redirect("/login");
   }
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  const requestHeaders = await headers();
+  const currentDeviceId = requestHeaders.get(DEVICE_ID_HEADER);
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -162,6 +223,7 @@ export default async function ProfilePage() {
   });
 
   const activeCourseCount = purchases.filter((purchase) => purchase.status === "paid" && purchase.course).length;
+  const videoDevices = await loadVideoDevices(session?.access_token ?? null, currentDeviceId);
 
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 font-sans selection:bg-red-600 selection:text-white flex flex-col pt-24">
@@ -179,6 +241,13 @@ export default async function ProfilePage() {
               <h2 className="text-xl font-semibold text-white mb-6">Información personal</h2>
               <ProfileForm initialName={fullName} email={user.email || ""} />
             </section>
+
+            <VideoDevicesPanel
+              devices={videoDevices.devices}
+              activeDeviceCount={videoDevices.activeDeviceCount}
+              maxActiveDevices={videoDevices.maxActiveDevices}
+              loadError={videoDevices.loadError}
+            />
 
             <section
               id="payments"

@@ -119,6 +119,8 @@ Endpoints publicos por diseno:
 - `GET /api/stripe/checkout-session-status`: requiere sesion de usuario y valida pertenencia de la sesion.
 - `GET /api/lessons/:lessonId/video-url`: devuelve URLs firmadas solo para previews o usuarios con compra valida.
 - `GET /api/lessons/playback/:token`: sirve video protegido desde backend sin exponer la URL privada de Storage.
+- `GET /api/video-devices`: lista dispositivos de video del usuario autenticado.
+- `POST /api/video-devices/:deviceId/revoke`: revoca un dispositivo de video del usuario autenticado.
 - `POST /api/cms/sync`: sincronizacion Strapi -> Express, protegida con `CMS_SYNC_TOKEN`.
 
 `GET /api/supabase-test` solo existe si `ENABLE_SUPABASE_TEST_ENDPOINT=true`, pensado para diagnostico local.

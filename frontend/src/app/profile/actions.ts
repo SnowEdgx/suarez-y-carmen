@@ -1,7 +1,12 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
+import { getBackendUrl } from '@/lib/backend-url'
+import { DEVICE_ID_HEADER, isValidDeviceId } from '@/lib/device-session'
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 export async function updateProfileName(formData: FormData) {
   const supabase = await createClient()
@@ -42,4 +47,65 @@ export async function updateProfileName(formData: FormData) {
   revalidatePath('/', 'layout')
 
   return { success: 'Perfil actualizado correctamente' }
+}
+
+async function readJsonSafely(response: Response) {
+  try {
+    return await response.json()
+  } catch {
+    return null
+  }
+}
+
+export async function revokeVideoDevice(formData: FormData) {
+  const deviceId = typeof formData.get('deviceId') === 'string' ? formData.get('deviceId') as string : ''
+
+  if (!UUID_REGEX.test(deviceId)) {
+    return { error: 'No pudimos identificar el dispositivo.' }
+  }
+
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  if (!user || !session?.access_token) {
+    return { error: 'Tu sesi\u00f3n ha expirado. Vuelve a iniciar sesi\u00f3n.' }
+  }
+
+  const requestHeaders = await headers()
+  const currentDeviceId = requestHeaders.get(DEVICE_ID_HEADER)
+  if (!isValidDeviceId(currentDeviceId)) {
+    return { error: 'No pudimos validar este dispositivo. Recarga la p\u00e1gina e int\u00e9ntalo de nuevo.' }
+  }
+
+  let response: Response
+  try {
+    response = await fetch(`${getBackendUrl()}/api/video-devices/${encodeURIComponent(deviceId)}/revoke`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+        [DEVICE_ID_HEADER]: currentDeviceId,
+      },
+      cache: 'no-store',
+    })
+  } catch {
+    return { error: 'No pudimos contactar con el servicio de dispositivos.' }
+  }
+
+  if (!response.ok) {
+    const payload = await readJsonSafely(response)
+    return {
+      error:
+        typeof payload?.error === 'string'
+          ? payload.error
+          : 'No pudimos revocar el dispositivo. Int\u00e9ntalo de nuevo.',
+    }
+  }
+
+  revalidatePath('/profile')
+  return { success: 'Dispositivo revocado correctamente.' }
 }

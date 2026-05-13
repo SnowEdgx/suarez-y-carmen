@@ -153,6 +153,7 @@ async function main() {
   const targetCourseSlug = process.env.E2E_COURSE_SLUG || DEFAULT_TARGET_COURSE_SLUG;
   const unownedCourseSlug = process.env.E2E_UNOWNED_COURSE_SLUG || DEFAULT_UNOWNED_COURSE_SLUG;
   const videoDeviceId = randomUUID();
+  const secondVideoDeviceId = randomUUID();
 
   if (!serviceKey) {
     throw new Error('SUPABASE_SERVICE_ROLE_KEY or SUPABASE_SECRET_KEY is required.');
@@ -287,6 +288,52 @@ async function main() {
     throw new Error(`Playback proxy returned ${playbackResponse.status}, expected 200 or 206.`);
   }
 
+  const secondDeviceVideoResponse = await fetch(`${backendUrl}/api/lessons/${lockedLesson.id}/video-url`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'X-SYC-Device-Id': secondVideoDeviceId,
+    },
+  });
+  assertStatus(secondDeviceVideoResponse, 200, 'Second device paid video access');
+
+  const devicesResponse = await fetch(`${backendUrl}/api/video-devices`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'X-SYC-Device-Id': videoDeviceId,
+    },
+  });
+  const devicesPayload = await readJson(devicesResponse);
+  assertStatus(devicesResponse, 200, 'Video device listing');
+  const devices = Array.isArray(devicesPayload.devices) ? devicesPayload.devices : [];
+  const currentDevice = devices.find((device) => device.isCurrent === true);
+  const revocableDevice = devices.find((device) => device.isCurrent !== true && device.isActive === true);
+  if (!currentDevice || !revocableDevice?.id) {
+    throw new Error('Video device listing did not include current and revocable devices.');
+  }
+  if (devices.some((device) => 'device_id_hash' in device || 'user_agent_hash' in device)) {
+    throw new Error('Video device listing exposed internal hashes.');
+  }
+
+  const revokeDeviceResponse = await fetch(`${backendUrl}/api/video-devices/${revocableDevice.id}/revoke`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'X-SYC-Device-Id': videoDeviceId,
+    },
+  });
+  assertStatus(revokeDeviceResponse, 200, 'Video device revocation');
+
+  const revokedDeviceVideoResponse = await fetch(`${backendUrl}/api/lessons/${lockedLesson.id}/video-url`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'X-SYC-Device-Id': secondVideoDeviceId,
+    },
+  });
+  assertStatus(revokedDeviceVideoResponse, 403, 'Revoked device paid video access');
+
   const unownedLockedLesson = await getLesson(admin, unownedCourse.id, false);
   const unownedVideoResponse = await fetch(
     `${backendUrl}/api/lessons/${unownedLockedLesson.id}/video-url`,
@@ -349,6 +396,10 @@ async function main() {
           paidVideoWithoutDevice: paidVideoWithoutDeviceResponse.status,
           paidVideoAccess: paidVideoResponse.status,
           playbackProxyAccess: playbackResponse.status,
+          secondDeviceVideoAccess: secondDeviceVideoResponse.status,
+          videoDeviceListing: devicesResponse.status,
+          videoDeviceRevocation: revokeDeviceResponse.status,
+          revokedDeviceVideoAccess: revokedDeviceVideoResponse.status,
           unownedVideoAccess: unownedVideoResponse.status,
           publicPreviewAccess: publicPreviewResponse.status,
           unauthenticatedCheckout: unauthCheckoutResponse.status,
