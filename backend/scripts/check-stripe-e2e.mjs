@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from 'node:fs';
+import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createClient } from '@supabase/supabase-js';
@@ -101,6 +102,7 @@ async function getLesson(supabase, courseId, isFreePreview) {
 
 async function resetTargetCourseAccess(supabase, userId, courseId) {
   await supabase.from('user_progress').delete().eq('user_id', userId);
+  await supabase.from('user_video_devices').delete().eq('user_id', userId);
   await supabase
     .from('user_courses')
     .delete()
@@ -150,6 +152,7 @@ async function main() {
   const userPassword = requireEnv('E2E_USER_PASSWORD');
   const targetCourseSlug = process.env.E2E_COURSE_SLUG || DEFAULT_TARGET_COURSE_SLUG;
   const unownedCourseSlug = process.env.E2E_UNOWNED_COURSE_SLUG || DEFAULT_UNOWNED_COURSE_SLUG;
+  const videoDeviceId = randomUUID();
 
   if (!serviceKey) {
     throw new Error('SUPABASE_SERVICE_ROLE_KEY or SUPABASE_SECRET_KEY is required.');
@@ -258,9 +261,18 @@ async function main() {
   }
 
   const lockedLesson = await getLesson(admin, targetCourse.id, false);
-  const paidVideoResponse = await fetch(`${backendUrl}/api/lessons/${lockedLesson.id}/video-url`, {
+  const paidVideoWithoutDeviceResponse = await fetch(`${backendUrl}/api/lessons/${lockedLesson.id}/video-url`, {
     method: 'GET',
     headers: { Authorization: `Bearer ${token}` },
+  });
+  assertStatus(paidVideoWithoutDeviceResponse, 403, 'Paid video access without device');
+
+  const paidVideoResponse = await fetch(`${backendUrl}/api/lessons/${lockedLesson.id}/video-url`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'X-SYC-Device-Id': videoDeviceId,
+    },
   });
   const paidVideoPayload = await readJson(paidVideoResponse);
   assertStatus(paidVideoResponse, 200, 'Paid video access');
@@ -280,7 +292,10 @@ async function main() {
     `${backendUrl}/api/lessons/${unownedLockedLesson.id}/video-url`,
     {
       method: 'GET',
-      headers: { Authorization: `Bearer ${token}` },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'X-SYC-Device-Id': videoDeviceId,
+      },
     }
   );
   assertStatus(unownedVideoResponse, 403, 'Unowned video access');
@@ -331,6 +346,7 @@ async function main() {
           duplicateWebhookIdempotent: duplicateWebhookResult.duplicate === true,
           finalPurchaseStatus: paidPurchase.status,
           purchaseRows,
+          paidVideoWithoutDevice: paidVideoWithoutDeviceResponse.status,
           paidVideoAccess: paidVideoResponse.status,
           playbackProxyAccess: playbackResponse.status,
           unownedVideoAccess: unownedVideoResponse.status,

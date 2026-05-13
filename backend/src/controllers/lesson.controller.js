@@ -49,6 +49,22 @@ const PLAYBACK_TOKEN_SECRET =
   process.env.VIDEO_PLAYBACK_TOKEN_SECRET || supabaseServiceKey;
 const VIDEO_AUDIT_HASH_SECRET =
   process.env.VIDEO_AUDIT_HASH_SECRET || PLAYBACK_TOKEN_SECRET;
+const RAW_MAX_ACTIVE_VIDEO_DEVICES = Number.parseInt(
+  process.env.VIDEO_MAX_ACTIVE_DEVICES || '2',
+  10
+);
+const MAX_ACTIVE_VIDEO_DEVICES =
+  Number.isInteger(RAW_MAX_ACTIVE_VIDEO_DEVICES) && RAW_MAX_ACTIVE_VIDEO_DEVICES >= 1
+    ? Math.min(RAW_MAX_ACTIVE_VIDEO_DEVICES, 10)
+    : 2;
+const RAW_VIDEO_DEVICE_INACTIVITY_DAYS = Number.parseInt(
+  process.env.VIDEO_DEVICE_INACTIVITY_DAYS || '30',
+  10
+);
+const VIDEO_DEVICE_INACTIVITY_DAYS =
+  Number.isInteger(RAW_VIDEO_DEVICE_INACTIVITY_DAYS) && RAW_VIDEO_DEVICE_INACTIVITY_DAYS >= 1
+    ? Math.min(RAW_VIDEO_DEVICE_INACTIVITY_DAYS, 365)
+    : 30;
 const PLAYBACK_STREAM_RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const PLAYBACK_STREAM_RATE_LIMIT_MAX_REQUESTS = 240;
 const playbackStreamBuckets = new Map();
@@ -135,6 +151,27 @@ function sanitizeRangeHeader(value) {
   return trimmed;
 }
 
+function getPlaybackDeviceId(req) {
+  const headerValue = req.headers['x-syc-device-id'];
+  const rawDeviceId = Array.isArray(headerValue) ? headerValue[0] : headerValue;
+  if (typeof rawDeviceId !== 'string') return null;
+
+  const deviceId = rawDeviceId.trim();
+  return UUID_REGEX.test(deviceId) ? deviceId : null;
+}
+
+function getUserAgent(req) {
+  return typeof req.headers['user-agent'] === 'string'
+    ? req.headers['user-agent']
+    : '';
+}
+
+function getActiveDeviceCutoffIso() {
+  return new Date(
+    Date.now() - VIDEO_DEVICE_INACTIVITY_DAYS * 24 * 60 * 60 * 1000
+  ).toISOString();
+}
+
 function assertPlaybackTokenRateLimit(tokenNonce) {
   const now = Date.now();
   const bucket = playbackStreamBuckets.get(tokenNonce);
@@ -187,6 +224,74 @@ async function userHasPaidCourse(userId, courseId) {
 
   if (error) throw error;
   return Boolean(data);
+}
+
+async function assertVideoDeviceAccess({ req, userId }) {
+  const deviceId = getPlaybackDeviceId(req);
+  if (!deviceId) {
+    const error = new Error('Video device identifier is required.');
+    error.status = 403;
+    error.code = 'missing_device_id';
+    throw error;
+  }
+
+  const deviceIdHash = hashRequestValue(deviceId);
+  const userAgentHash = hashRequestValue(getUserAgent(req));
+
+  const { data: existingDevice, error: existingDeviceError } = await supabase
+    .from('user_video_devices')
+    .select('id, revoked_at')
+    .eq('user_id', userId)
+    .eq('device_id_hash', deviceIdHash)
+    .maybeSingle();
+
+  if (existingDeviceError) throw existingDeviceError;
+
+  if (existingDevice?.revoked_at) {
+    const error = new Error('Video device has been revoked.');
+    error.status = 403;
+    error.code = 'device_revoked';
+    throw error;
+  }
+
+  if (existingDevice) {
+    const { error: updateError } = await supabase
+      .from('user_video_devices')
+      .update({
+        user_agent_hash: userAgentHash,
+        last_seen_at: new Date().toISOString(),
+      })
+      .eq('id', existingDevice.id);
+
+    if (updateError) throw updateError;
+    return;
+  }
+
+  const { count, error: countError } = await supabase
+    .from('user_video_devices')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .is('revoked_at', null)
+    .gte('last_seen_at', getActiveDeviceCutoffIso());
+
+  if (countError) throw countError;
+
+  if ((count || 0) >= MAX_ACTIVE_VIDEO_DEVICES) {
+    const error = new Error('User has reached the active video device limit.');
+    error.status = 403;
+    error.code = 'device_limit_exceeded';
+    throw error;
+  }
+
+  const { error: insertError } = await supabase
+    .from('user_video_devices')
+    .insert({
+      user_id: userId,
+      device_id_hash: deviceIdHash,
+      user_agent_hash: userAgentHash,
+    });
+
+  if (insertError) throw insertError;
 }
 
 function isHttpUrl(value) {
@@ -300,7 +405,7 @@ async function getPlayableLesson(lessonId) {
   return lesson;
 }
 
-async function assertLessonAccess({ lesson, user }) {
+async function assertLessonAccess({ lesson, user, req, enforceDevice = false }) {
   if (!lesson.is_free_preview) {
     if (!user) {
       const error = new Error('Authentication is required for this lesson.');
@@ -313,6 +418,10 @@ async function assertLessonAccess({ lesson, user }) {
       const error = new Error('User does not have paid access to this lesson.');
       error.status = 403;
       throw error;
+    }
+
+    if (enforceDevice) {
+      await assertVideoDeviceAccess({ req, userId: user.id });
     }
   }
 }
@@ -328,10 +437,6 @@ async function recordPlaybackEvent({
   statusCode,
   errorCode,
 }) {
-  const userAgent = typeof req.headers['user-agent'] === 'string'
-    ? req.headers['user-agent']
-    : '';
-
   const { error } = await supabase
     .from('video_playback_events')
     .insert({
@@ -342,7 +447,7 @@ async function recordPlaybackEvent({
       event_type: eventType,
       status_code: statusCode || null,
       request_ip_hash: hashRequestValue(getClientIp(req)),
-      user_agent_hash: hashRequestValue(userAgent),
+      user_agent_hash: hashRequestValue(getUserAgent(req)),
       range_header: sanitizeRangeHeader(req.headers.range),
       error_code: errorCode || null,
     });
@@ -435,7 +540,7 @@ exports.getLessonVideoUrl = async (req, res) => {
 
     const user = await getAuthenticatedUser(req);
     const lesson = await getPlayableLesson(lessonId);
-    await assertLessonAccess({ lesson, user });
+    await assertLessonAccess({ lesson, user, req, enforceDevice: true });
 
     const storageReference = resolveStorageReference(lesson.video_storage_path, lesson.video_url);
     if (storageReference) {
@@ -471,6 +576,13 @@ exports.getLessonVideoUrl = async (req, res) => {
   } catch (err) {
     const status = err.status || 500;
     console.error('[Lesson Controller] Error resolving lesson video:', err.message);
+    recordPlaybackEventSafe({
+      req,
+      lessonId: UUID_REGEX.test(req.params.lessonId || '') ? req.params.lessonId : null,
+      eventType: status === 401 || status === 403 || status === 429 ? 'token_denied' : 'stream_error',
+      statusCode: status,
+      errorCode: err.code || 'video_token_failed',
+    });
     return res.status(status).json({ error: 'No se pudo resolver el acceso al video.' });
   }
 };
@@ -495,7 +607,7 @@ exports.streamLessonVideo = async (req, res) => {
 
     lesson = await getPlayableLesson(payload.lessonId);
     const user = payload.userId ? { id: payload.userId } : null;
-    await assertLessonAccess({ lesson, user });
+    await assertLessonAccess({ lesson, user, req });
 
     const storageReference = resolveStorageReference(lesson.video_storage_path, lesson.video_url);
     if (!storageReference) {

@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
@@ -12,6 +13,7 @@ import {
 } from "@/lib/checkout-status";
 import { getBackendUrl, getPublicBackendUrl } from "@/lib/backend-url";
 import { getCourseImageUrl, shouldBypassImageOptimization } from "@/lib/course-images";
+import { DEVICE_ID_HEADER, isValidDeviceId } from "@/lib/device-session";
 import { createClient } from "@/lib/supabase/server";
 import { startCourseCheckout } from "../actions";
 import { setLessonProgress } from "./actions";
@@ -61,12 +63,16 @@ function formatPrice(priceCents: number | null) {
 async function resolveLessonVideoUrl(options: {
   lessonId: string;
   accessToken: string | null;
+  deviceId: string | null;
 }) {
-  const { lessonId, accessToken } = options;
+  const { lessonId, accessToken, deviceId } = options;
   const headers: HeadersInit = {};
 
   if (accessToken) {
     headers.Authorization = `Bearer ${accessToken}`;
+  }
+  if (isValidDeviceId(deviceId)) {
+    headers[DEVICE_ID_HEADER] = deviceId;
   }
 
   let response: Response;
@@ -156,6 +162,8 @@ export default async function CourseDetailPage({ params, searchParams }: CourseD
   } = await supabase.auth.getSession();
 
   const accessToken = session?.access_token ?? null;
+  const requestHeaders = await headers();
+  const deviceId = requestHeaders.get(DEVICE_ID_HEADER);
   const stripeReturnMessage = await resolveStripeReturnMessage({
     sessionId: stripeSessionId,
     wasSuccessful: stripeSuccessParam === "true",
@@ -216,6 +224,7 @@ export default async function CourseDetailPage({ params, searchParams }: CourseD
     ? await resolveLessonVideoUrl({
         lessonId: featuredLesson.id,
         accessToken,
+        deviceId,
       })
     : null;
   const hasValidPrice = Number.isInteger(course.price_cents) && (course.price_cents as number) > 0;

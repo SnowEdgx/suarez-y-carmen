@@ -164,3 +164,4 @@ Esta prueba crea una sesion real de Stripe Checkout en modo test, procesa un web
 - El backend Express mantiene la logica sensible: checkout, webhooks, sincronizacion CMS y URLs firmadas de video.
 - Los videos privados se sirven mediante proxy temporal del backend; no se debe exponer directamente el bucket privado ni sus URLs firmadas al cliente final.
 - Los accesos de video se auditan con hashes de IP y user-agent; no se guardan esos valores en claro.
+- El acceso a video comprado limita dispositivos activos por usuario mediante identificadores en cookie HttpOnly y hashes almacenados en base de datos.
