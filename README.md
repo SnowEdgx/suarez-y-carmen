@@ -120,7 +120,7 @@ Endpoints publicos por diseno:
 - `GET /api/lessons/:lessonId/video-url`: devuelve URLs firmadas solo para previews o usuarios con compra valida.
 - `POST /api/cms/sync`: sincronizacion Strapi -> Express, protegida con `CMS_SYNC_TOKEN`.
 
-`GET /api/supabase-test` existe solo en desarrollo (`NODE_ENV !== production`) para verificar conectividad local.
+`GET /api/supabase-test` solo existe si `ENABLE_SUPABASE_TEST_ENDPOINT=true`, pensado para diagnostico local.
 
 ## Validacion local
 
@@ -159,4 +159,5 @@ Esta prueba crea una sesion real de Stripe Checkout en modo test, procesa un web
 - En produccion hay que sustituir `CMS_SYNC_TOKEN`, secretos de Strapi, credenciales de base de datos, claves de Stripe, Supabase service role y SMTP.
 - `NODE_ENV=production` debe estar definido en el backend desplegado para desactivar endpoints de diagnostico.
 - Configurar correctamente `FRONTEND_URL`, `CORS_ORIGINS`, `NEXT_PUBLIC_SITE_URL`, `BACKEND_URL`, `BACKEND_INTERNAL_URL` y `PUBLIC_URL` segun el dominio real.
+- En produccion, no activar `ENABLE_SUPABASE_TEST_ENDPOINT` salvo diagnostico temporal controlado.
 - El backend Express mantiene la logica sensible: checkout, webhooks, sincronizacion CMS y URLs firmadas de video.

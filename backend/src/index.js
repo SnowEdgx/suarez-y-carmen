@@ -6,6 +6,7 @@ const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
+const isProduction = process.env.NODE_ENV === 'production';
 app.set('trust proxy', 1);
 
 function resolveSupabaseUrl() {
@@ -40,6 +41,10 @@ const corsOrigins = (process.env.CORS_ORIGINS || process.env.FRONTEND_URL || '')
   .split(',')
   .map((origin) => origin.trim())
   .filter(Boolean);
+const localDevelopmentOrigins = new Set([
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+]);
 
 // Supabase client.
 const supabase = createClient(
@@ -55,12 +60,8 @@ app.use(
       // Allow non-browser clients (Stripe webhook, server-to-server).
       if (!origin) return callback(null, true);
 
-      // Safe defaults for local development.
-      if (
-        origin === 'http://localhost:3000' ||
-        origin === 'http://127.0.0.1:3000' ||
-        corsOrigins.includes(origin)
-      ) {
+      // Safe defaults are development-only. Production must declare CORS_ORIGINS.
+      if ((!isProduction && localDevelopmentOrigins.has(origin)) || corsOrigins.includes(origin)) {
         return callback(null, true);
       }
 
@@ -84,8 +85,8 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Supabase connection test (development only).
-if (process.env.NODE_ENV !== 'production') {
+// Supabase connection test (explicitly enabled for local diagnostics only).
+if (process.env.ENABLE_SUPABASE_TEST_ENDPOINT === 'true') {
   app.get('/api/supabase-test', async (_req, res) => {
     try {
       const { data, error } = await supabase.from('courses').select('id').limit(1);
