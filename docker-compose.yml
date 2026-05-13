@@ -14,6 +14,7 @@ services:
       - ./frontend/.env.local
     environment:
       - WATCHPACK_POLLING=true
+      - NEXT_PUBLIC_BACKEND_URL=http://localhost:4000
       - BACKEND_INTERNAL_URL=http://backend:4000
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -46,6 +47,7 @@ services:
       - RUNNING_IN_DOCKER=true
       - SUPABASE_URL=http://host.docker.internal:54321
       - CMS_SYNC_TOKEN=${CMS_SYNC_TOKEN:-local-cms-sync-token-change-me}
+      - VIDEO_PLAYBACK_TOKEN_SECRET=${VIDEO_PLAYBACK_TOKEN_SECRET:-local-video-playback-token-change-me}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     healthcheck:

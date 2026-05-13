@@ -3,13 +3,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
+import SecureVideoPlayer from "@/components/courses/SecureVideoPlayer";
 import {
   pickSingleParam,
   resolveCheckoutCodeMessage,
   resolveStripeReturnMessage,
   type CheckoutMessage,
 } from "@/lib/checkout-status";
-import { getBackendUrl } from "@/lib/backend-url";
+import { getBackendUrl, getPublicBackendUrl } from "@/lib/backend-url";
 import { getCourseImageUrl, shouldBypassImageOptimization } from "@/lib/course-images";
 import { createClient } from "@/lib/supabase/server";
 import { startCourseCheckout } from "../actions";
@@ -88,6 +89,10 @@ async function resolveLessonVideoUrl(options: {
     payload = (await response.json()) as Record<string, unknown>;
   } catch {
     payload = null;
+  }
+
+  if (typeof payload?.path === "string" && payload.path.startsWith("/")) {
+    return `${getPublicBackendUrl()}${payload.path}`;
   }
 
   return typeof payload?.url === "string" ? payload.url : null;
@@ -353,12 +358,10 @@ export default async function CourseDetailPage({ params, searchParams }: CourseD
                   <p className="text-neutral-400 text-sm">{featuredLesson.description}</p>
                 )}
                 {featuredLessonVideoUrl ? (
-                  <video
+                  <SecureVideoPlayer
                     key={featuredLesson.id}
-                    controls
-                    preload="metadata"
-                    className="w-full rounded-xl border border-neutral-700 bg-black"
                     src={featuredLessonVideoUrl}
+                    title={featuredLesson.title}
                   />
                 ) : (
                   <div className="rounded-xl border border-neutral-700 bg-black/60 p-6 text-sm text-neutral-400">

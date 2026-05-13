@@ -118,6 +118,7 @@ Endpoints publicos por diseno:
 - `POST /api/stripe/create-checkout-session`: requiere sesion de usuario.
 - `GET /api/stripe/checkout-session-status`: requiere sesion de usuario y valida pertenencia de la sesion.
 - `GET /api/lessons/:lessonId/video-url`: devuelve URLs firmadas solo para previews o usuarios con compra valida.
+- `GET /api/lessons/playback/:token`: sirve video protegido desde backend sin exponer la URL privada de Storage.
 - `POST /api/cms/sync`: sincronizacion Strapi -> Express, protegida con `CMS_SYNC_TOKEN`.
 
 `GET /api/supabase-test` solo existe si `ENABLE_SUPABASE_TEST_ENDPOINT=true`, pensado para diagnostico local.
@@ -161,3 +162,4 @@ Esta prueba crea una sesion real de Stripe Checkout en modo test, procesa un web
 - Configurar correctamente `FRONTEND_URL`, `CORS_ORIGINS`, `NEXT_PUBLIC_SITE_URL`, `BACKEND_URL`, `BACKEND_INTERNAL_URL` y `PUBLIC_URL` segun el dominio real.
 - En produccion, no activar `ENABLE_SUPABASE_TEST_ENDPOINT` salvo diagnostico temporal controlado.
 - El backend Express mantiene la logica sensible: checkout, webhooks, sincronizacion CMS y URLs firmadas de video.
+- Los videos privados se sirven mediante proxy temporal del backend; no se debe exponer directamente el bucket privado ni sus URLs firmadas al cliente final.

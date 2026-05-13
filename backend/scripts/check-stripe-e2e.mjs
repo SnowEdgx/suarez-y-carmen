@@ -264,8 +264,15 @@ async function main() {
   });
   const paidVideoPayload = await readJson(paidVideoResponse);
   assertStatus(paidVideoResponse, 200, 'Paid video access');
-  if (paidVideoPayload.source !== 'signed' || typeof paidVideoPayload.url !== 'string') {
-    throw new Error('Paid video access did not return a signed URL.');
+  if (paidVideoPayload.source !== 'proxied' || typeof paidVideoPayload.path !== 'string') {
+    throw new Error('Paid video access did not return a proxied playback path.');
+  }
+
+  const playbackResponse = await fetch(`${backendUrl}${paidVideoPayload.path}`, {
+    headers: { Range: 'bytes=0-1023' },
+  });
+  if (playbackResponse.status !== 200 && playbackResponse.status !== 206) {
+    throw new Error(`Playback proxy returned ${playbackResponse.status}, expected 200 or 206.`);
   }
 
   const unownedLockedLesson = await getLesson(admin, unownedCourse.id, false);
@@ -325,6 +332,7 @@ async function main() {
           finalPurchaseStatus: paidPurchase.status,
           purchaseRows,
           paidVideoAccess: paidVideoResponse.status,
+          playbackProxyAccess: playbackResponse.status,
           unownedVideoAccess: unownedVideoResponse.status,
           publicPreviewAccess: publicPreviewResponse.status,
           unauthenticatedCheckout: unauthCheckoutResponse.status,

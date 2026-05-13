@@ -7,3 +7,13 @@ export function getBackendUrl() {
 
   return backendUrl.replace(/\/+$/, "");
 }
+
+export function getPublicBackendUrl() {
+  const backendUrl = (
+    process.env.NEXT_PUBLIC_BACKEND_URL ??
+    process.env.BACKEND_URL ??
+    "http://localhost:4000"
+  );
+
+  return backendUrl.replace(/\/+$/, "");
+}

@@ -1,3 +1,5 @@
+const { createHmac, randomUUID, timingSafeEqual } = require('crypto');
+const { Readable } = require('stream');
 const { createClient } = require('@supabase/supabase-js');
 
 function resolveSupabaseUrl() {
@@ -35,6 +37,66 @@ const SIGNED_URL_TTL_SECONDS =
   Number.isInteger(RAW_SIGNED_URL_TTL_SECONDS) && RAW_SIGNED_URL_TTL_SECONDS >= 60
     ? Math.min(RAW_SIGNED_URL_TTL_SECONDS, 3600)
     : 900;
+const RAW_PLAYBACK_TOKEN_TTL_SECONDS = Number.parseInt(
+  process.env.VIDEO_PLAYBACK_TOKEN_TTL_SECONDS || '900',
+  10
+);
+const PLAYBACK_TOKEN_TTL_SECONDS =
+  Number.isInteger(RAW_PLAYBACK_TOKEN_TTL_SECONDS) && RAW_PLAYBACK_TOKEN_TTL_SECONDS >= 60
+    ? Math.min(RAW_PLAYBACK_TOKEN_TTL_SECONDS, 3600)
+    : 900;
+const PLAYBACK_TOKEN_SECRET =
+  process.env.VIDEO_PLAYBACK_TOKEN_SECRET || supabaseServiceKey;
+
+function base64UrlEncode(value) {
+  return Buffer.from(value).toString('base64url');
+}
+
+function base64UrlDecode(value) {
+  return Buffer.from(value, 'base64url').toString('utf8');
+}
+
+function signPlaybackPayload(encodedPayload) {
+  return createHmac('sha256', PLAYBACK_TOKEN_SECRET)
+    .update(encodedPayload)
+    .digest('base64url');
+}
+
+function createPlaybackToken({ lessonId, userId }) {
+  const payload = {
+    lessonId,
+    userId: userId || null,
+    exp: Math.floor(Date.now() / 1000) + PLAYBACK_TOKEN_TTL_SECONDS,
+    nonce: randomUUID(),
+  };
+  const encodedPayload = base64UrlEncode(JSON.stringify(payload));
+  const signature = signPlaybackPayload(encodedPayload);
+  return `${encodedPayload}.${signature}`;
+}
+
+function parsePlaybackToken(rawToken) {
+  if (typeof rawToken !== 'string' || !rawToken.includes('.')) return null;
+
+  const [encodedPayload, signature] = rawToken.split('.');
+  if (!encodedPayload || !signature) return null;
+
+  const expectedSignature = signPlaybackPayload(encodedPayload);
+  const providedBuffer = Buffer.from(signature);
+  const expectedBuffer = Buffer.from(expectedSignature);
+  if (providedBuffer.length !== expectedBuffer.length) return null;
+  if (!timingSafeEqual(providedBuffer, expectedBuffer)) return null;
+
+  try {
+    const payload = JSON.parse(base64UrlDecode(encodedPayload));
+    if (!payload || typeof payload !== 'object') return null;
+    if (!UUID_REGEX.test(payload.lessonId)) return null;
+    if (payload.userId !== null && !UUID_REGEX.test(payload.userId)) return null;
+    if (!Number.isInteger(payload.exp) || payload.exp < Math.floor(Date.now() / 1000)) return null;
+    return payload;
+  } catch {
+    return null;
+  }
+}
 
 async function getAuthenticatedUser(req) {
   const authHeader = req.headers.authorization || '';
@@ -143,6 +205,111 @@ async function lessonBelongsToPublishedCourse(courseId) {
   return Boolean(data?.is_published);
 }
 
+async function getPlayableLesson(lessonId) {
+  const { data: lesson, error: lessonError } = await supabase
+    .from('lessons')
+    .select('id, course_id, is_free_preview, is_published, video_url, video_storage_path')
+    .eq('id', lessonId)
+    .maybeSingle();
+
+  if (lessonError) throw lessonError;
+  if (!lesson) {
+    const error = new Error('Lesson not found.');
+    error.status = 404;
+    throw error;
+  }
+
+  if (!lesson.is_published) {
+    const error = new Error('Lesson is not published.');
+    error.status = 404;
+    throw error;
+  }
+
+  const isPublishedCourse = await lessonBelongsToPublishedCourse(lesson.course_id);
+  if (!isPublishedCourse) {
+    const error = new Error('Parent course is not published.');
+    error.status = 404;
+    throw error;
+  }
+
+  return lesson;
+}
+
+async function assertLessonAccess({ lesson, user }) {
+  if (!lesson.is_free_preview) {
+    if (!user) {
+      const error = new Error('Authentication is required for this lesson.');
+      error.status = 401;
+      throw error;
+    }
+
+    const hasPaidAccess = await userHasPaidCourse(user.id, lesson.course_id);
+    if (!hasPaidAccess) {
+      const error = new Error('User does not have paid access to this lesson.');
+      error.status = 403;
+      throw error;
+    }
+  }
+}
+
+function applyVideoSecurityHeaders(res) {
+  res.set('Accept-Ranges', 'bytes');
+  res.set('Cache-Control', 'private, no-store, max-age=0, must-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  res.set('X-Content-Type-Options', 'nosniff');
+}
+
+function copyHeader(sourceHeaders, targetResponse, sourceName, targetName = sourceName) {
+  const value = sourceHeaders.get(sourceName);
+  if (value) targetResponse.set(targetName, value);
+}
+
+async function createStorageSignedUrl(storageReference) {
+  const { data, error } = await supabase.storage
+    .from(storageReference.bucket)
+    .createSignedUrl(storageReference.path, Math.min(SIGNED_URL_TTL_SECONDS, 300));
+
+  if (error || !data?.signedUrl) {
+    console.error(
+      '[Lesson Controller] Error creating signed URL:',
+      error?.message || 'unknown storage error'
+    );
+    const signingError = new Error('Could not create signed storage URL.');
+    signingError.status = 500;
+    throw signingError;
+  }
+
+  return data.signedUrl;
+}
+
+async function streamStorageObject({ req, res, storageReference }) {
+  const signedUrl = await createStorageSignedUrl(storageReference);
+  const rangeHeader = typeof req.headers.range === 'string' ? req.headers.range : undefined;
+  const upstreamResponse = await fetch(signedUrl, {
+    headers: rangeHeader ? { Range: rangeHeader } : {},
+  });
+
+  if (!upstreamResponse.ok && upstreamResponse.status !== 206) {
+    console.error('[Lesson Controller] Storage stream failed:', upstreamResponse.status);
+    return res.status(502).json({ error: 'No se pudo cargar el video en este momento.' });
+  }
+
+  applyVideoSecurityHeaders(res);
+  res.status(upstreamResponse.status);
+  copyHeader(upstreamResponse.headers, res, 'content-type', 'Content-Type');
+  copyHeader(upstreamResponse.headers, res, 'content-length', 'Content-Length');
+  copyHeader(upstreamResponse.headers, res, 'content-range', 'Content-Range');
+  copyHeader(upstreamResponse.headers, res, 'etag', 'ETag');
+  copyHeader(upstreamResponse.headers, res, 'last-modified', 'Last-Modified');
+
+  if (!upstreamResponse.body) {
+    return res.end();
+  }
+
+  return Readable.fromWeb(upstreamResponse.body).pipe(res);
+}
+
 exports.getLessonVideoUrl = async (req, res) => {
   try {
     const lessonId = typeof req.params.lessonId === 'string' ? req.params.lessonId.trim() : '';
@@ -151,56 +318,17 @@ exports.getLessonVideoUrl = async (req, res) => {
     }
 
     const user = await getAuthenticatedUser(req);
-
-    const { data: lesson, error: lessonError } = await supabase
-      .from('lessons')
-      .select('id, course_id, is_free_preview, is_published, video_url, video_storage_path')
-      .eq('id', lessonId)
-      .maybeSingle();
-
-    if (lessonError) throw lessonError;
-    if (!lesson) {
-      return res.status(404).json({ error: 'Leccion no encontrada.' });
-    }
-    if (!lesson.is_published) {
-      return res.status(404).json({ error: 'Leccion no disponible.' });
-    }
-
-    const isPublishedCourse = await lessonBelongsToPublishedCourse(lesson.course_id);
-    if (!isPublishedCourse) {
-      return res.status(404).json({ error: 'Leccion no disponible.' });
-    }
-
-    if (!lesson.is_free_preview) {
-      if (!user) {
-        return res.status(401).json({ error: 'No autorizado. Inicia sesion para acceder al video.' });
-      }
-
-      const hasPaidAccess = await userHasPaidCourse(user.id, lesson.course_id);
-      if (!hasPaidAccess) {
-        return res.status(403).json({ error: 'No tienes acceso a esta leccion.' });
-      }
-    }
+    const lesson = await getPlayableLesson(lessonId);
+    await assertLessonAccess({ lesson, user });
 
     const storageReference = resolveStorageReference(lesson.video_storage_path, lesson.video_url);
     if (storageReference) {
-      const { data, error } = await supabase.storage
-        .from(storageReference.bucket)
-        .createSignedUrl(storageReference.path, SIGNED_URL_TTL_SECONDS);
-
-      if (error || !data?.signedUrl) {
-        console.error(
-          '[Lesson Controller] Error creating signed URL:',
-          error?.message || 'unknown storage error'
-        );
-        return res.status(500).json({ error: 'No se pudo firmar el acceso al video.' });
-      }
-
       res.set('Cache-Control', 'no-store');
+      const playbackToken = createPlaybackToken({ lessonId: lesson.id, userId: user?.id || null });
       return res.json({
-        url: data.signedUrl,
-        expiresInSeconds: SIGNED_URL_TTL_SECONDS,
-        source: 'signed',
+        path: `/api/lessons/playback/${encodeURIComponent(playbackToken)}`,
+        expiresInSeconds: PLAYBACK_TOKEN_TTL_SECONDS,
+        source: 'proxied',
       });
     }
 
@@ -220,5 +348,29 @@ exports.getLessonVideoUrl = async (req, res) => {
     const status = err.status || 500;
     console.error('[Lesson Controller] Error resolving lesson video:', err.message);
     return res.status(status).json({ error: 'No se pudo resolver el acceso al video.' });
+  }
+};
+
+exports.streamLessonVideo = async (req, res) => {
+  try {
+    const payload = parsePlaybackToken(req.params.token);
+    if (!payload) {
+      return res.status(401).json({ error: 'Acceso de video no valido o caducado.' });
+    }
+
+    const lesson = await getPlayableLesson(payload.lessonId);
+    const user = payload.userId ? { id: payload.userId } : null;
+    await assertLessonAccess({ lesson, user });
+
+    const storageReference = resolveStorageReference(lesson.video_storage_path, lesson.video_url);
+    if (!storageReference) {
+      return res.status(500).json({ error: 'El video de esta leccion no esta configurado de forma segura.' });
+    }
+
+    return streamStorageObject({ req, res, storageReference });
+  } catch (err) {
+    const status = err.status || 500;
+    console.error('[Lesson Controller] Error streaming lesson video:', err.message);
+    return res.status(status).json({ error: 'No se pudo cargar el video en este momento.' });
   }
 };
