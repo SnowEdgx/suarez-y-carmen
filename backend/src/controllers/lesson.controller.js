@@ -47,6 +47,11 @@ const PLAYBACK_TOKEN_TTL_SECONDS =
     : 900;
 const PLAYBACK_TOKEN_SECRET =
   process.env.VIDEO_PLAYBACK_TOKEN_SECRET || supabaseServiceKey;
+const VIDEO_AUDIT_HASH_SECRET =
+  process.env.VIDEO_AUDIT_HASH_SECRET || PLAYBACK_TOKEN_SECRET;
+const PLAYBACK_STREAM_RATE_LIMIT_WINDOW_MS = 60 * 1000;
+const PLAYBACK_STREAM_RATE_LIMIT_MAX_REQUESTS = 240;
+const playbackStreamBuckets = new Map();
 
 function base64UrlEncode(value) {
   return Buffer.from(value).toString('base64url');
@@ -63,15 +68,19 @@ function signPlaybackPayload(encodedPayload) {
 }
 
 function createPlaybackToken({ lessonId, userId }) {
+  const nonce = randomUUID();
   const payload = {
     lessonId,
     userId: userId || null,
     exp: Math.floor(Date.now() / 1000) + PLAYBACK_TOKEN_TTL_SECONDS,
-    nonce: randomUUID(),
+    nonce,
   };
   const encodedPayload = base64UrlEncode(JSON.stringify(payload));
   const signature = signPlaybackPayload(encodedPayload);
-  return `${encodedPayload}.${signature}`;
+  return {
+    token: `${encodedPayload}.${signature}`,
+    nonce,
+  };
 }
 
 function parsePlaybackToken(rawToken) {
@@ -90,6 +99,7 @@ function parsePlaybackToken(rawToken) {
     const payload = JSON.parse(base64UrlDecode(encodedPayload));
     if (!payload || typeof payload !== 'object') return null;
     if (!UUID_REGEX.test(payload.lessonId)) return null;
+    if (!UUID_REGEX.test(payload.nonce)) return null;
     if (payload.userId !== null && !UUID_REGEX.test(payload.userId)) return null;
     if (!Number.isInteger(payload.exp) || payload.exp < Math.floor(Date.now() / 1000)) return null;
     return payload;
@@ -97,6 +107,61 @@ function parsePlaybackToken(rawToken) {
     return null;
   }
 }
+
+function getClientIp(req) {
+  const forwardedFor = req.headers['x-forwarded-for'];
+  if (typeof forwardedFor === 'string' && forwardedFor.length > 0) {
+    return forwardedFor.split(',')[0].trim();
+  }
+
+  return req.ip || req.socket?.remoteAddress || 'unknown';
+}
+
+function hashRequestValue(value) {
+  if (typeof value !== 'string' || value.length === 0) return null;
+
+  return createHmac('sha256', VIDEO_AUDIT_HASH_SECRET)
+    .update(value)
+    .digest('hex');
+}
+
+function sanitizeRangeHeader(value) {
+  if (typeof value !== 'string' || value.length === 0) return null;
+
+  const trimmed = value.trim();
+  if (trimmed.length > 80) return 'too-long';
+  if (!/^bytes=\d*-\d*(,\d*-\d*)?$/.test(trimmed)) return 'invalid';
+
+  return trimmed;
+}
+
+function assertPlaybackTokenRateLimit(tokenNonce) {
+  const now = Date.now();
+  const bucket = playbackStreamBuckets.get(tokenNonce);
+
+  if (!bucket || now - bucket.windowStart >= PLAYBACK_STREAM_RATE_LIMIT_WINDOW_MS) {
+    playbackStreamBuckets.set(tokenNonce, { windowStart: now, count: 1 });
+    return;
+  }
+
+  if (bucket.count >= PLAYBACK_STREAM_RATE_LIMIT_MAX_REQUESTS) {
+    const error = new Error('Playback token request limit exceeded.');
+    error.status = 429;
+    throw error;
+  }
+
+  bucket.count += 1;
+  playbackStreamBuckets.set(tokenNonce, bucket);
+}
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [tokenNonce, bucket] of playbackStreamBuckets.entries()) {
+    if (now - bucket.windowStart >= PLAYBACK_STREAM_RATE_LIMIT_WINDOW_MS * 2) {
+      playbackStreamBuckets.delete(tokenNonce);
+    }
+  }
+}, PLAYBACK_STREAM_RATE_LIMIT_WINDOW_MS).unref();
 
 async function getAuthenticatedUser(req) {
   const authHeader = req.headers.authorization || '';
@@ -252,6 +317,45 @@ async function assertLessonAccess({ lesson, user }) {
   }
 }
 
+async function recordPlaybackEvent({
+  req,
+  lesson,
+  lessonId,
+  courseId,
+  userId,
+  tokenNonce,
+  eventType,
+  statusCode,
+  errorCode,
+}) {
+  const userAgent = typeof req.headers['user-agent'] === 'string'
+    ? req.headers['user-agent']
+    : '';
+
+  const { error } = await supabase
+    .from('video_playback_events')
+    .insert({
+      user_id: userId || null,
+      course_id: courseId || lesson?.course_id || null,
+      lesson_id: lessonId || lesson?.id || null,
+      token_nonce: tokenNonce || null,
+      event_type: eventType,
+      status_code: statusCode || null,
+      request_ip_hash: hashRequestValue(getClientIp(req)),
+      user_agent_hash: hashRequestValue(userAgent),
+      range_header: sanitizeRangeHeader(req.headers.range),
+      error_code: errorCode || null,
+    });
+
+  if (error) throw error;
+}
+
+function recordPlaybackEventSafe(event) {
+  recordPlaybackEvent(event).catch((error) => {
+    console.warn('[Lesson Controller] Playback audit write failed:', error.message);
+  });
+}
+
 function applyVideoSecurityHeaders(res) {
   res.set('Accept-Ranges', 'bytes');
   res.set('Cache-Control', 'private, no-store, max-age=0, must-revalidate');
@@ -283,7 +387,7 @@ async function createStorageSignedUrl(storageReference) {
   return data.signedUrl;
 }
 
-async function streamStorageObject({ req, res, storageReference }) {
+async function streamStorageObject({ req, res, storageReference, audit }) {
   const signedUrl = await createStorageSignedUrl(storageReference);
   const rangeHeader = typeof req.headers.range === 'string' ? req.headers.range : undefined;
   const upstreamResponse = await fetch(signedUrl, {
@@ -292,8 +396,20 @@ async function streamStorageObject({ req, res, storageReference }) {
 
   if (!upstreamResponse.ok && upstreamResponse.status !== 206) {
     console.error('[Lesson Controller] Storage stream failed:', upstreamResponse.status);
+    recordPlaybackEventSafe({
+      ...audit,
+      eventType: 'stream_error',
+      statusCode: 502,
+      errorCode: `storage_${upstreamResponse.status}`,
+    });
     return res.status(502).json({ error: 'No se pudo cargar el video en este momento.' });
   }
+
+  recordPlaybackEventSafe({
+    ...audit,
+    eventType: 'stream_started',
+    statusCode: upstreamResponse.status,
+  });
 
   applyVideoSecurityHeaders(res);
   res.status(upstreamResponse.status);
@@ -325,8 +441,16 @@ exports.getLessonVideoUrl = async (req, res) => {
     if (storageReference) {
       res.set('Cache-Control', 'no-store');
       const playbackToken = createPlaybackToken({ lessonId: lesson.id, userId: user?.id || null });
+      recordPlaybackEventSafe({
+        req,
+        lesson,
+        userId: user?.id || null,
+        tokenNonce: playbackToken.nonce,
+        eventType: 'token_issued',
+        statusCode: 200,
+      });
       return res.json({
-        path: `/api/lessons/playback/${encodeURIComponent(playbackToken)}`,
+        path: `/api/lessons/playback/${encodeURIComponent(playbackToken.token)}`,
         expiresInSeconds: PLAYBACK_TOKEN_TTL_SECONDS,
         source: 'proxied',
       });
@@ -352,25 +476,65 @@ exports.getLessonVideoUrl = async (req, res) => {
 };
 
 exports.streamLessonVideo = async (req, res) => {
+  let payload = null;
+  let lesson = null;
+
   try {
-    const payload = parsePlaybackToken(req.params.token);
+    payload = parsePlaybackToken(req.params.token);
     if (!payload) {
+      recordPlaybackEventSafe({
+        req,
+        eventType: 'stream_denied',
+        statusCode: 401,
+        errorCode: 'invalid_or_expired_token',
+      });
       return res.status(401).json({ error: 'Acceso de video no valido o caducado.' });
     }
 
-    const lesson = await getPlayableLesson(payload.lessonId);
+    assertPlaybackTokenRateLimit(payload.nonce);
+
+    lesson = await getPlayableLesson(payload.lessonId);
     const user = payload.userId ? { id: payload.userId } : null;
     await assertLessonAccess({ lesson, user });
 
     const storageReference = resolveStorageReference(lesson.video_storage_path, lesson.video_url);
     if (!storageReference) {
+      recordPlaybackEventSafe({
+        req,
+        lesson,
+        userId: payload.userId,
+        tokenNonce: payload.nonce,
+        eventType: 'stream_error',
+        statusCode: 500,
+        errorCode: 'missing_storage_reference',
+      });
       return res.status(500).json({ error: 'El video de esta leccion no esta configurado de forma segura.' });
     }
 
-    return streamStorageObject({ req, res, storageReference });
+    return streamStorageObject({
+      req,
+      res,
+      storageReference,
+      audit: {
+        req,
+        lesson,
+        userId: payload.userId,
+        tokenNonce: payload.nonce,
+      },
+    });
   } catch (err) {
     const status = err.status || 500;
     console.error('[Lesson Controller] Error streaming lesson video:', err.message);
+    recordPlaybackEventSafe({
+      req,
+      lesson,
+      lessonId: payload?.lessonId || null,
+      userId: payload?.userId || null,
+      tokenNonce: payload?.nonce || null,
+      eventType: status === 401 || status === 403 || status === 429 ? 'stream_denied' : 'stream_error',
+      statusCode: status,
+      errorCode: status === 429 ? 'rate_limited' : 'playback_access_failed',
+    });
     return res.status(status).json({ error: 'No se pudo cargar el video en este momento.' });
   }
 };

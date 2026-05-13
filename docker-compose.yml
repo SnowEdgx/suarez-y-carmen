@@ -48,6 +48,7 @@ services:
       - SUPABASE_URL=http://host.docker.internal:54321
       - CMS_SYNC_TOKEN=${CMS_SYNC_TOKEN:-local-cms-sync-token-change-me}
       - VIDEO_PLAYBACK_TOKEN_SECRET=${VIDEO_PLAYBACK_TOKEN_SECRET:-local-video-playback-token-change-me}
+      - VIDEO_AUDIT_HASH_SECRET=${VIDEO_AUDIT_HASH_SECRET:-local-video-audit-hash-change-me}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     healthcheck:
