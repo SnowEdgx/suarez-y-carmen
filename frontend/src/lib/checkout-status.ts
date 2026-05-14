@@ -24,7 +24,7 @@ export function resolveCheckoutCodeMessage(code: string | null): CheckoutMessage
     case "forbidden":
       return { type: "error", text: "No tienes permisos para completar esta operaci\u00f3n." };
     case "error":
-      return { type: "error", text: "No se pudo iniciar el checkout. Vuelve a intentarlo." };
+      return { type: "error", text: "No se pudo iniciar el pago. Vuelve a intentarlo." };
     default:
       return null;
   }
@@ -41,7 +41,7 @@ export async function resolveStripeReturnMessage(options: {
   if (wasCanceled) {
     return {
       type: "info",
-      text: "Checkout cancelado. Puedes volver a intentarlo cuando quieras.",
+      text: "Pago cancelado. Puedes volver a intentarlo cuando quieras.",
     };
   }
 
@@ -99,7 +99,7 @@ export async function resolveStripeReturnMessage(options: {
   if (response.status === 403 || response.status === 404) {
     return {
       type: "error",
-      text: "No pudimos verificar esta sesi\u00f3n de checkout para tu usuario.",
+      text: "No pudimos verificar esta sesi\u00f3n de pago para tu usuario.",
     };
   }
 
@@ -143,6 +143,6 @@ export async function resolveStripeReturnMessage(options: {
 
   return {
     type: "error",
-    text: "Estado de checkout no reconocido. Contacta con soporte si el acceso no aparece.",
+    text: "Estado de pago no reconocido. Contacta con soporte si el acceso no aparece.",
   };
 }

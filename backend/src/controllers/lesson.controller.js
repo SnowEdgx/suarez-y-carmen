@@ -356,7 +356,7 @@ exports.serveHlsManifest = async (req, res) => {
       return res.status(400).json({ error: 'El video no esta configurado como HLS.' });
     }
 
-    return serveHlsObject({
+    return await serveHlsObject({
       req,
       res,
       rawToken,
@@ -404,7 +404,7 @@ exports.serveHlsResource = async (req, res) => {
       return res.status(400).json({ error: 'Recurso de video no valido.' });
     }
 
-    return serveHlsObject({
+    return await serveHlsObject({
       req,
       res,
       rawToken,
@@ -477,7 +477,7 @@ exports.streamLessonVideo = async (req, res) => {
       return res.status(500).json({ error: 'El video de esta leccion no esta configurado de forma segura.' });
     }
 
-    return streamStorageObject({
+    return await streamStorageObject({
       req,
       res,
       storageReference,
