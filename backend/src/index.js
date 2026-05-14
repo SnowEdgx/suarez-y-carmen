@@ -2,40 +2,12 @@ require('dotenv').config({ path: '.env.local', quiet: true });
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-const { createClient } = require('@supabase/supabase-js');
+const { supabase } = require('./config/supabase');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 const isProduction = process.env.NODE_ENV === 'production';
 app.set('trust proxy', 1);
-
-function resolveSupabaseUrl() {
-  const rawUrl = process.env.SUPABASE_URL;
-  if (!rawUrl) return rawUrl;
-
-  // In local host execution, host.docker.internal may fail on some Windows setups.
-  // Keep container behavior intact when RUNNING_IN_DOCKER=true.
-  if (!process.env.RUNNING_IN_DOCKER && rawUrl.includes('host.docker.internal')) {
-    return rawUrl.replace('host.docker.internal', '127.0.0.1');
-  }
-
-  return rawUrl;
-}
-
-const resolvedSupabaseUrl = resolveSupabaseUrl();
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
-const requiredEnvVars = {
-  SUPABASE_URL: resolvedSupabaseUrl,
-  SUPABASE_SERVICE_ROLE_KEY: supabaseServiceKey,
-};
-
-const missingEnvVars = Object.entries(requiredEnvVars)
-  .filter(([, value]) => !value)
-  .map(([name]) => name);
-
-if (missingEnvVars.length > 0) {
-  throw new Error(`Missing required environment variables: ${missingEnvVars.join(', ')}`);
-}
 
 const corsOrigins = (process.env.CORS_ORIGINS || process.env.FRONTEND_URL || '')
   .split(',')
@@ -45,12 +17,6 @@ const localDevelopmentOrigins = new Set([
   'http://localhost:3000',
   'http://127.0.0.1:3000',
 ]);
-
-// Supabase client.
-const supabase = createClient(
-  resolvedSupabaseUrl,
-  supabaseServiceKey
-);
 
 // Core middleware.
 app.use(helmet());

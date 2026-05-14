@@ -1,42 +1,20 @@
-const { createClient } = require('@supabase/supabase-js');
+const { supabase } = require('../config/supabase');
+const { getAuthenticatedUser, isEmailVerified } = require('../utils/auth');
+const { UUID_REGEX } = require('../utils/validation');
+const {
+  PURCHASE_STATUS,
+  updatePurchaseStatusByPaymentIntent,
+  updatePurchaseStatusBySessionId,
+  upsertCoursePurchase,
+} = require('../services/purchase.service');
+const {
+  markStripeEventReceived,
+  rollbackStripeEvent,
+} = require('../services/stripe-event.service');
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const stripe = stripeSecretKey ? require('stripe')(stripeSecretKey) : null;
-
-function resolveSupabaseUrl() {
-  const rawUrl = process.env.SUPABASE_URL;
-  if (!rawUrl) return rawUrl;
-
-  // Running node outside Docker can fail resolving host.docker.internal on some Windows setups.
-  if (!process.env.RUNNING_IN_DOCKER && rawUrl.includes('host.docker.internal')) {
-    return rawUrl.replace('host.docker.internal', '127.0.0.1');
-  }
-
-  return rawUrl;
-}
-
-const resolvedSupabaseUrl = resolveSupabaseUrl();
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
-
-if (!resolvedSupabaseUrl || !supabaseServiceKey) {
-  throw new Error(
-    'Missing required Supabase env vars in stripe controller (SUPABASE_URL and service role key).'
-  );
-}
-
-const supabase = createClient(
-  resolvedSupabaseUrl,
-  supabaseServiceKey
-);
-
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const CHECKOUT_SESSION_REGEX = /^cs_[A-Za-z0-9_]+$/;
-const PURCHASE_STATUS = Object.freeze({
-  PENDING: 'pending',
-  PAID: 'paid',
-  REFUNDED: 'refunded',
-  CANCELED: 'canceled',
-});
 
 function requireStripe() {
   if (!stripe) {
@@ -46,71 +24,6 @@ function requireStripe() {
   }
 
   return stripe;
-}
-
-async function getAuthenticatedUser(req) {
-  const authHeader = req.headers.authorization || '';
-  if (!authHeader.startsWith('Bearer ')) return null;
-
-  const token = authHeader.replace('Bearer ', '').trim();
-  if (!token) return null;
-
-  const { data, error } = await supabase.auth.getUser(token);
-  if (error || !data.user) return null;
-
-  return data.user;
-}
-
-function isEmailVerified(user) {
-  return Boolean(user?.email_confirmed_at || user?.confirmed_at);
-}
-
-async function markStripeEventReceived(event) {
-  const { error } = await supabase
-    .from('stripe_events')
-    .insert({ id: event.id, type: event.type });
-
-  if (!error) return { duplicate: false };
-  if (error.code === '23505') return { duplicate: true };
-  throw error;
-}
-
-async function rollbackStripeEvent(eventId) {
-  const { error } = await supabase
-    .from('stripe_events')
-    .delete()
-    .eq('id', eventId);
-
-  if (error) {
-    console.error('[Stripe Webhook] Event rollback failed:', error.message);
-  }
-}
-
-async function upsertCoursePurchase({
-  userId,
-  courseId,
-  checkoutSessionId,
-  paymentIntentId,
-  amountCents,
-  currency,
-  status,
-}) {
-  const { error } = await supabase
-    .from('user_courses')
-    .upsert(
-      {
-        user_id: userId,
-        course_id: courseId,
-        stripe_checkout_session_id: checkoutSessionId,
-        stripe_payment_intent_id: paymentIntentId,
-        amount_cents: amountCents,
-        currency,
-        status,
-      },
-      { onConflict: 'user_id,course_id' }
-    );
-
-  if (error) throw error;
 }
 
 async function getReusableCheckoutSession(stripeClient, checkoutSessionId) {
@@ -159,28 +72,6 @@ async function handleCheckoutSessionCompleted(session) {
     currency,
     status: PURCHASE_STATUS.PAID,
   });
-}
-
-async function updatePurchaseStatusByPaymentIntent(paymentIntentId, status) {
-  if (!paymentIntentId) return;
-
-  const { error } = await supabase
-    .from('user_courses')
-    .update({ status })
-    .eq('stripe_payment_intent_id', paymentIntentId);
-
-  if (error) throw error;
-}
-
-async function updatePurchaseStatusBySessionId(checkoutSessionId, status) {
-  if (!checkoutSessionId) return;
-
-  const { error } = await supabase
-    .from('user_courses')
-    .update({ status })
-    .eq('stripe_checkout_session_id', checkoutSessionId);
-
-  if (error) throw error;
 }
 
 function extractPaymentIntentId(value) {
