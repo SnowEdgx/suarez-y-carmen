@@ -8,10 +8,7 @@ const syncRequestBuckets = new Map();
 const parseCmsJson = express.json({ limit: '250kb' });
 
 function getRequestIp(req) {
-  const forwardedFor = req.headers['x-forwarded-for'];
-  if (typeof forwardedFor === 'string' && forwardedFor.length > 0) {
-    return forwardedFor.split(',')[0].trim();
-  }
+  // Express resolves proxy headers according to app-level trust proxy settings.
   return req.ip || req.socket?.remoteAddress || 'unknown';
 }
 

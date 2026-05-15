@@ -107,6 +107,7 @@ services:
       - JWT_SECRET=local-jwt-secret
       - CMS_SYNC_BACKEND_URL=http://backend:4000
       - CMS_SYNC_TOKEN=${CMS_SYNC_TOKEN:-local-cms-sync-token-change-me}
+      - CMS_SYNC_TIMEOUT_MS=${CMS_SYNC_TIMEOUT_MS:-5000}
       - STRAPI_TELEMETRY_DISABLED=true
     depends_on:
       backend:

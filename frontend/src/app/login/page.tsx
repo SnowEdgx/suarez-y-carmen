@@ -277,7 +277,7 @@ function LoginPageContent() {
               disabled={isPending}
               className="w-full py-3.5 mt-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
             >
-              {isPending ? 'Cargando...' : isLoginMode ? 'Iniciar sesion' : 'Registrarse'}
+              {isPending ? 'Cargando...' : isLoginMode ? 'Iniciar sesión' : 'Registrarse'}
             </button>
           </form>
 

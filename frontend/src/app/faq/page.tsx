@@ -21,14 +21,14 @@ export default async function FaqPage() {
           <section className="border border-neutral-800 rounded-2xl p-6 bg-neutral-900/40">
             <h2 className="text-white font-semibold mb-2">Como se compra un curso</h2>
             <p className="text-neutral-400 text-sm">
-              Cada curso se compra de forma individual desde el catalogo. Tras el pago validado, el acceso queda activado en tu cuenta.
+              Cada curso se compra de forma individual desde el catálogo. Tras el pago validado, el acceso queda activado en tu cuenta.
             </p>
           </section>
 
           <section className="border border-neutral-800 rounded-2xl p-6 bg-neutral-900/40">
             <h2 className="text-white font-semibold mb-2">Como accedo al contenido comprado</h2>
             <p className="text-neutral-400 text-sm">
-              Inicia sesion con tu cuenta verificada y entra en el detalle del curso. Si el pago esta confirmado, las lecciones completas aparecen desbloqueadas.
+              Inicia sesión con tu cuenta verificada y entra en el detalle del curso. Si el pago está confirmado, las lecciones completas aparecen desbloqueadas.
             </p>
           </section>
 

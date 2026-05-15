@@ -48,6 +48,10 @@ Delete operations are handled as soft publication changes:
 
 This avoids destroying user purchases or progress records.
 
+Published updates are also synced. If Strapi saves a draft without a published document, the middleware skips the sync because the public website must only consume published content.
+
+The Strapi middleware logs backend sync errors without rolling back the editor action. This avoids blocking non-technical users when the backend is temporarily unavailable. The operational source remains Supabase, so failed syncs must be reviewed in logs and fixed by republishing or editing the affected entry.
+
 ## Video Rule
 
 Strapi must not store private course videos directly.
@@ -73,6 +77,7 @@ Strapi:
 ```env
 CMS_SYNC_BACKEND_URL=http://backend:4000
 CMS_SYNC_TOKEN=change_me_with_the_same_backend_token
+CMS_SYNC_TIMEOUT_MS=5000
 ```
 
 Docker Compose provides local development defaults. Production must override them with real secrets.
@@ -86,6 +91,17 @@ Docker Compose provides local development defaults. Production must override the
 5. Create and publish a course.
 6. Create lessons linked to that course and provide `videoStoragePath`.
 7. Confirm the synced content appears in Supabase and on the web.
+
+## Local Validation
+
+With Supabase and the backend running:
+
+```bash
+cd backend
+npm run test:cms-sync
+```
+
+The test checks authorization, course upsert/update, lesson sync, event sync and soft-unpublish behavior without printing secrets.
 
 ## Security Boundaries
 

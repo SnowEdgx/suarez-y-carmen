@@ -24,7 +24,7 @@ export default function Hero() {
           Master the head movements.
         </h1>
         <h2 className="mt-6 md:mt-8 text-lg md:text-2xl text-neutral-300 font-light drop-shadow-md max-w-3xl">
-          Domina la sensualidad, el estilo y la conexion con <strong className="text-white font-medium">Suarez y Carmen</strong>.
+          Domina la sensualidad, el estilo y la conexión con <strong className="text-white font-medium">Suárez y Carmen</strong>.
           Aprende desde casa paso a paso con cursos individuales y acceso inmediato.
         </h2>
 
@@ -33,13 +33,13 @@ export default function Hero() {
             href="/courses"
             className="flex items-center gap-2 px-10 py-4 sm:px-12 sm:py-5 bg-red-600 hover:bg-red-700 text-white text-lg md:text-xl font-semibold rounded-full shadow-2xl transition-all duration-300 hover:scale-105"
           >
-            Ver catalogo
+            Ver catálogo
           </Link>
           <HomeSectionLink
             sectionId="methodology"
             className="flex items-center justify-center gap-2 px-10 py-4 sm:px-12 sm:py-5 bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-sm text-white text-lg md:text-xl font-semibold rounded-full transition-all duration-300"
           >
-            <Play size={20} fill="currentColor" /> Ver metodologia
+            <Play size={20} fill="currentColor" /> Ver metodología
           </HomeSectionLink>
         </div>
       </div>

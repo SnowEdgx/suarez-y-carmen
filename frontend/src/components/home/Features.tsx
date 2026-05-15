@@ -6,25 +6,25 @@ export default function Features() {
       icon: <Video className="w-8 h-8 text-red-500" />,
       title: "Calidad 4K",
       description:
-        "Videos grabados con calidad multicamara para trabajar detalles de pies, brazos y disociacion con precision.",
+        "Vídeos grabados con calidad multicámara para trabajar detalles de pies, brazos y disociación con precisión.",
     },
     {
       icon: <CheckCircle className="w-8 h-8 text-red-500" />,
       title: "Paso a paso",
       description:
-        "Metodologia progresiva desde fundamentos hasta combinaciones avanzadas, con foco tecnico y musical.",
+        "Metodología progresiva desde fundamentos hasta combinaciones avanzadas, con foco técnico y musical.",
     },
     {
       icon: <Smartphone className="w-8 h-8 text-red-500" />,
       title: "Multiplataforma",
       description:
-        "Aprende a tu ritmo desde movil, tablet o escritorio con acceso inmediato al contenido comprado.",
+        "Aprende a tu ritmo desde móvil, tablet o escritorio con acceso inmediato al contenido comprado.",
     },
     {
       icon: <Users className="w-8 h-8 text-red-500" />,
-      title: "Acompanamiento",
+      title: "Acompañamiento",
       description:
-        "Estructura clara para practicar cada leccion con criterio y reducir bloqueos durante el aprendizaje.",
+        "Estructura clara para practicar cada lección con criterio y reducir bloqueos durante el aprendizaje.",
     },
   ];
 
@@ -32,10 +32,10 @@ export default function Features() {
     <section id="methodology" className="py-24 px-6 md:px-12 max-w-7xl mx-auto">
       <div className="text-center mb-16">
         <h2 className="text-3xl md:text-4xl font-bold font-serif text-white mb-4">
-          Por que estudiar con nosotros
+          Por qué estudiar con nosotros
         </h2>
         <p className="text-neutral-400 max-w-2xl mx-auto text-lg">
-          Nos enfocamos en tecnica, musicalidad y estilo para que bailes con naturalidad y confianza.
+          Nos enfocamos en técnica, musicalidad y estilo para que bailes con naturalidad y confianza.
         </p>
       </div>
 

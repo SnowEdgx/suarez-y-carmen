@@ -118,12 +118,12 @@ exports.createCheckoutSession = async (req, res) => {
       return res.status(400).json({ error: 'courseId es obligatorio.' });
     }
     if (typeof courseId !== 'string' || !UUID_REGEX.test(courseId)) {
-      return res.status(400).json({ error: 'courseId no es valido.' });
+      return res.status(400).json({ error: 'courseId no es válido.' });
     }
 
     const user = await getAuthenticatedUser(req);
     if (!user) {
-      return res.status(401).json({ error: 'No autorizado. Inicia sesion para continuar.' });
+      return res.status(401).json({ error: 'No autorizado. Inicia sesión para continuar.' });
     }
     if (!isEmailVerified(user)) {
       return res.status(403).json({ error: 'Debes verificar tu correo para completar una compra.' });
@@ -169,7 +169,7 @@ exports.createCheckoutSession = async (req, res) => {
     }
 
     if (!Number.isInteger(course.price_cents) || course.price_cents <= 0) {
-      return res.status(500).json({ error: 'El curso tiene un precio invalido en configuracion.' });
+      return res.status(500).json({ error: 'El curso tiene un precio inválido en configuración.' });
     }
 
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
@@ -182,7 +182,7 @@ exports.createCheckoutSession = async (req, res) => {
           price_data: {
             currency: 'eur',
             product_data: {
-              name: course.title || 'Curso en Suarez y Carmen',
+              name: course.title || 'Curso en Suárez y Carmen',
             },
             unit_amount: course.price_cents,
           },
@@ -234,12 +234,12 @@ exports.getCheckoutSessionStatus = async (req, res) => {
     const checkoutSessionId = sanitizeCheckoutSessionId(rawSessionId);
 
     if (!checkoutSessionId) {
-      return res.status(400).json({ error: 'session_id no es valido.' });
+      return res.status(400).json({ error: 'session_id no es válido.' });
     }
 
     const user = await getAuthenticatedUser(req);
     if (!user) {
-      return res.status(401).json({ error: 'No autorizado. Inicia sesion para continuar.' });
+      return res.status(401).json({ error: 'No autorizado. Inicia sesión para continuar.' });
     }
 
     const stripeClient = requireStripe();
@@ -249,14 +249,14 @@ exports.getCheckoutSessionStatus = async (req, res) => {
       session = await stripeClient.checkout.sessions.retrieve(checkoutSessionId);
     } catch (error) {
       if (error?.type === 'StripeInvalidRequestError') {
-        return res.status(404).json({ error: 'No encontramos la sesion de checkout.' });
+        return res.status(404).json({ error: 'No encontramos la sesión de checkout.' });
       }
       throw error;
     }
 
     const sessionUserId = session.metadata?.userId || session.client_reference_id;
     if (!sessionUserId || sessionUserId !== user.id) {
-      return res.status(403).json({ error: 'No tienes permisos para consultar esta sesion.' });
+      return res.status(403).json({ error: 'No tienes permisos para consultar esta sesión.' });
     }
 
     const paymentIntentId = extractPaymentIntentId(session.payment_intent);

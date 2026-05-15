@@ -8,6 +8,15 @@ function getPublicUrl() {
   return (process.env.PUBLIC_URL || process.env.STRAPI_PUBLIC_URL || 'http://localhost:1337').replace(/\/+$/, '');
 }
 
+function getSyncTimeoutMs() {
+  const value = Number(process.env.CMS_SYNC_TIMEOUT_MS || 5000);
+  return Number.isInteger(value) && value > 0 ? value : 5000;
+}
+
+function getErrorMessage(error) {
+  return error instanceof Error ? error.message : 'Unknown CMS sync error';
+}
+
 function resolveMediaUrl(media) {
   const item = Array.isArray(media) ? media[0] : media;
   if (!item || typeof item.url !== 'string') return null;
@@ -87,6 +96,8 @@ const SYNC_MODELS = {
 };
 
 const SYNC_ACTIONS = {
+  create: 'upsert',
+  update: 'upsert',
   publish: 'upsert',
   unpublish: 'delete',
   delete: 'delete',
@@ -99,17 +110,21 @@ async function sendCmsSync(model, action, entry) {
     return;
   }
 
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), getSyncTimeoutMs());
+
   const response = await fetch(`${getBackendUrl()}/api/cms/sync`, {
     method: 'POST',
+    signal: controller.signal,
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ model, action, entry }),
-  });
+  }).finally(() => clearTimeout(timeout));
 
   if (!response.ok) {
-    const body = await response.text();
+    const body = (await response.text()).slice(0, 500);
     throw new Error(`CMS sync failed with ${response.status}: ${body}`);
   }
 }
@@ -171,11 +186,17 @@ async function syncDocumentAction(context, result) {
       : resultDocuments.find((item) => item.documentId === documentId) || { documentId };
 
     if (backendAction === 'upsert' && !document) {
-      strapi.log.warn(`[CMS Sync] Published ${context.uid} ${documentId} could not be loaded.`);
+      if (context.action !== 'update') {
+        strapi.log.warn(`[CMS Sync] Published ${context.uid} ${documentId} could not be loaded.`);
+      }
       continue;
     }
 
-    await sendCmsSync(config.model, backendAction, config.buildEntry(document));
+    try {
+      await sendCmsSync(config.model, backendAction, config.buildEntry(document));
+    } catch (error) {
+      strapi.log.error(`[CMS Sync] ${config.model} ${backendAction} ${documentId} failed: ${getErrorMessage(error)}`);
+    }
   }
 }
 
@@ -184,6 +205,7 @@ module.exports = {
   buildEventEntry,
   buildLessonEntry,
   findDocument,
+  getSyncTimeoutMs,
   resolveMediaUrl,
   sendCmsSync,
   syncDocumentAction,

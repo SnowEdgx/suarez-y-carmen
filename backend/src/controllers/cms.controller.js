@@ -11,6 +11,8 @@ function getSyncToken() {
 }
 
 function safeTokenEquals(left, right) {
+  if (left.length > 4096 || right.length > 4096) return false;
+
   const leftBuffer = Buffer.from(left);
   const rightBuffer = Buffer.from(right);
 
@@ -22,6 +24,9 @@ function requireCmsAuthorization(req) {
   const expectedToken = getSyncToken();
   if (!expectedToken) {
     throw createHttpError(503, 'CMS sync token is not configured.');
+  }
+  if (process.env.NODE_ENV === 'production' && expectedToken.length < 32) {
+    throw createHttpError(503, 'CMS sync token is too weak for production.');
   }
 
   const authorization = typeof req.headers.authorization === 'string' ? req.headers.authorization : '';

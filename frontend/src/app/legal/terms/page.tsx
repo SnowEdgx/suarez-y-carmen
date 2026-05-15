@@ -12,17 +12,17 @@ export default async function TermsPage() {
     <div className="min-h-screen bg-neutral-950 text-neutral-100 font-sans selection:bg-red-600 selection:text-white flex flex-col">
       <Navbar user={user} />
       <main className="pt-28 pb-20 px-6 md:px-12 max-w-4xl mx-auto w-full flex-1">
-        <h1 className="text-4xl font-bold font-serif text-white mb-4">Terminos y condiciones</h1>
+        <h1 className="text-4xl font-bold font-serif text-white mb-4">Términos y condiciones</h1>
         <p className="text-neutral-400 mb-10">
-          Condiciones de uso y contratacion aplicables a la academia online de Suarez y Carmen. Ultima actualizacion: 17/04/2026.
+          Condiciones de uso y contratación aplicables a la academia online de Suárez y Carmen. Última actualización: 17/04/2026.
         </p>
 
         <div className="space-y-6 text-sm text-neutral-300">
           <section className="border border-neutral-800 rounded-2xl p-6 bg-neutral-900/40">
-            <h2 className="text-white font-semibold mb-2">1. Objeto y aceptacion</h2>
+            <h2 className="text-white font-semibold mb-2">1. Objeto y aceptación</h2>
             <p>
-              Estas condiciones regulan el acceso y uso de la plataforma, asi como la compra individual de cursos digitales. El uso del
-              servicio implica la aceptacion de estas condiciones en su version vigente.
+              Estas condiciones regulan el acceso y uso de la plataforma, así como la compra individual de cursos digitales. El uso del
+              servicio implica la aceptación de estas condiciones en su versión vigente.
             </p>
           </section>
 
@@ -45,8 +45,8 @@ export default async function TermsPage() {
           <section className="border border-neutral-800 rounded-2xl p-6 bg-neutral-900/40">
             <h2 className="text-white font-semibold mb-2">4. Pagos, impuestos y devoluciones</h2>
             <p>
-              Los pagos se procesan mediante Stripe. La plataforma no almacena datos completos de tarjeta. Las solicitudes de devolucion
-              se evaluan caso por caso segun la normativa aplicable y el estado de consumo del contenido digital.
+              Los pagos se procesan mediante Stripe. La plataforma no almacena datos completos de tarjeta. Las solicitudes de devolución
+              se evalúan caso por caso según la normativa aplicable y el estado de consumo del contenido digital.
             </p>
           </section>
 
@@ -61,8 +61,8 @@ export default async function TermsPage() {
           <section className="border border-neutral-800 rounded-2xl p-6 bg-neutral-900/40">
             <h2 className="text-white font-semibold mb-2">6. Propiedad intelectual</h2>
             <p>
-              Los videos, textos, imagenes, marcas y recursos formativos son titularidad de sus autores o de terceros con licencia. No se
-              cede ningun derecho de explotacion sobre dichos contenidos.
+              Los vídeos, textos, imágenes, marcas y recursos formativos son titularidad de sus autores o de terceros con licencia. No se
+              cede ningún derecho de explotación sobre dichos contenidos.
             </p>
           </section>
 
@@ -70,7 +70,7 @@ export default async function TermsPage() {
             <h2 className="text-white font-semibold mb-2">7. Disponibilidad del servicio</h2>
             <p>
               Se aplican medidas razonables para mantener la continuidad del servicio. No obstante, pueden producirse interrupciones por
-              mantenimiento, incidencias tecnicas o causas de fuerza mayor.
+              mantenimiento, incidencias técnicas o causas de fuerza mayor.
             </p>
           </section>
 

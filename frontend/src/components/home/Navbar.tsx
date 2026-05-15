@@ -46,7 +46,7 @@ export default function Navbar({ user = null }: NavbarProps) {
             sectionId="methodology"
             className="text-sm font-medium text-neutral-300 hover:text-white transition-colors"
           >
-            Metodologia
+            Metodología
           </HomeSectionLink>
           <HomeSectionLink
             sectionId="about"
@@ -65,7 +65,7 @@ export default function Navbar({ user = null }: NavbarProps) {
                 href="/login"
                 className="text-sm font-medium text-white hover:text-neutral-300 transition-colors drop-shadow-md"
               >
-                Iniciar sesion
+                Iniciar sesión
               </Link>
               <Link
                 href="/courses"
@@ -92,7 +92,7 @@ export default function Navbar({ user = null }: NavbarProps) {
             className="text-neutral-200"
             onNavigate={() => setIsMobileMenuOpen(false)}
           >
-            Metodologia
+            Metodología
           </HomeSectionLink>
           <HomeSectionLink
             sectionId="about"
@@ -113,14 +113,14 @@ export default function Navbar({ user = null }: NavbarProps) {
                   className="mt-2 text-center py-3 bg-red-600 text-white font-semibold rounded-full w-full"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  Cerrar sesion
+                  Cerrar sesión
                 </button>
               </form>
             </>
           ) : (
             <>
               <Link href="/login" className="text-white font-medium" onClick={() => setIsMobileMenuOpen(false)}>
-                Iniciar sesion
+                Iniciar sesión
               </Link>
               <Link
                 href="/courses"

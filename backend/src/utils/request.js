@@ -7,11 +7,7 @@ function getBearerToken(req) {
 }
 
 function getClientIp(req) {
-  const forwardedFor = req.headers['x-forwarded-for'];
-  if (typeof forwardedFor === 'string' && forwardedFor.length > 0) {
-    return forwardedFor.split(',')[0].trim();
-  }
-
+  // Express applies app-level trust proxy rules before exposing req.ip.
   return req.ip || req.socket?.remoteAddress || 'unknown';
 }
 

@@ -159,7 +159,7 @@ async function streamStorageObject({ req, res, storageReference, audit }) {
       statusCode: 502,
       errorCode: `storage_${upstreamResponse.status}`,
     });
-    return res.status(502).json({ error: 'No se pudo cargar el video en este momento.' });
+    return res.status(502).json({ error: 'No se pudo cargar el vídeo en este momento.' });
   }
 
   recordPlaybackEventSafe({
@@ -235,7 +235,7 @@ async function serveHlsObject({ req, res, rawToken, resourceReference, rootRefer
       statusCode: 502,
       errorCode: `hls_storage_${upstreamResponse.status}`,
     });
-    return res.status(502).json({ error: 'No se pudo cargar el video en este momento.' });
+    return res.status(502).json({ error: 'No se pudo cargar el vídeo en este momento.' });
   }
 
   recordPlaybackEventSafe({
@@ -276,7 +276,7 @@ exports.getLessonVideoUrl = async (req, res) => {
   try {
     const lessonId = typeof req.params.lessonId === 'string' ? req.params.lessonId.trim() : '';
     if (!UUID_REGEX.test(lessonId)) {
-      return res.status(400).json({ error: 'lessonId no es valido.' });
+      return res.status(400).json({ error: 'lessonId no es válido.' });
     }
 
     const user = await getAuthenticatedUser(req);
@@ -327,7 +327,7 @@ exports.getLessonVideoUrl = async (req, res) => {
 
     return res
       .status(500)
-      .json({ error: 'El video de esta leccion no esta configurado de forma segura.' });
+      .json({ error: 'El vídeo de esta lección no está configurado de forma segura.' });
   } catch (err) {
     const status = err.status || 500;
     console.error('[Lesson Controller] Error resolving lesson video:', err.message);
@@ -339,7 +339,7 @@ exports.getLessonVideoUrl = async (req, res) => {
       errorCode: err.code || 'video_token_failed',
     });
     return res.status(status).json({
-      error: 'No se pudo resolver el acceso al video.',
+      error: 'No se pudo resolver el acceso al vídeo.',
       code: getSafeVideoAccessCode(err),
     });
   }
@@ -353,7 +353,7 @@ exports.serveHlsManifest = async (req, res) => {
     context = await getPlaybackContextFromToken({ req, rawToken });
 
     if (!isHlsManifestPath(context.rootReference.path)) {
-      return res.status(400).json({ error: 'El video no esta configurado como HLS.' });
+      return res.status(400).json({ error: 'El vídeo no está configurado como HLS.' });
     }
 
     return await serveHlsObject({
@@ -383,7 +383,7 @@ exports.serveHlsManifest = async (req, res) => {
       statusCode: status,
       errorCode: err.code || 'hls_manifest_failed',
     });
-    return res.status(status).json({ error: 'No se pudo cargar el video en este momento.' });
+    return res.status(status).json({ error: 'No se pudo cargar el vídeo en este momento.' });
   }
 };
 
@@ -395,13 +395,13 @@ exports.serveHlsResource = async (req, res) => {
     context = await getPlaybackContextFromToken({ req, rawToken });
 
     if (!isHlsManifestPath(context.rootReference.path)) {
-      return res.status(400).json({ error: 'El video no esta configurado como HLS.' });
+      return res.status(400).json({ error: 'El vídeo no está configurado como HLS.' });
     }
 
     const requestedPath = typeof req.query.path === 'string' ? req.query.path : '';
     const resourceReference = resolveHlsStorageReference(context.rootReference, requestedPath);
     if (!resourceReference) {
-      return res.status(400).json({ error: 'Recurso de video no valido.' });
+      return res.status(400).json({ error: 'Recurso de vídeo no válido.' });
     }
 
     return await serveHlsObject({
@@ -431,7 +431,7 @@ exports.serveHlsResource = async (req, res) => {
       statusCode: status,
       errorCode: err.code || 'hls_resource_failed',
     });
-    return res.status(status).json({ error: 'No se pudo cargar el video en este momento.' });
+    return res.status(status).json({ error: 'No se pudo cargar el vídeo en este momento.' });
   }
 };
 
@@ -448,7 +448,7 @@ exports.streamLessonVideo = async (req, res) => {
         statusCode: 401,
         errorCode: 'invalid_or_expired_token',
       });
-      return res.status(401).json({ error: 'Acceso de video no valido o caducado.' });
+      return res.status(401).json({ error: 'Acceso de vídeo no válido o caducado.' });
     }
 
     assertPlaybackTokenRateLimit(payload.nonce);
@@ -474,7 +474,7 @@ exports.streamLessonVideo = async (req, res) => {
         statusCode: 500,
         errorCode: 'missing_storage_reference',
       });
-      return res.status(500).json({ error: 'El video de esta leccion no esta configurado de forma segura.' });
+      return res.status(500).json({ error: 'El vídeo de esta lección no está configurado de forma segura.' });
     }
 
     return await streamStorageObject({
@@ -501,6 +501,6 @@ exports.streamLessonVideo = async (req, res) => {
       statusCode: status,
       errorCode: err.code || (status === 429 ? 'rate_limited' : 'playback_access_failed'),
     });
-    return res.status(status).json({ error: 'No se pudo cargar el video en este momento.' });
+    return res.status(status).json({ error: 'No se pudo cargar el vídeo en este momento.' });
   }
 };

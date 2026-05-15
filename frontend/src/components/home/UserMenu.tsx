@@ -73,7 +73,7 @@ export default function UserMenu({ user }: UserMenuProps) {
                 type="submit"
                 className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:text-red-400 hover:bg-neutral-800 transition-colors text-left"
               >
-                <LogOut size={16} /> Cerrar sesion
+                <LogOut size={16} /> Cerrar sesión
               </button>
             </form>
           </div>

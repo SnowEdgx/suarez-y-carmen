@@ -18,7 +18,7 @@ export default function Pricing() {
         <article className="bg-neutral-900/40 border border-neutral-800 rounded-3xl p-8 flex flex-col">
           <h3 className="text-2xl font-bold text-white mb-2">Cursos online</h3>
           <p className="text-neutral-400 mb-6">
-            Catalogo por niveles con acceso inmediato tras el pago.
+            Catálogo por niveles con acceso inmediato tras el pago.
           </p>
           <div className="mb-8 font-serif">
             <span className="text-3xl font-medium text-neutral-500">desde </span>
@@ -28,14 +28,14 @@ export default function Pricing() {
             href="/courses"
             className="w-full text-center py-4 bg-red-600 hover:bg-red-700 text-white rounded-full font-semibold transition-colors mb-8 block"
           >
-            Ver catalogo
+            Ver catálogo
           </Link>
           <div className="space-y-4 mt-auto">
             {[
               "Acceso al curso comprado",
               "Lecciones desbloqueadas por compra",
               "Actualizaciones del curso incluidas",
-              "Pago unico seguro",
+              "Pago único seguro",
             ].map((feature, index) => (
               <div key={index} className="flex items-center gap-3">
                 <Check className="w-5 h-5 text-neutral-500" />
@@ -51,19 +51,19 @@ export default function Pricing() {
             Talleres, clases y congresos se publican en agenda con enlaces externos.
           </p>
           <div className="mb-8">
-            <span className="text-neutral-300 text-lg">Informacion actualizada en la web y redes.</span>
+            <span className="text-neutral-300 text-lg">Información actualizada en la web y redes.</span>
           </div>
           <HomeSectionLink
             sectionId="about"
             className="w-full text-center py-4 border border-neutral-700 hover:bg-neutral-800 text-white rounded-full font-semibold transition-colors mb-8 block"
           >
-            Conocer mas
+            Conocer más
           </HomeSectionLink>
           <div className="space-y-4 mt-auto">
             {[
-              "Agenda publica con redireccion a ticketera oficial",
+              "Agenda pública con redirección a ticketera oficial",
               "No se procesan pagos de eventos en la plataforma",
-              "Integracion con estrategia de marca personal",
+              "Integración con estrategia de marca personal",
               "Canal claro entre contenido online y actividad presencial",
             ].map((feature, index) => (
               <div key={index} className="flex items-center gap-3">

@@ -153,6 +153,13 @@ Smoke test local con los servicios levantados:
 node scripts/check-local-smoke.mjs
 ```
 
+CMS sync E2E local con backend y Supabase levantados:
+
+```bash
+cd backend
+npm run test:cms-sync
+```
+
 El repositorio tambien ejecuta en CI escaneo de secretos, auditoria de dependencias, lint, type-check, build de frontend, build de plantillas de email, comprobacion sintactica de backend y build de CMS.
 
 Stripe E2E local (requiere variables locales de Supabase y Stripe). Si no defines `E2E_USER_EMAIL` y `E2E_USER_PASSWORD`, el script crea o actualiza un alumno de prueba solo contra Supabase local:

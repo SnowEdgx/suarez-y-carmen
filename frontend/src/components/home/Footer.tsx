@@ -9,7 +9,7 @@ export default function Footer() {
             S&C
           </Link>
           <p className="text-neutral-400 max-w-sm">
-            Formacion profesional de bachata online para estudiar a tu ritmo con acceso por curso.
+            Formación profesional de bachata online para estudiar a tu ritmo con acceso por curso.
           </p>
           <div className="mt-8">
             <a
@@ -49,7 +49,7 @@ export default function Footer() {
             </li>
             <li>
               <Link href="/login" className="hover:text-white transition-colors">
-                Iniciar sesion
+                Iniciar sesión
               </Link>
             </li>
             <li>
@@ -70,12 +70,12 @@ export default function Footer() {
             </li>
             <li>
               <Link href="/legal/terms" className="hover:text-white transition-colors">
-                Terminos y condiciones
+                Términos y condiciones
               </Link>
             </li>
             <li>
               <Link href="/legal/privacy" className="hover:text-white transition-colors">
-                Politica de privacidad
+                Política de privacidad
               </Link>
             </li>
           </ul>
@@ -83,7 +83,7 @@ export default function Footer() {
       </div>
 
       <div className="max-w-7xl mx-auto pt-8 border-t border-neutral-900 text-center text-xs text-neutral-600">
-        <p>&copy; {new Date().getFullYear()} Suarez y Carmen. Todos los derechos reservados.</p>
+        <p>&copy; {new Date().getFullYear()} Suárez y Carmen. Todos los derechos reservados.</p>
       </div>
     </footer>
   );
