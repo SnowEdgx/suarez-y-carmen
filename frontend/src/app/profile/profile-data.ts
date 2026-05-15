@@ -41,7 +41,29 @@ export type VideoDevicesResponse = {
   loadError: string | null;
 };
 
+export type ProfilePageAlert = {
+  type: "error";
+  text: string;
+};
+
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
+
+type PurchasesWithProgressResult = {
+  purchases: PurchaseCard[];
+  loadError: string | null;
+};
+
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error) return error.message;
+  if (error && typeof error === "object" && "message" in error) {
+    return String((error as { message?: unknown }).message);
+  }
+  return "Unknown error";
+}
+
+function logProfileDataError(context: string, error: unknown) {
+  console.error(`[Profile Data] ${context}: ${getErrorMessage(error)}`);
+}
 
 function normalizePurchaseStatus(status: unknown): PurchaseStatus {
   return status === "paid" || status === "refunded" || status === "canceled" ? status : "pending";
@@ -67,7 +89,7 @@ function normalizeCourse(rawCourse: unknown): PurchasedCourse | null {
 }
 
 async function loadVideoDevices(accessToken: string | null, deviceId: string | null): Promise<VideoDevicesResponse> {
-  const fallback = {
+  const unavailableFallback = {
     devices: [],
     activeDeviceCount: 0,
     maxActiveDevices: 2,
@@ -75,7 +97,12 @@ async function loadVideoDevices(accessToken: string | null, deviceId: string | n
   };
 
   if (!accessToken || !isValidDeviceId(deviceId)) {
-    return fallback;
+    return {
+      devices: [],
+      activeDeviceCount: 0,
+      maxActiveDevices: 2,
+      loadError: null,
+    };
   }
 
   try {
@@ -87,7 +114,9 @@ async function loadVideoDevices(accessToken: string | null, deviceId: string | n
       cache: "no-store",
     });
 
-    if (!response.ok) return fallback;
+    if (!response.ok) {
+      throw new Error(`Video devices request failed with status ${response.status}.`);
+    }
 
     const payload = await response.json() as Partial<VideoDevicesResponse>;
     return {
@@ -96,45 +125,74 @@ async function loadVideoDevices(accessToken: string | null, deviceId: string | n
       maxActiveDevices: Number.isInteger(payload.maxActiveDevices) ? payload.maxActiveDevices as number : 2,
       loadError: null,
     };
-  } catch {
-    return fallback;
+  } catch (error) {
+    logProfileDataError("Could not load video devices", error);
+    return unavailableFallback;
   }
 }
 
-async function loadPurchasesWithProgress(supabase: SupabaseServerClient, userId: string): Promise<PurchaseCard[]> {
+async function loadPurchasesWithProgress(
+  supabase: SupabaseServerClient,
+  userId: string
+): Promise<PurchasesWithProgressResult> {
   const purchasesResponse = await supabase
     .from("user_courses")
     .select("id, status, created_at, amount_cents, currency, course:courses(id, title, slug, level, is_published)")
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
 
+  if (purchasesResponse.error) {
+    logProfileDataError("Could not load purchased courses", purchasesResponse.error);
+    return {
+      purchases: [],
+      loadError: "No pudimos cargar tus compras ahora mismo. Recarga la página en unos segundos.",
+    };
+  }
+
   const rawPurchases = (purchasesResponse.data || []) as Array<Record<string, unknown>>;
   const purchasedCourseIds = rawPurchases
     .map((purchase) => normalizeCourse(purchase.course)?.id)
     .filter((courseId): courseId is string => Boolean(courseId));
 
-  const lessonsResponse = purchasedCourseIds.length > 0
-    ? await supabase
+  let loadError: string | null = null;
+  let lessonRows: Array<{ id: string; course_id: string }> = [];
+
+  if (purchasedCourseIds.length > 0) {
+    const lessonsResponse = await supabase
       .from("lessons")
       .select("id, course_id")
       .in("course_id", purchasedCourseIds)
-      .eq("is_published", true)
-    : { data: [] as Array<{ id: string; course_id: string }> };
+      .eq("is_published", true);
 
-  const lessonRows = (lessonsResponse.data || []) as Array<{ id: string; course_id: string }>;
+    if (lessonsResponse.error) {
+      logProfileDataError("Could not load purchased course lessons", lessonsResponse.error);
+      loadError = "No pudimos cargar el progreso de tus cursos.";
+    } else {
+      lessonRows = (lessonsResponse.data || []) as Array<{ id: string; course_id: string }>;
+    }
+  }
+
   const lessonIds = lessonRows.map((lesson) => lesson.id);
-  const progressResponse = lessonIds.length > 0
-    ? await supabase
+  let completedLessonIds = new Set<string>();
+
+  if (lessonIds.length > 0) {
+    const progressResponse = await supabase
       .from("user_progress")
       .select("lesson_id")
       .eq("user_id", userId)
       .in("lesson_id", lessonIds)
-      .eq("is_completed", true)
-    : { data: [] as Array<{ lesson_id: string }> };
+      .eq("is_completed", true);
 
-  const completedLessonIds = new Set(
-    ((progressResponse.data || []) as Array<{ lesson_id: string }>).map((progress) => progress.lesson_id)
-  );
+    if (progressResponse.error) {
+      logProfileDataError("Could not load course progress", progressResponse.error);
+      loadError = "No pudimos cargar el progreso de tus cursos.";
+    } else {
+      completedLessonIds = new Set(
+        ((progressResponse.data || []) as Array<{ lesson_id: string }>).map((progress) => progress.lesson_id)
+      );
+    }
+  }
+
   const totalLessonsByCourse = new Map<string, number>();
   const completedLessonsByCourse = new Map<string, number>();
 
@@ -145,7 +203,7 @@ async function loadPurchasesWithProgress(supabase: SupabaseServerClient, userId:
     }
   }
 
-  return rawPurchases.map((purchase) => {
+  const purchases = rawPurchases.map((purchase) => {
     const course = normalizeCourse(purchase.course);
 
     return {
@@ -159,6 +217,8 @@ async function loadPurchasesWithProgress(supabase: SupabaseServerClient, userId:
       completedLessons: course ? completedLessonsByCourse.get(course.id) || 0 : 0,
     };
   });
+
+  return { purchases, loadError };
 }
 
 export async function loadProfilePageData(options: {
@@ -169,16 +229,33 @@ export async function loadProfilePageData(options: {
 }) {
   const { supabase, userId, accessToken, currentDeviceId } = options;
 
-  const [{ data: profile }, purchases, videoDevices] = await Promise.all([
+  const [profileResponse, purchasesResult, videoDevices] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
     loadPurchasesWithProgress(supabase, userId),
     loadVideoDevices(accessToken, currentDeviceId),
   ]);
 
+  const alerts: ProfilePageAlert[] = [];
+
+  if (profileResponse.error) {
+    logProfileDataError("Could not load profile", profileResponse.error);
+    alerts.push({
+      type: "error",
+      text: "No pudimos cargar todos tus datos personales. Puedes seguir usando tus cursos si aparecen disponibles.",
+    });
+  }
+
+  if (purchasesResult.loadError) {
+    alerts.push({ type: "error", text: purchasesResult.loadError });
+  }
+
+  const purchases = purchasesResult.purchases;
+
   return {
-    profile,
+    profile: profileResponse.data ?? null,
     purchases,
     activeCourseCount: purchases.filter((purchase) => purchase.status === "paid" && purchase.course).length,
     videoDevices,
+    alerts,
   };
 }

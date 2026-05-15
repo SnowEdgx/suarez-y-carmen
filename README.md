@@ -126,6 +126,7 @@ Endpoints publicos por diseno:
 - `POST /api/cms/sync`: sincronizacion Strapi -> Express, protegida con `CMS_SYNC_TOKEN`.
 
 `GET /api/supabase-test` solo existe si `ENABLE_SUPABASE_TEST_ENDPOINT=true`, pensado para diagnostico local.
+Por defecto queda desactivado incluso en Docker Compose; activalo solo de forma temporal cuando necesites comprobar la conexion local con Supabase.
 
 ## Validacion local
 
@@ -139,12 +140,20 @@ npx tsc --noEmit --incremental false
 
 ```bash
 cd backend
-node --check src/index.js
+Get-ChildItem src,scripts -Recurse -Include *.js,*.mjs | ForEach-Object { node --check $_.FullName }
 ```
 
 ```bash
 node scripts/check-secrets.mjs
 ```
+
+Smoke test local con los servicios levantados:
+
+```bash
+node scripts/check-local-smoke.mjs
+```
+
+El repositorio tambien ejecuta en CI escaneo de secretos, auditoria de dependencias, lint, type-check, build de frontend, build de plantillas de email, comprobacion sintactica de backend y build de CMS.
 
 Stripe E2E local (requiere un usuario de prueba confirmado y variables locales completas):
 

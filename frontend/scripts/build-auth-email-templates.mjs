@@ -1,4 +1,4 @@
-﻿import { mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import React from 'react';
@@ -191,6 +191,10 @@ function renderDocument(component) {
   return `<!doctype html>${renderToStaticMarkup(component)}`;
 }
 
+function normalizeTemplateContent(content) {
+  return content.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n');
+}
+
 const templates = [
   {
     output: 'confirm-signup.html',
@@ -225,6 +229,16 @@ mkdirSync(outputDir, { recursive: true });
 
 for (const template of templates) {
   const outputPath = path.join(outputDir, template.output);
-  writeFileSync(outputPath, renderDocument(template.component), 'utf8');
+  const renderedTemplate = renderDocument(template.component);
+
+  if (
+    existsSync(outputPath) &&
+    normalizeTemplateContent(readFileSync(outputPath, 'utf8')) === normalizeTemplateContent(renderedTemplate)
+  ) {
+    console.log(`Unchanged ${outputPath}`);
+    continue;
+  }
+
+  writeFileSync(outputPath, renderedTemplate, 'utf8');
   console.log(`Generated ${outputPath}`);
 }

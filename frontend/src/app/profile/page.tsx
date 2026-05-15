@@ -30,6 +30,7 @@ export default async function ProfilePage() {
     purchases,
     activeCourseCount,
     videoDevices,
+    alerts,
   } = await loadProfilePageData({
     supabase,
     userId: user.id,
@@ -48,6 +49,19 @@ export default async function ProfilePage() {
         <p className="text-neutral-400 mb-10">
           Gestiona tus datos personales, tus compras y el progreso de tus cursos.
         </p>
+
+        {alerts.length > 0 && (
+          <div className="mb-8 space-y-3">
+            {alerts.map((alert) => (
+              <div
+                key={alert.text}
+                className="rounded-xl border border-red-500/30 bg-red-500/10 px-5 py-4 text-sm text-red-300"
+              >
+                {alert.text}
+              </div>
+            ))}
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">

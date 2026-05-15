@@ -376,31 +376,29 @@ exports.webhook = async (req, res) => {
   try {
     if (event.type === 'checkout.session.completed') {
       await handleCheckoutSessionCompleted(event.data.object);
-      const userId = event.data.object.metadata?.userId || 'unknown';
-      const courseId = event.data.object.metadata?.courseId || 'unknown';
-      console.log(`[Stripe Webhook] Access granted to user ${userId} for course ${courseId}`);
+      console.log('[Stripe Webhook] Checkout session completed and access processed.');
     }
 
     if (event.type === 'checkout.session.expired') {
       await updatePurchaseStatusBySessionId(event.data.object.id, PURCHASE_STATUS.CANCELED);
-      console.log(`[Stripe Webhook] Checkout session expired: ${event.data.object.id}`);
+      console.log('[Stripe Webhook] Checkout session expiration processed.');
     }
 
     if (event.type === 'checkout.session.async_payment_failed') {
       await updatePurchaseStatusBySessionId(event.data.object.id, PURCHASE_STATUS.CANCELED);
-      console.log(`[Stripe Webhook] Checkout session payment failed: ${event.data.object.id}`);
+      console.log('[Stripe Webhook] Async payment failure processed.');
     }
 
     if (event.type === 'charge.refunded') {
       const paymentIntentId = extractPaymentIntentId(event.data.object.payment_intent);
       await updatePurchaseStatusByPaymentIntent(paymentIntentId, PURCHASE_STATUS.REFUNDED);
-      console.log(`[Stripe Webhook] Purchase refunded for payment_intent ${paymentIntentId}`);
+      console.log('[Stripe Webhook] Refund event processed.');
     }
 
     if (event.type === 'charge.dispute.created') {
       const paymentIntentId = extractPaymentIntentId(event.data.object.payment_intent);
       await updatePurchaseStatusByPaymentIntent(paymentIntentId, PURCHASE_STATUS.CANCELED);
-      console.log(`[Stripe Webhook] Purchase marked canceled due dispute for payment_intent ${paymentIntentId}`);
+      console.log('[Stripe Webhook] Dispute event processed.');
     }
   } catch (err) {
     console.error('[Stripe Webhook] Processing error:', err.message);

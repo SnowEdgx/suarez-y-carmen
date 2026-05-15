@@ -35,7 +35,6 @@ cms/.strapi-updater.json
 cms/build/
 cms/dist/
 cms/types/generated/
-cms/package-lock.json
 cms/public/uploads/*
 !cms/public/uploads/.gitkeep
 cms-build.log

@@ -60,6 +60,18 @@ function formatPrice(priceCents: number | null) {
   }).format((priceCents as number) / 100);
 }
 
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error) return error.message;
+  if (error && typeof error === "object" && "message" in error) {
+    return String((error as { message?: unknown }).message);
+  }
+  return "Unknown error";
+}
+
+function logCourseDetailError(context: string, error: unknown) {
+  console.error(`[Course Detail] ${context}: ${getErrorMessage(error)}`);
+}
+
 function resolveProgressMessage(code: string | null) {
   switch (code) {
     case "completed":
@@ -133,11 +145,17 @@ export default async function CourseDetailPage({ params, searchParams }: CourseD
     .eq("slug", slug)
     .maybeSingle();
 
-  if (courseResponse.error || !courseResponse.data || !courseResponse.data.is_published) {
+  if (courseResponse.error) {
+    logCourseDetailError("Could not load course", courseResponse.error);
+    throw new Error("Course detail load failed.");
+  }
+
+  if (!courseResponse.data || !courseResponse.data.is_published) {
     notFound();
   }
 
   const course = courseResponse.data as CourseRow;
+  const loadMessages: CheckoutMessage[] = [];
 
   const lessonsResponse = await supabase
     .from("lessons")
@@ -145,9 +163,19 @@ export default async function CourseDetailPage({ params, searchParams }: CourseD
     .eq("course_id", course.id)
     .order("position", { ascending: true });
 
-  const lessons = (lessonsResponse.data || []) as LessonRow[];
+  let lessons: LessonRow[] = [];
+  if (lessonsResponse.error) {
+    logCourseDetailError("Could not load lessons", lessonsResponse.error);
+    loadMessages.push({
+      type: "error",
+      text: "No pudimos cargar las lecciones del curso. Recarga la página en unos segundos.",
+    });
+  } else {
+    lessons = (lessonsResponse.data || []) as LessonRow[];
+  }
 
   let hasPurchased = false;
+  let purchaseCheckUnavailable = false;
   if (user) {
     const purchaseResponse = await supabase
       .from("user_courses")
@@ -157,7 +185,16 @@ export default async function CourseDetailPage({ params, searchParams }: CourseD
       .eq("status", "paid")
       .maybeSingle();
 
-    hasPurchased = Boolean(purchaseResponse.data) && !purchaseResponse.error;
+    if (purchaseResponse.error) {
+      purchaseCheckUnavailable = true;
+      logCourseDetailError("Could not verify course purchase", purchaseResponse.error);
+      loadMessages.push({
+        type: "error",
+        text: "No pudimos verificar tu acceso a este curso. Por seguridad, no se mostrará contenido privado hasta poder comprobarlo.",
+      });
+    } else {
+      hasPurchased = Boolean(purchaseResponse.data);
+    }
   }
 
   const previewLessons = lessons.filter((lesson) => lesson.is_free_preview);
@@ -198,6 +235,12 @@ export default async function CourseDetailPage({ params, searchParams }: CourseD
 
     if (!progressResponse.error) {
       completedLessonIds = ((progressResponse.data || []) as ProgressRow[]).map((progress) => progress.lesson_id);
+    } else {
+      logCourseDetailError("Could not load lesson progress", progressResponse.error);
+      loadMessages.push({
+        type: "error",
+        text: "No pudimos cargar tu progreso. Puedes seguir viendo las lecciones disponibles.",
+      });
     }
   }
 
@@ -206,7 +249,7 @@ export default async function CourseDetailPage({ params, searchParams }: CourseD
   const progressPercent =
     accessibleLessons.length > 0 ? Math.round((completedAccessibleLessons / accessibleLessons.length) * 100) : 0;
   const imageSrc = getCourseImageUrl(course.cover_image_url);
-  const statusMessages = [checkoutMessage, stripeReturnMessage, progressMessage, lessonMessage].filter(
+  const statusMessages = [checkoutMessage, stripeReturnMessage, progressMessage, lessonMessage, ...loadMessages].filter(
     Boolean
   ) as CheckoutMessage[];
   const coursePath = `/courses/${course.slug}`;
@@ -257,6 +300,10 @@ export default async function CourseDetailPage({ params, searchParams }: CourseD
               {hasPurchased ? (
                 <p className="inline-flex px-3 py-1.5 rounded-full text-xs bg-green-500/10 border border-green-500/20 text-green-400">
                   Curso adquirido
+                </p>
+              ) : purchaseCheckUnavailable ? (
+                <p className="inline-flex px-3 py-1.5 rounded-full text-xs bg-neutral-800 border border-neutral-700 text-neutral-400">
+                  Compra no disponible hasta verificar tu acceso
                 </p>
               ) : !hasValidPrice ? (
                 <p className="inline-flex px-3 py-1.5 rounded-full text-xs bg-neutral-800 border border-neutral-700 text-neutral-400">
@@ -373,7 +420,7 @@ export default async function CourseDetailPage({ params, searchParams }: CourseD
                     <p className="text-neutral-300">
                       Las lecciones completas se desbloquean al comprar el curso.
                     </p>
-                    {!hasPurchased && hasValidPrice && (
+                    {!hasPurchased && hasValidPrice && !purchaseCheckUnavailable && (
                       user ? (
                         <form action={startCourseCheckout}>
                           <input type="hidden" name="courseId" value={course.id} />

@@ -43,7 +43,7 @@ services:
       - ./backend/.env.local
     environment:
       - NODE_ENV=development
-      - ENABLE_SUPABASE_TEST_ENDPOINT=${ENABLE_SUPABASE_TEST_ENDPOINT:-true}
+      - ENABLE_SUPABASE_TEST_ENDPOINT=${ENABLE_SUPABASE_TEST_ENDPOINT:-false}
       - RUNNING_IN_DOCKER=true
       - SUPABASE_URL=http://host.docker.internal:54321
       - CMS_SYNC_TOKEN=${CMS_SYNC_TOKEN:-local-cms-sync-token-change-me}
