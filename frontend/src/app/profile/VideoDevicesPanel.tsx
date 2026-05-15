@@ -62,15 +62,18 @@ export default function VideoDevicesPanel({
   }
 
   return (
-    <section className="bg-neutral-900/50 border border-neutral-800 rounded-3xl p-6 sm:p-8 backdrop-blur-sm">
+    <section
+      className="bg-neutral-900/50 border border-neutral-800 rounded-3xl p-6 sm:p-8 backdrop-blur-sm"
+      aria-busy={Boolean(isPendingId)}
+    >
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
         <div>
           <h2 className="text-xl font-semibold text-white flex items-center gap-2">
             <MonitorSmartphone className="text-red-500" />
-            Dispositivos de v&iacute;deo
+            Dispositivos de vídeo
           </h2>
           <p className="mt-2 text-sm text-neutral-400 max-w-xl">
-            Controla desde qu&eacute; dispositivos se puede reproducir el contenido comprado.
+            Controla desde qué dispositivos se puede reproducir el contenido comprado.
           </p>
         </div>
         <span className="text-xs bg-red-500/10 text-red-300 px-3 py-1.5 rounded-full font-medium w-fit border border-red-500/20">
@@ -80,6 +83,8 @@ export default function VideoDevicesPanel({
 
       {message && (
         <div
+          role={message.type === "error" ? "alert" : "status"}
+          aria-live={message.type === "error" ? "assertive" : "polite"}
           className={`mb-5 rounded-xl border px-4 py-3 text-sm ${
             message.type === "error"
               ? "border-red-500/20 bg-red-500/10 text-red-300"
@@ -91,7 +96,10 @@ export default function VideoDevicesPanel({
       )}
 
       {loadError && (
-        <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+        <div
+          role="alert"
+          className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300"
+        >
           {loadError}
         </div>
       )}
@@ -99,7 +107,7 @@ export default function VideoDevicesPanel({
       {!loadError && devices.length === 0 && (
         <div className="rounded-2xl border border-neutral-800 bg-black/35 p-5">
           <p className="text-sm text-neutral-400">
-            A&uacute;n no hay dispositivos registrados. Se registrar&aacute; uno cuando reproduzcas una lecci&oacute;n comprada.
+            Aún no hay dispositivos registrados. Se registrará uno cuando reproduzcas una lección comprada.
           </p>
         </div>
       )}
@@ -133,7 +141,7 @@ export default function VideoDevicesPanel({
                     )}
                   </div>
                   <p className="text-xs text-neutral-500">
-                    &Uacute;ltimo uso: {formatDateTime(device.lastSeenAt)}
+                    Último uso: {formatDateTime(device.lastSeenAt)}
                   </p>
                   <p className="mt-1 text-xs text-neutral-600">
                     Registrado: {formatDateTime(device.firstSeenAt)}
@@ -145,14 +153,16 @@ export default function VideoDevicesPanel({
                     type="button"
                     onClick={() => handleRevoke(device.id)}
                     disabled={isPendingId === device.id}
+                    aria-busy={isPendingId === device.id}
+                    aria-label={`Revocar ${device.isCurrent ? "este dispositivo" : `dispositivo ${index + 1}`}`}
                     className="inline-flex items-center justify-center gap-2 px-4 py-2 border border-red-500/30 text-red-300 hover:text-white hover:bg-red-600 hover:border-red-600 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none"
                   >
-                    <XCircle size={16} />
+                    <XCircle size={16} aria-hidden="true" />
                     {isPendingId === device.id ? "Revocando..." : "Revocar"}
                   </button>
                 ) : (
                   <div className="inline-flex items-center gap-2 text-xs text-neutral-500">
-                    <ShieldCheck size={16} />
+                    <ShieldCheck size={16} aria-hidden="true" />
                     {device.isCurrent ? "No revocable desde aqu\u00ed" : "Sin acciones"}
                   </div>
                 )}

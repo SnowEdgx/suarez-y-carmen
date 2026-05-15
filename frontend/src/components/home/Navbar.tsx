@@ -38,7 +38,7 @@ export default function Navbar({ user = null }: NavbarProps) {
           S&C
         </Link>
 
-        <nav className="hidden md:flex items-center gap-8">
+        <nav className="hidden md:flex items-center gap-8" aria-label="Navegación principal">
           <Link href="/courses" className="text-sm font-medium text-neutral-300 hover:text-white transition-colors">
             Cursos
           </Link>
@@ -77,13 +77,24 @@ export default function Navbar({ user = null }: NavbarProps) {
           )}
         </div>
 
-        <button className="md:hidden text-white" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-          {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
+        <button
+          type="button"
+          className="md:hidden text-white"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          aria-label={isMobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
+          aria-controls="mobile-navigation"
+          aria-expanded={isMobileMenuOpen}
+        >
+          {isMobileMenuOpen ? <X size={28} aria-hidden="true" /> : <Menu size={28} aria-hidden="true" />}
         </button>
       </div>
 
       {isMobileMenuOpen && (
-        <div className="md:hidden absolute top-full left-0 w-full bg-neutral-900 border-t border-neutral-800 p-6 flex flex-col gap-4 shadow-2xl">
+        <nav
+          id="mobile-navigation"
+          className="md:hidden absolute top-full left-0 w-full bg-neutral-900 border-t border-neutral-800 p-6 flex flex-col gap-4 shadow-2xl"
+          aria-label="Navegación móvil"
+        >
           <Link href="/courses" className="text-neutral-200" onClick={() => setIsMobileMenuOpen(false)}>
             Cursos
           </Link>
@@ -131,7 +142,7 @@ export default function Navbar({ user = null }: NavbarProps) {
               </Link>
             </>
           )}
-        </div>
+        </nav>
       )}
     </header>
   );

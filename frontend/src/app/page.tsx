@@ -14,7 +14,7 @@ export default async function Home() {
     <div className="min-h-screen bg-neutral-950 text-neutral-100 font-sans selection:bg-red-600 selection:text-white">
       <Navbar user={user} />
       <Hero />
-      <main className="relative z-10 bg-neutral-950">
+      <main id="main-content" className="relative z-10 bg-neutral-950">
         <Features />
         <About />
         <Pricing />

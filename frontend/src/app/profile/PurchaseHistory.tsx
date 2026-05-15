@@ -128,7 +128,14 @@ export default function PurchaseHistory({ purchases }: { purchases: PurchaseCard
                       <span>{purchase.completedLessons} de {purchase.totalLessons} lecciones completadas</span>
                       <span>{progressPercent}%</span>
                     </div>
-                    <div className="h-2 bg-neutral-800 rounded-full overflow-hidden">
+                    <div
+                      className="h-2 bg-neutral-800 rounded-full overflow-hidden"
+                      role="progressbar"
+                      aria-label={`Progreso de ${purchase.course?.title || "curso"}`}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-valuenow={progressPercent}
+                    >
                       <div className="h-full bg-red-600" style={{ width: `${progressPercent}%` }} />
                     </div>
                   </div>

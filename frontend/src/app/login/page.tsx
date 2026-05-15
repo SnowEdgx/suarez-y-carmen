@@ -152,7 +152,7 @@ function LoginPageContent() {
     <div className="min-h-screen bg-neutral-950 text-neutral-100 font-sans selection:bg-red-600 selection:text-white flex flex-col">
       <Navbar />
 
-      <main className="flex-1 flex items-center justify-center p-6 mt-16 relative z-10 w-full">
+      <main id="main-content" className="flex-1 flex items-center justify-center p-6 mt-16 relative z-10 w-full">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg h-[400px] bg-red-600/10 blur-[100px] rounded-full pointer-events-none" />
 
         <div className="relative w-full max-w-md bg-neutral-900/60 backdrop-blur-xl border border-neutral-800 p-8 rounded-3xl shadow-2xl">
@@ -168,19 +168,30 @@ function LoginPageContent() {
           </div>
 
           {visibleErrorMessage && (
-            <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium text-center">
+            <div
+              role="alert"
+              className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium text-center"
+            >
               {visibleErrorMessage}
             </div>
           )}
 
           {topInfoMessage && (
-            <div className="mb-6 p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-sm font-medium text-center">
+            <div
+              role="status"
+              aria-live="polite"
+              className="mb-6 p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-sm font-medium text-center"
+            >
               {topInfoMessage.text}
             </div>
           )}
 
           {pendingVerificationEmail && (
-            <div className="mb-6 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-200 text-sm">
+            <div
+              role="status"
+              aria-live="polite"
+              className="mb-6 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-200 text-sm"
+            >
               <p className="text-center font-medium mb-3">
                 Cuenta pendiente de verificación: {pendingVerificationEmail}
               </p>
@@ -188,6 +199,7 @@ function LoginPageContent() {
                 type="button"
                 onClick={handleResendVerification}
                 disabled={isResendingVerification}
+                aria-busy={isResendingVerification}
                 className="w-full py-2.5 bg-blue-500/20 hover:bg-blue-500/30 text-blue-200 rounded-lg transition-colors disabled:opacity-50 disabled:pointer-events-none"
               >
                 {isResendingVerification ? 'Reenviando...' : 'Reenviar correo de verificación'}
@@ -195,7 +207,7 @@ function LoginPageContent() {
             </div>
           )}
 
-          <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
+          <form ref={formRef} onSubmit={handleSubmit} className="space-y-4" aria-busy={isPending}>
             <input type="hidden" name="next" value={nextPath} />
 
             {!isLoginMode && (
@@ -275,6 +287,7 @@ function LoginPageContent() {
             <button
               type="submit"
               disabled={isPending}
+              aria-busy={isPending}
               className="w-full py-3.5 mt-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
             >
               {isPending ? 'Cargando...' : isLoginMode ? 'Iniciar sesión' : 'Registrarse'}
@@ -292,6 +305,7 @@ function LoginPageContent() {
                 handlePasswordRecovery(typeof currentEmail === 'string' ? currentEmail : defaultEmail)
               }}
               disabled={isRecoveryPending}
+              aria-busy={isRecoveryPending}
               className="mt-3 w-full text-xs text-neutral-500 hover:text-neutral-300 transition-colors disabled:opacity-60"
             >
               {isRecoveryPending
@@ -303,6 +317,7 @@ function LoginPageContent() {
           <div className="mt-8 text-center text-sm text-neutral-400">
             {isLoginMode ? '¿No tienes cuenta?' : '¿Ya tienes una cuenta?'}{' '}
             <button
+              type="button"
               onClick={() => {
                 setIsLoginMode(!isLoginMode)
                 setErrorMessage(null)

@@ -44,7 +44,7 @@ export default async function ProfilePage() {
     <div className="min-h-screen bg-neutral-950 text-neutral-100 font-sans selection:bg-red-600 selection:text-white flex flex-col pt-24">
       <Navbar user={user} />
 
-      <main className="flex-1 max-w-6xl mx-auto w-full px-6 md:px-12 py-10 relative z-10">
+      <main id="main-content" className="flex-1 max-w-6xl mx-auto w-full px-6 md:px-12 py-10 relative z-10">
         <h1 className="text-3xl font-serif font-bold text-white mb-2">Mi perfil</h1>
         <p className="text-neutral-400 mb-10">
           Gestiona tus datos personales, tus compras y el progreso de tus cursos.

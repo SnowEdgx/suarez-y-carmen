@@ -43,12 +43,15 @@ export default function UpdatePasswordForm() {
       </div>
 
       {errorMessage && (
-        <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium text-center">
+        <div
+          role="alert"
+          className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium text-center"
+        >
           {errorMessage}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4" aria-busy={isPending}>
         <div>
           <label className="block text-sm font-medium text-neutral-400 mb-1.5" htmlFor="password">
             {'Nueva contrase\u00f1a'}
@@ -82,6 +85,7 @@ export default function UpdatePasswordForm() {
         <button
           type="submit"
           disabled={isPending}
+          aria-busy={isPending}
           className="w-full py-3.5 mt-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
         >
           {isPending ? 'Guardando...' : 'Actualizar contrase\u00f1a'}

@@ -11,7 +11,7 @@ export default async function ContactPage() {
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 font-sans selection:bg-red-600 selection:text-white flex flex-col">
       <Navbar user={user} />
-      <main className="pt-28 pb-20 px-6 md:px-12 max-w-3xl mx-auto w-full flex-1">
+      <main id="main-content" className="pt-28 pb-20 px-6 md:px-12 max-w-3xl mx-auto w-full flex-1">
         <h1 className="text-4xl font-bold font-serif text-white mb-4">Contacto</h1>
         <p className="text-neutral-400 mb-10">
           Si necesitas soporte sobre acceso, compra o contenido, usa estos canales oficiales.

@@ -51,7 +51,7 @@ export default function RecoverPasswordPage() {
     <div className="min-h-screen bg-neutral-950 text-neutral-100 font-sans selection:bg-red-600 selection:text-white flex flex-col">
       <Navbar />
 
-      <main className="flex-1 flex items-center justify-center p-6 mt-16 relative z-10 w-full">
+      <main id="main-content" className="flex-1 flex items-center justify-center p-6 mt-16 relative z-10 w-full">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg h-[400px] bg-red-600/10 blur-[100px] rounded-full pointer-events-none" />
 
         <div className="relative w-full max-w-md bg-neutral-900/60 backdrop-blur-xl border border-neutral-800 p-8 rounded-3xl shadow-2xl">
@@ -64,6 +64,8 @@ export default function RecoverPasswordPage() {
 
           {message && (
             <div
+              role={message.type === 'error' ? 'alert' : 'status'}
+              aria-live={message.type === 'error' ? 'assertive' : 'polite'}
               className={`mb-6 p-4 rounded-xl text-sm font-medium text-center ${
                 message.type === 'error'
                   ? 'bg-red-500/10 border border-red-500/20 text-red-400'
@@ -74,7 +76,7 @@ export default function RecoverPasswordPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4" aria-busy={isPending}>
             <div>
               <label className="block text-sm font-medium text-neutral-400 mb-1.5" htmlFor="email">
                 Correo electrónico
@@ -92,6 +94,7 @@ export default function RecoverPasswordPage() {
             <button
               type="submit"
               disabled={isPending}
+              aria-busy={isPending}
               className="w-full py-3.5 mt-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
             >
               {isPending ? 'Enviando...' : 'Enviar enlace de recuperación'}

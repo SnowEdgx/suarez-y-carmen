@@ -25,9 +25,13 @@ export default function ProfileForm({ initialName, email }: { initialName: strin
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit} className="space-y-5" aria-busy={isPending}>
       {message && (
-        <div className={`p-4 rounded-xl text-sm font-medium ${message.type === 'error' ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'bg-green-500/10 text-green-500 border border-green-500/20'}`}>
+        <div
+          role={message.type === 'error' ? 'alert' : 'status'}
+          aria-live={message.type === 'error' ? 'assertive' : 'polite'}
+          className={`p-4 rounded-xl text-sm font-medium ${message.type === 'error' ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'bg-green-500/10 text-green-500 border border-green-500/20'}`}
+        >
           {message.text}
         </div>
       )}
@@ -48,7 +52,7 @@ export default function ProfileForm({ initialName, email }: { initialName: strin
         </div>
         <div>
           <label className="block text-sm font-medium text-neutral-400 mb-1.5" htmlFor="email">
-            Correo Electrónico
+            Correo electrónico
           </label>
           <input
             id="email"
@@ -65,6 +69,7 @@ export default function ProfileForm({ initialName, email }: { initialName: strin
         <button
           type="submit"
           disabled={isPending}
+          aria-busy={isPending}
           className="px-8 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-xl shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
         >
           {isPending ? 'Guardando...' : 'Guardar cambios'}

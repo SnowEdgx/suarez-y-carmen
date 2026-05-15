@@ -11,7 +11,7 @@ export default async function TermsPage() {
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 font-sans selection:bg-red-600 selection:text-white flex flex-col">
       <Navbar user={user} />
-      <main className="pt-28 pb-20 px-6 md:px-12 max-w-4xl mx-auto w-full flex-1">
+      <main id="main-content" className="pt-28 pb-20 px-6 md:px-12 max-w-4xl mx-auto w-full flex-1">
         <h1 className="text-4xl font-bold font-serif text-white mb-4">Términos y condiciones</h1>
         <p className="text-neutral-400 mb-10">
           Condiciones de uso y contratación aplicables a la academia online de Suárez y Carmen. Última actualización: 17/04/2026.
@@ -29,7 +29,7 @@ export default async function TermsPage() {
           <section className="border border-neutral-800 rounded-2xl p-6 bg-neutral-900/40">
             <h2 className="text-white font-semibold mb-2">2. Registro y cuenta de usuario</h2>
             <p>
-              Para comprar cursos es necesario registrarse, verificar el correo electronico y mantener la confidencialidad de las
+              Para comprar cursos es necesario registrarse, verificar el correo electrónico y mantener la confidencialidad de las
               credenciales. El usuario es responsable de la actividad realizada desde su cuenta.
             </p>
           </section>
@@ -37,7 +37,7 @@ export default async function TermsPage() {
           <section className="border border-neutral-800 rounded-2xl p-6 bg-neutral-900/40">
             <h2 className="text-white font-semibold mb-2">3. Compra y acceso a cursos</h2>
             <p>
-              El servicio actual funciona con pago singular por curso. Tras la confirmacion del cobro, el acceso se activa en la
+              El servicio actual funciona con pago singular por curso. Tras la confirmación del cobro, el acceso se activa en la
               cuenta del usuario para el curso adquirido.
             </p>
           </section>
@@ -53,8 +53,8 @@ export default async function TermsPage() {
           <section className="border border-neutral-800 rounded-2xl p-6 bg-neutral-900/40">
             <h2 className="text-white font-semibold mb-2">5. Uso permitido del contenido</h2>
             <p>
-              El acceso al material es personal e intransferible. Queda prohibida la redistribucion, grabacion, descarga no autorizada,
-              comparticion de credenciales o cualquier uso distinto al aprendizaje personal.
+              El acceso al material es personal e intransferible. Queda prohibida la redistribución, grabación, descarga no autorizada,
+              compartición de credenciales o cualquier uso distinto al aprendizaje personal.
             </p>
           </section>
 
@@ -77,7 +77,7 @@ export default async function TermsPage() {
           <section className="border border-neutral-800 rounded-2xl p-6 bg-neutral-900/40">
             <h2 className="text-white font-semibold mb-2">8. Soporte y contacto</h2>
             <p>
-              Para incidencias de acceso, pagos o proteccion de datos, el canal de contacto operativo es academy@suarezycarmen.com.
+              Para incidencias de acceso, pagos o protección de datos, el canal de contacto operativo es academy@suarezycarmen.com.
             </p>
           </section>
         </div>

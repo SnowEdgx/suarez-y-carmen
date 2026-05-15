@@ -11,7 +11,7 @@ export default async function PrivacyPage() {
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 font-sans selection:bg-red-600 selection:text-white flex flex-col">
       <Navbar user={user} />
-      <main className="pt-28 pb-20 px-6 md:px-12 max-w-4xl mx-auto w-full flex-1">
+      <main id="main-content" className="pt-28 pb-20 px-6 md:px-12 max-w-4xl mx-auto w-full flex-1">
         <h1 className="text-4xl font-bold font-serif text-white mb-4">Política de privacidad</h1>
         <p className="text-neutral-400 mb-10">
           Información sobre el tratamiento de datos personales en la plataforma. Última actualización: 17/04/2026.
@@ -43,10 +43,10 @@ export default async function PrivacyPage() {
           </section>
 
           <section className="border border-neutral-800 rounded-2xl p-6 bg-neutral-900/40">
-            <h2 className="text-white font-semibold mb-2">4. Base juridica y conservacion</h2>
+            <h2 className="text-white font-semibold mb-2">4. Base jurídica y conservación</h2>
             <p>
-              El tratamiento se basa en la ejecucion de la relacion contractual y en obligaciones legales aplicables. Los datos se
-              conservaran mientras exista relacion activa y durante los plazos legales exigibles.
+              El tratamiento se basa en la ejecución de la relación contractual y en obligaciones legales aplicables. Los datos se
+              conservarán mientras exista relación activa y durante los plazos legales exigibles.
             </p>
           </section>
 

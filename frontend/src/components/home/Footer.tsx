@@ -83,7 +83,7 @@ export default function Footer() {
       </div>
 
       <div className="max-w-7xl mx-auto pt-8 border-t border-neutral-900 text-center text-xs text-neutral-600">
-        <p>&copy; {new Date().getFullYear()} Suárez y Carmen. Todos los derechos reservados.</p>
+        <p>© {new Date().getFullYear()} Suárez y Carmen. Todos los derechos reservados.</p>
       </div>
     </footer>
   );

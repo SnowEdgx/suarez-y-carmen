@@ -262,7 +262,7 @@ export default async function CourseDetailPage({ params, searchParams }: CourseD
     <div className="min-h-screen bg-neutral-950 text-neutral-100 font-sans selection:bg-red-600 selection:text-white flex flex-col">
       <Navbar user={user} />
 
-      <main className="pt-28 pb-20 px-6 md:px-12 max-w-7xl mx-auto w-full flex-1">
+      <main id="main-content" className="pt-28 pb-20 px-6 md:px-12 max-w-7xl mx-auto w-full flex-1">
         <Link href="/courses" className="text-sm text-neutral-400 hover:text-white transition-colors">
           Volver al catálogo
         </Link>

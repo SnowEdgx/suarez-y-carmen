@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export default function CourseDetailError({ reset }: { error: Error; reset: () => void }) {
   return (
-    <main className="min-h-screen bg-neutral-950 px-6 py-24 text-neutral-100">
+    <main id="main-content" className="min-h-screen bg-neutral-950 px-6 py-24 text-neutral-100">
       <section className="mx-auto max-w-2xl rounded-3xl border border-neutral-800 bg-neutral-900/60 p-8 text-center">
         <p className="text-sm font-semibold uppercase tracking-[0.25em] text-red-400">Curso no disponible</p>
         <h1 className="mt-4 text-3xl font-serif font-bold text-white">

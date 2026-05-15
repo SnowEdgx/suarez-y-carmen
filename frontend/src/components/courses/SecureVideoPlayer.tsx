@@ -59,6 +59,7 @@ export default function SecureVideoPlayer({ src, title }: SecureVideoPlayerProps
     <video
       ref={videoRef}
       aria-label={title}
+      title={title}
       controls
       controlsList="nodownload noplaybackrate noremoteplayback"
       disablePictureInPicture
@@ -68,6 +69,8 @@ export default function SecureVideoPlayer({ src, title }: SecureVideoPlayerProps
       preload="metadata"
       className="w-full rounded-xl border border-neutral-700 bg-black"
       src={shouldUseHls ? undefined : src}
-    />
+    >
+      Tu navegador no puede reproducir este vídeo.
+    </video>
   );
 }

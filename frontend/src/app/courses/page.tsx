@@ -142,7 +142,7 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 font-sans selection:bg-red-600 selection:text-white">
       <Navbar user={user} />
-      <main className="pt-24 min-h-[80vh] bg-neutral-950 relative z-10">
+      <main id="main-content" className="pt-24 min-h-[80vh] bg-neutral-950 relative z-10">
         <div className="max-w-7xl mx-auto px-6 md:px-12 mt-12 mb-8 text-center">
           <p className="text-red-500 font-semibold tracking-wider uppercase mb-3">Cursos</p>
           <h1 className="text-4xl md:text-5xl font-bold font-serif text-white mb-6">Academia Online</h1>
