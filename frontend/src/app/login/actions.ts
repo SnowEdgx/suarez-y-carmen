@@ -11,7 +11,7 @@ import {
 import { createClient } from '@/lib/supabase/server'
 
 const EMAIL_VERIFICATION_ERROR =
-  'Debes verificar tu correo antes de iniciar sesion. Revisa tu bandeja de entrada.'
+  'Debes verificar tu correo antes de iniciar sesión. Revisa tu bandeja de entrada.'
 
 type AuthUser = {
   email_confirmed_at?: string | null
@@ -83,7 +83,7 @@ export async function login(formData: FormData) {
   const password = typeof formData.get('password') === 'string' ? (formData.get('password') as string) : ''
 
   if (!isValidEmail(email) || password.length < 1) {
-    return { error: 'Introduce un correo valido y tu contrase\u00f1a.' }
+    return { error: 'Introduce un correo válido y tu contraseña.' }
   }
 
   const { data: authData, error } = await supabase.auth.signInWithPassword({
@@ -96,7 +96,7 @@ export async function login(formData: FormData) {
     if (error.message.toLowerCase().includes('email not confirmed')) {
       return { error: EMAIL_VERIFICATION_ERROR }
     }
-    return { error: 'Credenciales invalidas. Verifica tu correo y contrase\u00f1a.' }
+    return { error: 'Credenciales inválidas. Verifica tu correo y contraseña.' }
   }
 
   if (!isEmailVerified(authData.user)) {
@@ -121,7 +121,7 @@ export async function signup(formData: FormData) {
     return { error: 'La contrase\u00f1a debe tener al menos 6 caracteres.' }
   }
   if (!isValidEmail(email)) {
-    return { error: 'Introduce un correo valido.' }
+    return { error: 'Introduce un correo válido.' }
   }
   if (name.length < 2) {
     return { error: 'El nombre debe tener al menos 2 caracteres.' }
@@ -137,10 +137,10 @@ export async function signup(formData: FormData) {
   })
 
   if (error) {
-    console.error('[Login Action] Signup error details:', error)
+    console.error('[Login Action] Signup failed:', error.message)
     return {
       error:
-        'Ocurrio un error al procesar tu solicitud. Reintenta mas tarde o contactanos si persiste.',
+        'Ocurrió un error al procesar tu solicitud. Reintenta más tarde o contáctanos si persiste.',
     }
   }
 
@@ -148,7 +148,7 @@ export async function signup(formData: FormData) {
     await supabase.auth.signOut()
     return {
       success:
-        'Te enviamos un correo de verificacion. Confirma tu cuenta para iniciar sesion y acceder a tus cursos.',
+        'Te enviamos un correo de verificación. Confirma tu cuenta para iniciar sesión y acceder a tus cursos.',
       requiresEmailVerification: true,
       email,
     }
@@ -163,10 +163,10 @@ export async function resendSignupVerification(formData: FormData) {
   const email = normalizeEmail(formData.get('email'))
 
   if (!email) {
-    return { error: 'Indica tu correo para reenviar la verificacion.' }
+    return { error: 'Indica tu correo para reenviar la verificación.' }
   }
   if (!isValidEmail(email)) {
-    return { error: 'El correo indicado no es valido.' }
+    return { error: 'El correo indicado no es válido.' }
   }
 
   const { error } = await supabase.auth.resend({
@@ -178,11 +178,11 @@ export async function resendSignupVerification(formData: FormData) {
   })
 
   if (error) {
-    console.error('[Login Action] Resend verification error:', error)
-    return { error: 'No pudimos reenviar el correo en este momento. Intentalo de nuevo.' }
+    console.error('[Login Action] Resend verification failed:', error.message)
+    return { error: 'No pudimos reenviar el correo en este momento. Inténtalo de nuevo.' }
   }
 
-  return { success: 'Correo de verificacion reenviado. Revisa tu bandeja de entrada.' }
+  return { success: 'Correo de verificación reenviado. Revisa tu bandeja de entrada.' }
 }
 
 export async function requestPasswordRecovery(formData: FormData) {
@@ -190,7 +190,7 @@ export async function requestPasswordRecovery(formData: FormData) {
   const email = getSafeEmail(formData.get('email'))
 
   if (!email) {
-    return { error: 'Introduce un correo valido para recuperar tu cuenta.' }
+    return { error: 'Introduce un correo válido para recuperar tu cuenta.' }
   }
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -198,13 +198,13 @@ export async function requestPasswordRecovery(formData: FormData) {
   })
 
   if (error) {
-    console.error('[Login Action] Password recovery request error:', error)
-    return { error: 'No pudimos iniciar la recuperacion en este momento. Intentalo de nuevo.' }
+    console.error('[Login Action] Password recovery request failed:', error.message)
+    return { error: 'No pudimos iniciar la recuperación en este momento. Inténtalo de nuevo.' }
   }
 
   return {
     success:
-      'Si el correo existe en la plataforma, te hemos enviado un enlace para restablecer tu contrase\u00f1a.',
+      'Si el correo existe en la plataforma, te hemos enviado un enlace para restablecer tu contraseña.',
   }
 }
 
@@ -215,11 +215,11 @@ export async function updatePassword(formData: FormData) {
     typeof formData.get('confirmPassword') === 'string' ? (formData.get('confirmPassword') as string) : ''
 
   if (password.length < 8) {
-    return { error: 'La nueva contrase\u00f1a debe tener al menos 8 caracteres.' }
+    return { error: 'La nueva contraseña debe tener al menos 8 caracteres.' }
   }
 
   if (password !== confirmPassword) {
-    return { error: 'Las contrase\u00f1as no coinciden.' }
+    return { error: 'Las contraseñas no coinciden.' }
   }
 
   const {
@@ -227,14 +227,14 @@ export async function updatePassword(formData: FormData) {
   } = await supabase.auth.getUser()
 
   if (!user) {
-    return { error: 'La sesion de recuperacion ha expirado. Solicita un nuevo enlace.' }
+    return { error: 'La sesión de recuperación ha expirado. Solicita un nuevo enlace.' }
   }
 
   const { error } = await supabase.auth.updateUser({ password })
 
   if (error) {
-    console.error('[Login Action] Password update error:', error)
-    return { error: 'No pudimos actualizar la contrase\u00f1a. Intentalo de nuevo.' }
+    console.error('[Login Action] Password update failed:', error.message)
+    return { error: 'No pudimos actualizar la contraseña. Inténtalo de nuevo.' }
   }
 
   await supabase.auth.signOut()

@@ -80,6 +80,8 @@ function resolveProgressMessage(code: string | null) {
       return { type: "info" as const, text: "Progreso actualizado." };
     case "invalid_lesson":
       return { type: "error" as const, text: "No pudimos identificar la lecci\u00f3n seleccionada." };
+    case "access_denied":
+      return { type: "error" as const, text: "No tienes acceso para modificar el progreso de esta lección." };
     case "error":
       return { type: "error" as const, text: "No pudimos guardar tu progreso. Int\u00e9ntalo de nuevo." };
     default:

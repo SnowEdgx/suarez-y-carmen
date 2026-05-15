@@ -66,7 +66,15 @@ if (process.env.ENABLE_SUPABASE_TEST_ENDPOINT === 'true') {
   });
 }
 
+app.use('/api', (_req, res) => {
+  res.status(404).json({ error: 'Endpoint not found.' });
+});
+
 app.use((err, _req, res, next) => {
+  if (res.headersSent) {
+    return next(err);
+  }
+
   if (err && (err.type === 'entity.parse.failed' || (err instanceof SyntaxError && 'body' in err))) {
     return res.status(400).json({ error: 'JSON malformado en la solicitud.' });
   }
@@ -74,7 +82,15 @@ app.use((err, _req, res, next) => {
   if (err && err.message === 'Origin not allowed by CORS') {
     return res.status(403).json({ error: 'CORS origin denied.' });
   }
-  return next(err);
+
+  const status = Number.isInteger(err?.status) && err.status >= 400 && err.status < 500 ? err.status : 500;
+  if (status >= 500) {
+    console.error('[Express] Unhandled error:', err?.message || 'Unknown error');
+  }
+
+  return res.status(status).json({
+    error: status >= 500 ? 'Internal server error.' : 'Request failed.',
+  });
 });
 
 // Start server.

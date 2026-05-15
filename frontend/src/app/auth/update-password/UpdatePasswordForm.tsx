@@ -29,7 +29,7 @@ export default function UpdatePasswordForm() {
       if (isRedirectError(error)) {
         throw error
       }
-      setErrorMessage('No pudimos actualizar tu contrase\u00f1a. Intentalo de nuevo.')
+      setErrorMessage('No pudimos actualizar tu contraseña. Inténtalo de nuevo.')
     } finally {
       setIsPending(false)
     }
@@ -60,7 +60,7 @@ export default function UpdatePasswordForm() {
             minLength={8}
             required
             className="w-full bg-neutral-950 border border-neutral-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-600/50 transition-all font-medium placeholder-neutral-600"
-            placeholder="Minimo 8 caracteres"
+            placeholder="Mínimo 8 caracteres"
           />
         </div>
 
@@ -90,7 +90,7 @@ export default function UpdatePasswordForm() {
 
       <div className="mt-8 text-center text-sm text-neutral-400">
         <Link href="/login" className="text-white hover:text-red-500 font-semibold transition-colors">
-          Volver al inicio de sesion
+          Volver al inicio de sesión
         </Link>
       </div>
     </div>

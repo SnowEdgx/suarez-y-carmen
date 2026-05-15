@@ -12,6 +12,8 @@ const repoRoot = path.resolve(__dirname, '..', '..');
 const DEFAULT_BACKEND_URL = 'http://localhost:4000';
 const DEFAULT_TARGET_COURSE_SLUG = 'bachata-sensual-basico';
 const DEFAULT_UNOWNED_COURSE_SLUG = 'figuras-avanzadas';
+const DEFAULT_E2E_USER_EMAIL = 'student.e2e@suarezycarmen.test';
+const DEFAULT_E2E_USER_PASSWORD = 'LocalE2EPassword123!';
 
 function loadEnvFile(filePath) {
   if (!existsSync(filePath)) return;
@@ -52,6 +54,15 @@ function requireEnv(name) {
   return value;
 }
 
+function isLocalSupabaseUrl(rawUrl) {
+  try {
+    const parsedUrl = new URL(rawUrl);
+    return ['localhost', '127.0.0.1', 'host.docker.internal'].includes(parsedUrl.hostname);
+  } catch {
+    return false;
+  }
+}
+
 function assertStatus(response, expectedStatus, context) {
   if (response.status !== expectedStatus) {
     throw new Error(`${context} returned ${response.status}, expected ${expectedStatus}.`);
@@ -79,6 +90,41 @@ async function getCourseBySlug(supabase, slug) {
   }
 
   return data;
+}
+
+async function findAuthUserByEmail(admin, email) {
+  for (let page = 1; page <= 20; page += 1) {
+    const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 100 });
+    if (error) throw error;
+
+    const user = data.users.find((candidate) => candidate.email?.toLowerCase() === email.toLowerCase());
+    if (user) return user;
+    if (data.users.length < 100) return null;
+  }
+
+  return null;
+}
+
+async function ensureLocalE2eUser(admin, email, password) {
+  const existingUser = await findAuthUserByEmail(admin, email);
+
+  if (existingUser) {
+    const { error } = await admin.auth.admin.updateUserById(existingUser.id, {
+      password,
+      email_confirm: true,
+      user_metadata: { name: 'E2E Student' },
+    });
+    if (error) throw error;
+    return;
+  }
+
+  const { error } = await admin.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+    user_metadata: { name: 'E2E Student' },
+  });
+  if (error) throw error;
 }
 
 async function getLesson(supabase, courseId, isFreePreview) {
@@ -213,8 +259,9 @@ async function main() {
   const anonKey = requireEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY');
   const stripeSecretKey = requireEnv('STRIPE_SECRET_KEY');
   const stripeWebhookSecret = requireEnv('STRIPE_WEBHOOK_SECRET');
-  const userEmail = requireEnv('E2E_USER_EMAIL');
-  const userPassword = requireEnv('E2E_USER_PASSWORD');
+  const usesDefaultE2eCredentials = !process.env.E2E_USER_EMAIL || !process.env.E2E_USER_PASSWORD;
+  const userEmail = process.env.E2E_USER_EMAIL || DEFAULT_E2E_USER_EMAIL;
+  const userPassword = process.env.E2E_USER_PASSWORD || DEFAULT_E2E_USER_PASSWORD;
   const targetCourseSlug = process.env.E2E_COURSE_SLUG || DEFAULT_TARGET_COURSE_SLUG;
   const unownedCourseSlug = process.env.E2E_UNOWNED_COURSE_SLUG || DEFAULT_UNOWNED_COURSE_SLUG;
   const videoDeviceId = randomUUID();
@@ -229,6 +276,13 @@ async function main() {
   });
   const authClient = createClient(supabaseAnonUrl, anonKey);
   const stripe = new Stripe(stripeSecretKey);
+
+  if (usesDefaultE2eCredentials) {
+    if (!isLocalSupabaseUrl(supabaseUrl)) {
+      throw new Error('E2E_USER_EMAIL and E2E_USER_PASSWORD are required outside local Supabase.');
+    }
+    await ensureLocalE2eUser(admin, userEmail, userPassword);
+  }
 
   const { data: signInData, error: signInError } = await authClient.auth.signInWithPassword({
     email: userEmail,

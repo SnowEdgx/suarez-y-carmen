@@ -40,7 +40,7 @@ export default function RecoverPasswordPage() {
       }
       setMessage({
         type: 'error',
-        text: 'No pudimos procesar tu solicitud. Intentalo de nuevo en unos minutos.',
+        text: 'No pudimos procesar tu solicitud. Inténtalo de nuevo en unos minutos.',
       })
     } finally {
       setIsPending(false)
@@ -77,7 +77,7 @@ export default function RecoverPasswordPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-neutral-400 mb-1.5" htmlFor="email">
-                Correo electronico
+                Correo electrónico
               </label>
               <input
                 id="email"
@@ -94,13 +94,13 @@ export default function RecoverPasswordPage() {
               disabled={isPending}
               className="w-full py-3.5 mt-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
             >
-              {isPending ? 'Enviando...' : 'Enviar enlace de recuperacion'}
+              {isPending ? 'Enviando...' : 'Enviar enlace de recuperación'}
             </button>
           </form>
 
           <div className="mt-8 text-center text-sm text-neutral-400">
             <Link href="/login" className="text-white hover:text-red-500 font-semibold transition-colors">
-              Volver al inicio de sesion
+              Volver al inicio de sesión
             </Link>
           </div>
         </div>

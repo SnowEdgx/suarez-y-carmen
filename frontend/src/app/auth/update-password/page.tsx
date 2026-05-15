@@ -21,9 +21,9 @@ export default async function UpdatePasswordPage() {
           <UpdatePasswordForm />
         ) : (
           <div className="relative w-full max-w-md bg-neutral-900/60 backdrop-blur-xl border border-neutral-800 p-8 rounded-3xl shadow-2xl text-center">
-            <h1 className="text-3xl font-serif font-bold text-white mb-2">Enlace no valido</h1>
+            <h1 className="text-3xl font-serif font-bold text-white mb-2">Enlace no válido</h1>
             <p className="text-neutral-400">
-              La sesion de recuperacion no esta activa o ha caducado. Solicita un nuevo enlace para continuar.
+              La sesión de recuperación no está activa o ha caducado. Solicita un nuevo enlace para continuar.
             </p>
             <Link
               href="/auth/recover"

@@ -37,6 +37,21 @@ export async function setLessonProgress(formData: FormData) {
     redirect(`/login?next=${encodeURIComponent(coursePath)}`)
   }
 
+  const lessonAccess = await supabase
+    .from('lessons')
+    .select('id')
+    .eq('id', lessonId)
+    .maybeSingle()
+
+  if (lessonAccess.error) {
+    console.error('[Course Progress Action] Could not verify lesson access:', lessonAccess.error.message)
+    redirect(buildProgressPath(coursePath, 'error', lessonId))
+  }
+
+  if (!lessonAccess.data) {
+    redirect(buildProgressPath(coursePath, 'access_denied', lessonId))
+  }
+
   const { error } = await supabase
     .from('user_progress')
     .upsert(

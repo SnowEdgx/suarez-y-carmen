@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getBackendUrl } from '@/lib/backend-url'
 import { DEVICE_ID_HEADER, isValidDeviceId } from '@/lib/device-session'
 
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{12}$/i
 
 export async function updateProfileName(formData: FormData) {
   const supabase = await createClient()
@@ -15,12 +15,12 @@ export async function updateProfileName(formData: FormData) {
   } = await supabase.auth.getUser()
 
   if (!user) {
-    return { error: 'No autorizado / sesión expirada' }
+    return { error: 'Tu sesión ha expirado. Vuelve a iniciar sesión.' }
   }
 
   const fullName = formData.get('fullName') as string
   if (!fullName || fullName.trim().length < 2) {
-    return { error: 'El nombre debe tener al menos 2 caracteres' }
+    return { error: 'El nombre debe tener al menos 2 caracteres.' }
   }
 
   // Upsert supports legacy users that may not have a profile row yet.
@@ -29,7 +29,7 @@ export async function updateProfileName(formData: FormData) {
     .upsert({ id: user.id, full_name: fullName.trim(), updated_at: new Date().toISOString() })
 
   if (error) {
-    console.error('[Profile Update] Backend error:', error)
+    console.error('[Profile Update] Could not update profile:', error.message)
     return { error: 'No pudimos actualizar tu perfil en este momento. Reintenta más tarde.' }
   }
 
@@ -39,14 +39,14 @@ export async function updateProfileName(formData: FormData) {
   })
 
   if (authUpdateError) {
-    console.error('[Profile Update] Auth metadata sync error:', authUpdateError)
+    console.error('[Profile Update] Could not sync auth metadata:', authUpdateError.message)
     return { error: 'Perfil guardado parcialmente. No se pudo sincronizar tu cuenta. Intenta de nuevo.' }
   }
 
   revalidatePath('/profile')
   revalidatePath('/', 'layout')
 
-  return { success: 'Perfil actualizado correctamente' }
+  return { success: 'Perfil actualizado correctamente.' }
 }
 
 async function readJsonSafely(response: Response) {
@@ -73,13 +73,13 @@ export async function revokeVideoDevice(formData: FormData) {
   } = await supabase.auth.getSession()
 
   if (!user || !session?.access_token) {
-    return { error: 'Tu sesi\u00f3n ha expirado. Vuelve a iniciar sesi\u00f3n.' }
+    return { error: 'Tu sesión ha expirado. Vuelve a iniciar sesión.' }
   }
 
   const requestHeaders = await headers()
   const currentDeviceId = requestHeaders.get(DEVICE_ID_HEADER)
   if (!isValidDeviceId(currentDeviceId)) {
-    return { error: 'No pudimos validar este dispositivo. Recarga la p\u00e1gina e int\u00e9ntalo de nuevo.' }
+    return { error: 'No pudimos validar este dispositivo. Recarga la página e inténtalo de nuevo.' }
   }
 
   let response: Response
@@ -102,7 +102,7 @@ export async function revokeVideoDevice(formData: FormData) {
       error:
         typeof payload?.error === 'string'
           ? payload.error
-          : 'No pudimos revocar el dispositivo. Int\u00e9ntalo de nuevo.',
+          : 'No pudimos revocar el dispositivo. Inténtalo de nuevo.',
     }
   }
 

@@ -17,6 +17,7 @@ interface CourseGridProps {
   courses: CourseItem[];
   purchasedCourseIds: string[];
   isAuthenticated: boolean;
+  purchaseStatusUnavailable?: boolean;
 }
 
 function formatPrice(priceCents: number | null) {
@@ -28,7 +29,12 @@ function formatPrice(priceCents: number | null) {
   }).format((priceCents as number) / 100);
 }
 
-export default function CourseGrid({ courses, purchasedCourseIds, isAuthenticated }: CourseGridProps) {
+export default function CourseGrid({
+  courses,
+  purchasedCourseIds,
+  isAuthenticated,
+  purchaseStatusUnavailable = false,
+}: CourseGridProps) {
   const purchasedSet = new Set(purchasedCourseIds);
 
   return (
@@ -36,9 +42,9 @@ export default function CourseGrid({ courses, purchasedCourseIds, isAuthenticate
       <div className="max-w-7xl mx-auto">
         <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
-            <h2 className="text-3xl md:text-4xl font-bold font-serif text-white mb-4">Catalogo de Cursos</h2>
+            <h2 className="text-3xl md:text-4xl font-bold font-serif text-white mb-4">Catálogo de Cursos</h2>
             <p className="text-neutral-400 text-lg max-w-2xl">
-              Descubre el estilo de Suarez y Carmen con cursos por niveles. Puedes explorar el catalogo antes de comprar.
+              Descubre el estilo de Suárez y Carmen con cursos por niveles. Puedes explorar el catálogo antes de comprar.
             </p>
           </div>
         </div>
@@ -76,7 +82,7 @@ export default function CourseGrid({ courses, purchasedCourseIds, isAuthenticate
 
                   <div className="relative z-30 bg-neutral-900 p-5 flex-1 flex flex-col gap-4">
                     <p className="text-sm text-neutral-400 line-clamp-3 min-h-[60px]">
-                      {course.description || "Contenido completo para mejorar tecnica, musicalidad y conexion."}
+                      {course.description || "Contenido completo para mejorar técnica, musicalidad y conexión."}
                     </p>
 
                     <p className="text-white font-semibold">{formatPrice(course.price_cents)}</p>
@@ -89,6 +95,14 @@ export default function CourseGrid({ courses, purchasedCourseIds, isAuthenticate
                         >
                           Ver curso
                         </Link>
+                      ) : purchaseStatusUnavailable ? (
+                        <button
+                          type="button"
+                          disabled
+                          className="w-full py-3 bg-neutral-800 text-neutral-400 font-semibold rounded-lg cursor-not-allowed"
+                        >
+                          Acceso no verificado
+                        </button>
                       ) : !hasPrice ? (
                         <button
                           type="button"
@@ -113,7 +127,7 @@ export default function CourseGrid({ courses, purchasedCourseIds, isAuthenticate
                           href={`/login?next=/courses/${course.slug}`}
                           className="w-full text-center py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors block"
                         >
-                          Inicia sesion para comprar
+                          Inicia sesión para comprar
                         </Link>
                       )}
 

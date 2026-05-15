@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useMemo, useState } from 'react'
+import { Suspense, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { isRedirectError } from 'next/dist/client/components/redirect-error'
@@ -23,13 +23,13 @@ type ActionResult = {
 function getQueryErrorMessage(code: string | null) {
   switch (code) {
     case 'verify_email_required':
-      return 'Debes verificar tu correo antes de iniciar sesion.'
+      return 'Debes verificar tu correo antes de iniciar sesión.'
     case 'oauth_failed':
-      return 'No pudimos completar el acceso externo. Intentalo de nuevo.'
+      return 'No pudimos completar el acceso externo. Inténtalo de nuevo.'
     case 'invalid_or_expired_link':
-      return 'El enlace de verificacion no es valido o ha caducado.'
+      return 'El enlace de verificación no es válido o ha caducado.'
     case 'auth_callback_failed':
-      return 'No pudimos validar tu sesion. Intenta acceder de nuevo.'
+      return 'No pudimos validar tu sesión. Intenta acceder de nuevo.'
     default:
       return null
   }
@@ -49,6 +49,7 @@ function LoginPageContent() {
   const [isPending, setIsPending] = useState(false)
   const [isResendingVerification, setIsResendingVerification] = useState(false)
   const [isRecoveryPending, setIsRecoveryPending] = useState(false)
+  const formRef = useRef<HTMLFormElement>(null)
 
   const visibleErrorMessage = errorMessage ?? callbackError
   const defaultEmail = pendingVerificationEmail ?? searchParams.get('email') ?? ''
@@ -56,10 +57,10 @@ function LoginPageContent() {
   const topInfoMessage = useMemo(() => {
     if (successMessage) return { type: 'success' as const, text: successMessage }
     if (isVerifiedRedirect) {
-      return { type: 'success' as const, text: 'Correo verificado correctamente. Ya puedes iniciar sesion.' }
+      return { type: 'success' as const, text: 'Correo verificado correctamente. Ya puedes iniciar sesión.' }
     }
     if (isPasswordUpdated) {
-      return { type: 'success' as const, text: 'Contrase\u00f1a actualizada. Ya puedes iniciar sesion.' }
+      return { type: 'success' as const, text: 'Contraseña actualizada. Ya puedes iniciar sesión.' }
     }
     return null
   }, [successMessage, isVerifiedRedirect, isPasswordUpdated])
@@ -93,7 +94,7 @@ function LoginPageContent() {
       if (isRedirectError(error)) {
         throw error
       }
-      setErrorMessage('Ocurrio un error inesperado al contactar con el servidor.')
+      setErrorMessage('Ocurrió un error inesperado al contactar con el servidor.')
     } finally {
       setIsPending(false)
     }
@@ -162,7 +163,7 @@ function LoginPageContent() {
             <p className="text-neutral-400">
               {isLoginMode
                 ? 'Accede a tus cursos y sigue perfeccionando tu baile.'
-                : 'Unete a Suarez y Carmen y domina tu estilo.'}
+                : 'Únete a Suárez y Carmen y domina tu estilo.'}
             </p>
           </div>
 
@@ -181,7 +182,7 @@ function LoginPageContent() {
           {pendingVerificationEmail && (
             <div className="mb-6 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-200 text-sm">
               <p className="text-center font-medium mb-3">
-                Cuenta pendiente de verificacion: {pendingVerificationEmail}
+                Cuenta pendiente de verificación: {pendingVerificationEmail}
               </p>
               <button
                 type="button"
@@ -189,12 +190,12 @@ function LoginPageContent() {
                 disabled={isResendingVerification}
                 className="w-full py-2.5 bg-blue-500/20 hover:bg-blue-500/30 text-blue-200 rounded-lg transition-colors disabled:opacity-50 disabled:pointer-events-none"
               >
-                {isResendingVerification ? 'Reenviando...' : 'Reenviar correo de verificacion'}
+                {isResendingVerification ? 'Reenviando...' : 'Reenviar correo de verificación'}
               </button>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
             <input type="hidden" name="next" value={nextPath} />
 
             {!isLoginMode && (
@@ -208,14 +209,14 @@ function LoginPageContent() {
                   type="text"
                   required
                   className="w-full bg-neutral-950 border border-neutral-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-600/50 transition-all font-medium placeholder-neutral-600"
-                  placeholder="Ej. Juan Perez"
+                  placeholder="Ej. Juan Pérez"
                 />
               </div>
             )}
 
             <div>
               <label className="block text-sm font-medium text-neutral-400 mb-1.5" htmlFor="email">
-                Correo electronico
+                Correo electrónico
               </label>
               <input
                 id="email"
@@ -283,18 +284,24 @@ function LoginPageContent() {
           {isLoginMode && (
             <button
               type="button"
-              onClick={() => handlePasswordRecovery(defaultEmail)}
+              onClick={() => {
+                const currentEmail = formRef.current
+                  ? new FormData(formRef.current).get('email')
+                  : defaultEmail
+
+                handlePasswordRecovery(typeof currentEmail === 'string' ? currentEmail : defaultEmail)
+              }}
               disabled={isRecoveryPending}
               className="mt-3 w-full text-xs text-neutral-500 hover:text-neutral-300 transition-colors disabled:opacity-60"
             >
               {isRecoveryPending
-                ? 'Enviando enlace de recuperacion...'
-                : 'Enviar enlace de recuperacion al correo introducido'}
+                ? 'Enviando enlace de recuperación...'
+                : 'Enviar enlace de recuperación al correo introducido'}
             </button>
           )}
 
           <div className="mt-8 text-center text-sm text-neutral-400">
-            {isLoginMode ? 'No tienes cuenta?' : 'Ya tienes una cuenta?'}{' '}
+            {isLoginMode ? '¿No tienes cuenta?' : '¿Ya tienes una cuenta?'}{' '}
             <button
               onClick={() => {
                 setIsLoginMode(!isLoginMode)
@@ -303,7 +310,7 @@ function LoginPageContent() {
               }}
               className="text-white hover:text-red-500 font-semibold transition-colors"
             >
-              {isLoginMode ? 'Registrate' : 'Inicia sesion'}
+              {isLoginMode ? 'Regístrate' : 'Inicia sesión'}
             </button>
           </div>
         </div>

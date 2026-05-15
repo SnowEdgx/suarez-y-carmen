@@ -30,6 +30,17 @@ const checks = [
     },
   },
   {
+    name: 'backend unknown api',
+    url: `${backendUrl}/api/__smoke_missing__`,
+    expectedStatuses: [404],
+    validateBody: async (response) => {
+      const payload = await response.json();
+      if (payload?.error !== 'Endpoint not found.') {
+        throw new Error('Backend unknown API response is not normalized.');
+      }
+    },
+  },
+  {
     name: 'cms admin',
     url: `${cmsUrl}/admin`,
     expectedStatuses: [200],
