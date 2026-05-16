@@ -272,6 +272,8 @@ export default async function CourseDetailPage({ params, searchParams }: CourseD
             {statusMessages.map((message) => (
               <div
                 key={`${message.type}-${message.text}`}
+                role={message.type === "error" ? "alert" : "status"}
+                aria-live={message.type === "error" ? "assertive" : "polite"}
                 className={`rounded-xl border px-5 py-4 text-sm ${
                   message.type === "error"
                     ? "border-red-500/30 bg-red-500/10 text-red-300"
@@ -359,7 +361,14 @@ export default async function CourseDetailPage({ params, searchParams }: CourseD
 
               {user && accessibleLessons.length > 0 && (
                 <div className="w-full sm:w-44">
-                  <div className="h-2 rounded-full bg-neutral-800 overflow-hidden">
+                  <div
+                    className="h-2 rounded-full bg-neutral-800 overflow-hidden"
+                    role="progressbar"
+                    aria-label="Progreso del curso"
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={progressPercent}
+                  >
                     <div className="h-full bg-red-600" style={{ width: `${progressPercent}%` }} />
                   </div>
                   <p className="mt-2 text-xs text-neutral-500 text-right">{progressPercent}% completado</p>

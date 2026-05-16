@@ -38,11 +38,11 @@ export default function CourseGrid({
   const purchasedSet = new Set(purchasedCourseIds);
 
   return (
-    <section id="courses" className="py-24 px-6 md:px-12 bg-black/40">
+    <section id="courses" className="py-24 px-6 md:px-12 bg-black/40" aria-labelledby="courses-heading">
       <div className="max-w-7xl mx-auto">
         <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
-            <h2 className="text-3xl md:text-4xl font-bold font-serif text-white mb-4">Catálogo de Cursos</h2>
+            <h2 id="courses-heading" className="text-3xl md:text-4xl font-bold font-serif text-white mb-4">Catálogo de Cursos</h2>
             <p className="text-neutral-400 text-lg max-w-2xl">
               Descubre el estilo de Suárez y Carmen con cursos por niveles. Puedes explorar el catálogo antes de comprar.
             </p>
@@ -71,7 +71,7 @@ export default function CourseGrid({
                     <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/90 via-black/25 to-transparent"></div>
 
                     <div className="absolute inset-0 z-20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-                      <PlayCircle className="w-14 h-14 text-white drop-shadow-2xl" />
+                      <PlayCircle className="w-14 h-14 text-white drop-shadow-2xl" aria-hidden="true" />
                     </div>
 
                     <div className="absolute bottom-0 left-0 z-20 w-full p-5">

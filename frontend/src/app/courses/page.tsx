@@ -156,6 +156,8 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
             {bannerMessages.map((message) => (
               <div
                 key={`${message.type}-${message.text}`}
+                role={message.type === 'error' ? 'alert' : 'status'}
+                aria-live={message.type === 'error' ? 'assertive' : 'polite'}
                 className={`rounded-xl border px-5 py-4 text-sm ${
                   message.type === 'error'
                     ? 'border-red-500/30 bg-red-500/10 text-red-300'
