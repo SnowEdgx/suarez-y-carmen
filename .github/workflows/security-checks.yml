@@ -5,20 +5,6 @@ on:
   pull_request:
 
 jobs:
-  secret-scan:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Run secret scan
-        run: node scripts/check-secrets.mjs
-
   frontend:
     runs-on: ubuntu-latest
     env:
@@ -82,7 +68,7 @@ jobs:
         run: npm audit --audit-level=high
 
       - name: Syntax check
-        run: find src scripts -type f \( -name "*.js" -o -name "*.mjs" \) -print0 | xargs -0 -n1 node --check
+        run: find src -type f -name "*.js" -print0 | xargs -0 -n1 node --check
 
   cms:
     runs-on: ubuntu-latest

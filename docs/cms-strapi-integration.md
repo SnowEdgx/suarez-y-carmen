@@ -94,14 +94,7 @@ Docker Compose provides local development defaults. Production must override the
 
 ## Local Validation
 
-With Supabase and the backend running:
-
-```bash
-cd backend
-npm run test:cms-sync
-```
-
-The test checks authorization, course upsert/update, lesson sync, event sync and soft-unpublish behavior without printing secrets.
+With Supabase, backend and Strapi running, create or update a published course from the Strapi admin panel and confirm that it appears in Supabase and on the public course catalogue.
 
 ## Security Boundaries
 

@@ -143,35 +143,7 @@ cd backend
 Get-ChildItem src,scripts -Recurse -Include *.js,*.mjs | ForEach-Object { node --check $_.FullName }
 ```
 
-```bash
-node scripts/check-secrets.mjs
-```
-
-Smoke test local con los servicios levantados:
-
-```bash
-node scripts/check-local-smoke.mjs
-```
-
-CMS sync E2E local con backend y Supabase levantados:
-
-```bash
-cd backend
-npm run test:cms-sync
-```
-
-El repositorio tambien ejecuta en CI escaneo de secretos, auditoria de dependencias, lint, type-check, build de frontend, build de plantillas de email, comprobacion sintactica de backend y build de CMS.
-
-Stripe E2E local (requiere variables locales de Supabase y Stripe). Si no defines `E2E_USER_EMAIL` y `E2E_USER_PASSWORD`, el script crea o actualiza un alumno de prueba solo contra Supabase local:
-
-```bash
-cd backend
-$env:E2E_USER_EMAIL="student.e2e@suarezycarmen.test"
-$env:E2E_USER_PASSWORD="<password-local>"
-npm run test:stripe-e2e
-```
-
-Esta prueba crea una sesion real de Stripe Checkout en modo test, procesa un webhook firmado localmente y valida acceso a video protegido sin imprimir claves ni URLs firmadas.
+El repositorio tambien ejecuta en CI auditoria de dependencias, lint, type-check, build de frontend, build de plantillas de email, comprobacion sintactica de backend y build de CMS.
 
 ## Notas de seguridad y produccion
 
