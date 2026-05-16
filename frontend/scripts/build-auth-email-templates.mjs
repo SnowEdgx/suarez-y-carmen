@@ -8,7 +8,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const BRAND = {
-  appName: 'Suarez y Carmen Academy',
+  appName: 'Suárez y Carmen Academy',
   supportEmail: 'academy@suarezycarmen.com',
   primary: '#dc2626',
   bg: '#09090b',
@@ -202,7 +202,7 @@ const templates = [
       preheader: 'Confirma tu cuenta para empezar en la academia.',
       title: 'Confirma tu cuenta',
       intro:
-        'Gracias por unirte a Suarez y Carmen Academy.\n\nPara activar tu cuenta y acceder a tus cursos, confirma tu correo con el boton de abajo.',
+        'Gracias por unirte a Suárez y Carmen Academy.\n\nPara activar tu cuenta y acceder a tus cursos, confirma tu correo con el botón de abajo.',
       ctaText: 'Confirmar mi cuenta',
       ctaHref: '{{ .ConfirmationURL }}',
       outro:
@@ -213,13 +213,13 @@ const templates = [
     output: 'recover-password.html',
     component: React.createElement(Shell, {
       preheader: 'Recupera el acceso a tu cuenta de forma segura.',
-      title: 'Recupera tu contrasena',
+      title: 'Recupera tu contraseña',
       intro:
-        'Hemos recibido una solicitud para restablecer tu contrasena.\n\nHaz clic en el boton para crear una nueva contrasena de forma segura.',
-      ctaText: 'Restablecer contrasena',
+        'Hemos recibido una solicitud para restablecer tu contraseña.\n\nHaz clic en el botón para crear una nueva contraseña de forma segura.',
+      ctaText: 'Restablecer contraseña',
       ctaHref: '{{ .ConfirmationURL }}',
       outro:
-        'Si no solicitaste este cambio, no es necesario hacer nada. Tu contrasena actual seguira siendo valida.',
+        'Si no solicitaste este cambio, no es necesario hacer nada. Tu contraseña actual seguirá siendo válida.',
     }),
   },
 ];

@@ -140,10 +140,10 @@ npx tsc --noEmit --incremental false
 
 ```bash
 cd backend
-Get-ChildItem src,scripts -Recurse -Include *.js,*.mjs | ForEach-Object { node --check $_.FullName }
+npm test
 ```
 
-El repositorio tambien ejecuta en CI auditoria de dependencias, lint, type-check, build de frontend, build de plantillas de email, comprobacion sintactica de backend y build de CMS.
+El repositorio tambien ejecuta en CI auditoria de dependencias, lint, type-check, build de frontend, build de plantillas de email, comprobacion sintactica de backend, build de CMS y comprobacion de patrones de secretos en archivos versionados.
 
 ## Notas de seguridad y produccion
 
