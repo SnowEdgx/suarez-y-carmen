@@ -28,18 +28,18 @@ export default function About() {
         <div>
           <h2 className="text-3xl md:text-5xl font-bold font-serif text-white mb-6">Suárez y Carmen</h2>
           <p className="text-neutral-400 text-lg mb-6 leading-relaxed">
-            Somos una pareja de bailarines e instructores apasionados por la bachata. Con anos de experiencia en las pistas de baile y en
+            Somos una pareja de bailarines e instructores apasionados por la bachata. Con años de experiencia en las pistas de baile y en
             las aulas, hemos desarrollado una metodología directa y efectiva para que aprendas a bailar con soltura, técnica y conexión
             musical.
           </p>
           <p className="text-neutral-400 text-lg mb-8 leading-relaxed">
-            Nuestro objetivo es acercar el baile a tu salon. Sin importar si nunca has dado un paso basico o si buscas perfeccionar tu
+            Nuestro objetivo es acercar el baile a tu salón. Sin importar si nunca has dado un paso básico o si buscas perfeccionar tu
             técnica para redes sociales; aquí encontrarás la formación paso a paso que necesitas.
           </p>
           <div className="flex items-center gap-4">
             <div className="flex flex-col">
               <span className="text-3xl font-bold text-white">+5</span>
-              <span className="text-sm text-neutral-500 uppercase tracking-wider">Anos Experiencia</span>
+              <span className="text-sm text-neutral-500 uppercase tracking-wider">Años Experiencia</span>
             </div>
             <div className="w-px h-12 bg-neutral-800 mx-4"></div>
             <div className="flex flex-col">
