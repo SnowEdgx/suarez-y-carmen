@@ -117,8 +117,8 @@ export async function signup(formData: FormData) {
   const email = normalizeEmail(formData.get('email'))
   const name = typeof formData.get('name') === 'string' ? (formData.get('name') as string).trim() : ''
 
-  if (password.length < 6) {
-    return { error: 'La contrase\u00f1a debe tener al menos 6 caracteres.' }
+  if (password.length < 8) {
+    return { error: 'La contrase\u00f1a debe tener al menos 8 caracteres.' }
   }
   if (!isValidEmail(email)) {
     return { error: 'Introduce un correo válido.' }

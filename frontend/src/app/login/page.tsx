@@ -260,9 +260,15 @@ function LoginPageContent() {
                 name="password"
                 type="password"
                 required
+                minLength={isLoginMode ? undefined : 8}
                 className="w-full bg-neutral-950 border border-neutral-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-600/50 transition-all font-medium placeholder-neutral-600"
                 placeholder="********"
               />
+              {!isLoginMode && (
+                <p className="mt-1.5 text-xs text-neutral-500">
+                  Mínimo 8 caracteres.
+                </p>
+              )}
             </div>
 
             {isLoginMode && (
