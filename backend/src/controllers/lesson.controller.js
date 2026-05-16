@@ -140,6 +140,11 @@ function applyVideoSecurityHeaders(res) {
   res.set('Pragma', 'no-cache');
   res.set('Expires', '0');
   res.set('X-Content-Type-Options', 'nosniff');
+  res.set('Cross-Origin-Resource-Policy', 'cross-origin');
+  res.set(
+    'Access-Control-Expose-Headers',
+    'Accept-Ranges, Content-Length, Content-Range, Content-Type'
+  );
 }
 
 function copyHeader(sourceHeaders, targetResponse, sourceName, targetName = sourceName) {
