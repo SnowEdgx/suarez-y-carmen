@@ -8,6 +8,7 @@ Plataforma full-stack de e-learning para Suarez y Carmen. El sistema cubre:
 - autenticacion de usuarios
 - backend Express para logica de negocio
 - pagos con Stripe via webhook server-to-server
+- SEO tecnico basico con sitemap, robots y metadata Open Graph
 
 ## Stack
 
@@ -154,6 +155,7 @@ El repositorio tambien ejecuta en CI auditoria de dependencias, lint, type-check
 - Configurar correctamente `FRONTEND_URL`, `CORS_ORIGINS`, `NEXT_PUBLIC_SITE_URL`, `BACKEND_URL`, `BACKEND_INTERNAL_URL` y `PUBLIC_URL` segun el dominio real.
 - En produccion, no activar `ENABLE_SUPABASE_TEST_ENDPOINT` salvo diagnostico temporal controlado.
 - El backend Express mantiene la logica sensible: checkout, webhooks, sincronizacion CMS y URLs firmadas de video.
+- El frontend aplica cabeceras de seguridad basicas: `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy` y `Permissions-Policy`.
 - Los videos privados se sirven mediante proxy temporal del backend; no se debe exponer directamente el bucket privado ni sus URLs firmadas al cliente final.
 - Los accesos de video se auditan con hashes de IP y user-agent; no se guardan esos valores en claro.
 - El acceso a video comprado limita dispositivos activos por usuario mediante identificadores en cookie HttpOnly y hashes almacenados en base de datos.
