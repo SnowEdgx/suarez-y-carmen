@@ -128,6 +128,65 @@ const EVENT_SEEDS = [
   },
 ];
 
+const HOME_CONTENT_SEED = {
+  hero_eyebrow: 'Academia online de bachata',
+  hero_title: 'Master the head movements.',
+  hero_subtitle:
+    'Domina la sensualidad, el estilo y la conexión con Suárez y Carmen. Aprende desde casa paso a paso con cursos individuales y acceso inmediato.',
+  hero_video_url: DEMO_VIDEO_SOURCE_URL,
+  primary_cta_label: 'Ver catálogo',
+  primary_cta_href: '/courses',
+  secondary_cta_label: 'Ver metodología',
+  secondary_cta_href: '#methodology',
+  is_published: true,
+};
+
+const FAQ_SEEDS = [
+  {
+    fallbackId: '41111111-1111-4111-8111-111111111111',
+    question: 'Cómo se compra un curso',
+    answer:
+      'Cada curso se compra de forma individual desde el catálogo. Tras el pago validado, el acceso queda activado en tu cuenta.',
+    position: 10,
+  },
+  {
+    fallbackId: '41111111-1111-4111-8111-111111111112',
+    question: 'Cómo accedo al contenido comprado',
+    answer:
+      'Inicia sesión con tu cuenta verificada y entra en el detalle del curso. Si el pago está confirmado, las lecciones completas aparecen desbloqueadas.',
+    position: 20,
+  },
+  {
+    fallbackId: '41111111-1111-4111-8111-111111111113',
+    question: 'Qué acceso incluye la compra',
+    answer:
+      'La compra desbloquea las lecciones completas del curso adquirido y permite guardar tu progreso dentro de la cuenta.',
+    position: 30,
+  },
+  {
+    fallbackId: '41111111-1111-4111-8111-111111111114',
+    question: 'Los eventos presenciales se pagan aquí',
+    answer: 'No. La plataforma redirige a la ticketera oficial del evento cuando corresponda.',
+    position: 40,
+  },
+];
+
+const IN_PERSON_CLASS_SEEDS = [
+  {
+    fallbackId: '51111111-1111-4111-8111-111111111111',
+    title: 'Clases regulares en Málaga',
+    city: 'Málaga',
+    venue: 'Sala por confirmar',
+    schedule: 'Próximamente',
+    description:
+      'Información editable para comunicar clases presenciales, horarios y contacto sin modificar código.',
+    image_url: ASSETS.IMG_2681,
+    contact_url: 'https://www.instagram.com/suarezycarmenoficial/',
+    position: 10,
+    is_active: true,
+  },
+];
+
 function loadEnvFile(filePath) {
   if (!existsSync(filePath)) return;
 
@@ -264,6 +323,71 @@ async function upsertEvent(eventSeed) {
   );
 }
 
+async function upsertHomeContent() {
+  assertNoError(
+    await supabase
+      .from('home_content')
+      .upsert(
+        {
+          id: 'home',
+          ...HOME_CONTENT_SEED,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'id' }
+      ),
+    'Could not upsert home content'
+  );
+}
+
+async function upsertFaq(faqSeed) {
+  const existingId = await findExistingId('faqs', 'question', faqSeed.question);
+  const id = existingId || faqSeed.fallbackId;
+
+  assertNoError(
+    await supabase
+      .from('faqs')
+      .upsert(
+        {
+          id,
+          question: faqSeed.question,
+          answer: faqSeed.answer,
+          position: faqSeed.position,
+          is_published: true,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'id' }
+      ),
+    `Could not upsert FAQ ${faqSeed.question}`
+  );
+}
+
+async function upsertInPersonClass(classSeed) {
+  const existingId = await findExistingId('in_person_classes', 'title', classSeed.title);
+  const id = existingId || classSeed.fallbackId;
+
+  assertNoError(
+    await supabase
+      .from('in_person_classes')
+      .upsert(
+        {
+          id,
+          title: classSeed.title,
+          city: classSeed.city,
+          venue: classSeed.venue,
+          schedule: classSeed.schedule,
+          description: classSeed.description,
+          image_url: classSeed.image_url,
+          contact_url: classSeed.contact_url,
+          position: classSeed.position,
+          is_active: classSeed.is_active,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'id' }
+      ),
+    `Could not upsert in-person class ${classSeed.title}`
+  );
+}
+
 async function ensureVideoBucket() {
   const bucket = await supabase.storage.getBucket(VIDEO_BUCKET);
   if (!bucket.error) return;
@@ -328,7 +452,7 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
   },
 });
 
-console.log('[seed] Seeding local courses, lessons, events and demo private videos...');
+console.log('[seed] Seeding local courses, lessons, public content, events and demo private videos...');
 
 for (const courseSeed of COURSE_SEEDS) {
   const courseId = await upsertCourse(courseSeed);
@@ -339,6 +463,16 @@ for (const courseSeed of COURSE_SEEDS) {
 
 for (const eventSeed of EVENT_SEEDS) {
   await upsertEvent(eventSeed);
+}
+
+await upsertHomeContent();
+
+for (const faqSeed of FAQ_SEEDS) {
+  await upsertFaq(faqSeed);
+}
+
+for (const classSeed of IN_PERSON_CLASS_SEEDS) {
+  await upsertInPersonClass(classSeed);
 }
 
 await uploadDemoVideos();

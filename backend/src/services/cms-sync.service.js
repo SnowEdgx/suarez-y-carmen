@@ -1,7 +1,7 @@
 const { supabase } = require('../config/supabase');
 
 const DEFAULT_VIDEO_BUCKET = (process.env.SUPABASE_VIDEO_BUCKET || 'course-videos').trim();
-const VALID_MODELS = new Set(['course', 'lesson', 'event']);
+const VALID_MODELS = new Set(['course', 'lesson', 'event', 'home_content', 'faq', 'in_person_class']);
 const VALID_ACTIONS = new Set(['upsert', 'delete']);
 const VALID_LEVELS = new Set(['B\u00e1sico', 'Intermedio', 'Avanzado', 'Masterclass']);
 const VALID_EVENT_TYPES = new Set(['Clase', 'Taller', 'Social', 'Congreso']);
@@ -113,6 +113,21 @@ function normalizeUrl(value, fieldName) {
   return url;
 }
 
+function normalizeHref(value, fieldName) {
+  const href = optionalString(value, 2000);
+  if (!href) return null;
+
+  if (/^#[A-Za-z0-9_-]+$/.test(href)) {
+    return href;
+  }
+
+  if (href.startsWith('/') && !href.startsWith('//') && !/[\r\n\t]/.test(href)) {
+    return href;
+  }
+
+  return normalizeUrl(href, fieldName);
+}
+
 function normalizeVideoStoragePath(value) {
   const rawPath = optionalString(value, 1000);
   if (!rawPath) return null;
@@ -134,6 +149,20 @@ function assertSupabase(result, context) {
     throw new Error(`${context}: ${result.error.message}`);
   }
   return result.data;
+}
+
+async function findByCmsDocumentId(table, entry) {
+  const cmsDocumentId = optionalString(entry.cmsDocumentId, 255);
+  if (!cmsDocumentId) return null;
+
+  const result = await supabase
+    .from(table)
+    .select('id')
+    .eq('cms_document_id', cmsDocumentId)
+    .maybeSingle();
+
+  if (result.error) throw result.error;
+  return result.data || null;
 }
 
 async function findCourse(entry) {
@@ -233,6 +262,42 @@ async function findEvent(entry) {
     .maybeSingle();
   if (byTitleAndDate.error) throw byTitleAndDate.error;
   return byTitleAndDate.data || null;
+}
+
+async function findFaq(entry) {
+  const byDocumentId = await findByCmsDocumentId('faqs', entry);
+  if (byDocumentId) return byDocumentId;
+
+  const question = optionalString(entry.question, 255);
+  if (!question) return null;
+
+  const byQuestion = await supabase
+    .from('faqs')
+    .select('id')
+    .eq('question', question)
+    .maybeSingle();
+  if (byQuestion.error) throw byQuestion.error;
+  return byQuestion.data || null;
+}
+
+async function findInPersonClass(entry) {
+  const byDocumentId = await findByCmsDocumentId('in_person_classes', entry);
+  if (byDocumentId) return byDocumentId;
+
+  const title = optionalString(entry.title, 255);
+  if (!title) return null;
+
+  let query = supabase
+    .from('in_person_classes')
+    .select('id')
+    .eq('title', title);
+
+  const city = optionalString(entry.city, 255);
+  if (city) query = query.eq('city', city);
+
+  const byTitle = await query.limit(1).maybeSingle();
+  if (byTitle.error) throw byTitle.error;
+  return byTitle.data || null;
 }
 
 async function upsertCourse(entry) {
@@ -373,6 +438,129 @@ async function upsertEvent(entry) {
   return assertSupabase(result, 'Could not sync event');
 }
 
+async function upsertHomeContent(entry) {
+  const payload = {
+    id: 'home',
+    hero_eyebrow: optionalString(entry.heroEyebrow, 160),
+    hero_title: optionalString(entry.heroTitle, 255),
+    hero_subtitle: optionalString(entry.heroSubtitle, 2000),
+    hero_video_url: normalizeUrl(entry.heroVideoUrl, 'heroVideoUrl'),
+    primary_cta_label: optionalString(entry.primaryCtaLabel, 120),
+    primary_cta_href: normalizeHref(entry.primaryCtaHref, 'primaryCtaHref'),
+    secondary_cta_label: optionalString(entry.secondaryCtaLabel, 120),
+    secondary_cta_href: normalizeHref(entry.secondaryCtaHref, 'secondaryCtaHref'),
+    is_published: resolvePublishedState(entry),
+    cms_document_id: optionalString(entry.cmsDocumentId, 255),
+    cms_entry_id: optionalString(entry.cmsEntryId, 255),
+    updated_at: new Date().toISOString(),
+  };
+
+  const result = await supabase
+    .from('home_content')
+    .upsert(payload, { onConflict: 'id' })
+    .select('id')
+    .single();
+
+  return assertSupabase(result, 'Could not sync home content');
+}
+
+async function unpublishHomeContent() {
+  const existing = await supabase
+    .from('home_content')
+    .select('id')
+    .eq('id', 'home')
+    .maybeSingle();
+
+  if (existing.error) throw existing.error;
+  if (!existing.data) return { id: null, skipped: true };
+
+  const result = await supabase
+    .from('home_content')
+    .update({ is_published: false, updated_at: new Date().toISOString() })
+    .eq('id', 'home')
+    .select('id')
+    .single();
+
+  return assertSupabase(result, 'Could not unpublish home content');
+}
+
+async function upsertFaq(entry) {
+  const question = requiredString(entry.question, 'question', 255);
+  const answer = requiredString(entry.answer, 'answer', 10000);
+  const existing = await findFaq({ ...entry, question });
+  const payload = {
+    question,
+    answer,
+    position: optionalInteger(entry.position, 'position', { min: 0, max: 1000 }) ?? 0,
+    is_published: resolvePublishedState(entry),
+    cms_document_id: optionalString(entry.cmsDocumentId, 255),
+    cms_entry_id: optionalString(entry.cmsEntryId, 255),
+    updated_at: new Date().toISOString(),
+  };
+
+  const result = existing?.id
+    ? await supabase.from('faqs').update(payload).eq('id', existing.id).select('id').single()
+    : await supabase.from('faqs').insert(payload).select('id').single();
+
+  return assertSupabase(result, 'Could not sync FAQ');
+}
+
+async function unpublishFaq(entry) {
+  const existing = await findFaq(entry);
+  if (!existing?.id) return { id: null, skipped: true };
+
+  const result = await supabase
+    .from('faqs')
+    .update({ is_published: false, updated_at: new Date().toISOString() })
+    .eq('id', existing.id)
+    .select('id')
+    .single();
+
+  return assertSupabase(result, 'Could not unpublish FAQ');
+}
+
+async function upsertInPersonClass(entry) {
+  const title = requiredString(entry.title, 'title', 255);
+  const existing = await findInPersonClass({ ...entry, title });
+  const isPublished = resolvePublishedState(entry, true);
+  const explicitActive = optionalBoolean(entry.isActive);
+  const payload = {
+    title,
+    city: optionalString(entry.city, 255),
+    venue: optionalString(entry.venue, 255),
+    schedule: optionalString(entry.schedule, 255),
+    description: optionalString(entry.description, 5000),
+    image_url: normalizeUrl(entry.imageUrl, 'imageUrl'),
+    map_url: normalizeHref(entry.mapUrl, 'mapUrl'),
+    contact_url: normalizeHref(entry.contactUrl, 'contactUrl'),
+    position: optionalInteger(entry.position, 'position', { min: 0, max: 1000 }) ?? 0,
+    is_active: isPublished && (explicitActive ?? true),
+    cms_document_id: optionalString(entry.cmsDocumentId, 255),
+    cms_entry_id: optionalString(entry.cmsEntryId, 255),
+    updated_at: new Date().toISOString(),
+  };
+
+  const result = existing?.id
+    ? await supabase.from('in_person_classes').update(payload).eq('id', existing.id).select('id').single()
+    : await supabase.from('in_person_classes').insert(payload).select('id').single();
+
+  return assertSupabase(result, 'Could not sync in-person class');
+}
+
+async function unpublishInPersonClass(entry) {
+  const existing = await findInPersonClass(entry);
+  if (!existing?.id) return { id: null, skipped: true };
+
+  const result = await supabase
+    .from('in_person_classes')
+    .update({ is_active: false, updated_at: new Date().toISOString() })
+    .eq('id', existing.id)
+    .select('id')
+    .single();
+
+  return assertSupabase(result, 'Could not unpublish in-person class');
+}
+
 async function unpublishEvent(entry) {
   const existing = await findEvent(entry);
   if (!existing?.id) return { id: null, skipped: true };
@@ -394,6 +582,12 @@ async function dispatchCmsSync({ model, action, entry }) {
   if (model === 'lesson' && action === 'delete') return unpublishLesson(entry);
   if (model === 'event' && action === 'upsert') return upsertEvent(entry);
   if (model === 'event' && action === 'delete') return unpublishEvent(entry);
+  if (model === 'home_content' && action === 'upsert') return upsertHomeContent(entry);
+  if (model === 'home_content' && action === 'delete') return unpublishHomeContent(entry);
+  if (model === 'faq' && action === 'upsert') return upsertFaq(entry);
+  if (model === 'faq' && action === 'delete') return unpublishFaq(entry);
+  if (model === 'in_person_class' && action === 'upsert') return upsertInPersonClass(entry);
+  if (model === 'in_person_class' && action === 'delete') return unpublishInPersonClass(entry);
 
   throw createHttpError(422, 'Unsupported CMS sync operation.');
 }

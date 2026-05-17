@@ -77,6 +77,54 @@ function buildEventEntry(event) {
   };
 }
 
+function buildHomeContentEntry(homeContent) {
+  return {
+    cmsDocumentId: homeContent.documentId,
+    cmsEntryId: homeContent.id ? String(homeContent.id) : null,
+    heroEyebrow: homeContent.heroEyebrow,
+    heroTitle: homeContent.heroTitle,
+    heroSubtitle: homeContent.heroSubtitle,
+    heroVideoUrl: homeContent.heroVideoUrl,
+    primaryCtaLabel: homeContent.primaryCtaLabel,
+    primaryCtaHref: homeContent.primaryCtaHref,
+    secondaryCtaLabel: homeContent.secondaryCtaLabel,
+    secondaryCtaHref: homeContent.secondaryCtaHref,
+    isPublished: Boolean(homeContent.publishedAt),
+    publishedAt: homeContent.publishedAt,
+  };
+}
+
+function buildFaqEntry(faq) {
+  return {
+    cmsDocumentId: faq.documentId,
+    cmsEntryId: faq.id ? String(faq.id) : null,
+    question: faq.question,
+    answer: faq.answer,
+    position: faq.position,
+    isPublished: Boolean(faq.publishedAt),
+    publishedAt: faq.publishedAt,
+  };
+}
+
+function buildInPersonClassEntry(classItem) {
+  return {
+    cmsDocumentId: classItem.documentId,
+    cmsEntryId: classItem.id ? String(classItem.id) : null,
+    title: classItem.title,
+    city: classItem.city,
+    venue: classItem.venue,
+    schedule: classItem.schedule,
+    description: classItem.description,
+    mapUrl: classItem.mapUrl,
+    contactUrl: classItem.contactUrl,
+    imageUrl: resolveMediaUrl(classItem.image),
+    position: classItem.position,
+    isActive: classItem.isActive,
+    isPublished: Boolean(classItem.publishedAt),
+    publishedAt: classItem.publishedAt,
+  };
+}
+
 const SYNC_MODELS = {
   'api::course.course': {
     model: 'course',
@@ -92,6 +140,21 @@ const SYNC_MODELS = {
     model: 'event',
     populate: { image: true },
     buildEntry: buildEventEntry,
+  },
+  'api::home-content.home-content': {
+    model: 'home_content',
+    populate: {},
+    buildEntry: buildHomeContentEntry,
+  },
+  'api::faq.faq': {
+    model: 'faq',
+    populate: {},
+    buildEntry: buildFaqEntry,
+  },
+  'api::in-person-class.in-person-class': {
+    model: 'in_person_class',
+    populate: { image: true },
+    buildEntry: buildInPersonClassEntry,
   },
 };
 
@@ -203,6 +266,9 @@ async function syncDocumentAction(context, result) {
 module.exports = {
   buildCourseEntry,
   buildEventEntry,
+  buildFaqEntry,
+  buildHomeContentEntry,
+  buildInPersonClassEntry,
   buildLessonEntry,
   findDocument,
   getSyncTimeoutMs,

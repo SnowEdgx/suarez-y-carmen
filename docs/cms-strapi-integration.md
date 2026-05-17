@@ -28,7 +28,7 @@ Strapi currently defines these editorial content types:
 - `FAQ`: editable public questions and answers.
 - `In-person Class`: editable regular class information.
 
-Only `Course`, `Lesson` and `Event` are synced into Supabase in this block because they are already part of the operational product model.
+All of these published content types are synced into Supabase through the Express backend. Supabase remains the operational source consumed by the public website and by the learner area.
 
 ## Sync Model
 
@@ -39,14 +39,20 @@ The endpoint is protected with a shared `CMS_SYNC_TOKEN` and accepts only:
 - `course`
 - `lesson`
 - `event`
+- `home_content`
+- `faq`
+- `in_person_class`
 
 Delete operations are handled as soft publication changes:
 
 - Deleting or unpublishing a course sets `courses.is_published = false`.
 - Deleting or unpublishing a lesson sets `lessons.is_published = false`.
 - Deleting or unpublishing an event sets `events.is_active = false`.
+- Deleting or unpublishing home content sets `home_content.is_published = false`.
+- Deleting or unpublishing a FAQ sets `faqs.is_published = false`.
+- Deleting or unpublishing an in-person class sets `in_person_classes.is_active = false`.
 
-This avoids destroying user purchases or progress records.
+This avoids destroying user purchases, progress records or public editorial history.
 
 Published updates are also synced. If Strapi saves a draft without a published document, the middleware skips the sync because the public website must only consume published content.
 
@@ -90,11 +96,14 @@ Docker Compose provides local development defaults. Production must override the
 4. Create the first Strapi administrator.
 5. Create and publish a course.
 6. Create lessons linked to that course and provide `videoStoragePath`.
-7. Confirm the synced content appears in Supabase and on the web.
+7. Optionally create public-page content: home content, FAQ entries and in-person classes.
+8. Confirm the synced content appears in Supabase and on the web.
 
 ## Local Validation
 
 With Supabase, backend and Strapi running, create or update a published course from the Strapi admin panel and confirm that it appears in Supabase and on the public course catalogue.
+
+For public editorial content, update the home content, FAQ entries or in-person classes and confirm that the frontend keeps rendering with the synced Supabase values. If Supabase tables are unavailable in a local reset, the frontend must degrade to safe fallback content instead of returning a blank page.
 
 ## Security Boundaries
 
