@@ -72,7 +72,7 @@ app.get('/api/health', (_req, res) => {
 });
 
 // Supabase connection test (explicitly enabled for local diagnostics only).
-if (process.env.ENABLE_SUPABASE_TEST_ENDPOINT === 'true') {
+if (!isProduction && process.env.ENABLE_SUPABASE_TEST_ENDPOINT === 'true') {
   app.get('/api/supabase-test', async (_req, res) => {
     try {
       const { data, error } = await supabase.from('courses').select('id').limit(1);

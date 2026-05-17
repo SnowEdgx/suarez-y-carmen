@@ -36,7 +36,7 @@ router.get(
 );
 
 // Stripe webhook must receive the raw body for signature verification.
-router.post('/webhook', express.raw({ type: 'application/json' }), stripeController.webhook);
+router.post('/webhook', express.raw({ type: 'application/json', limit: '100kb' }), stripeController.webhook);
 
 module.exports = router;
 

@@ -235,7 +235,7 @@ Delete actions are implemented as soft publication changes. User purchases and p
 |---|---|---|---|
 | `GET` | `/api/supabase-test` | No | Local Supabase diagnostic endpoint. |
 
-This endpoint exists only when `ENABLE_SUPABASE_TEST_ENDPOINT=true`. It must stay disabled by default and must not be enabled in production except for temporary controlled diagnostics.
+This endpoint exists only outside production when `ENABLE_SUPABASE_TEST_ENDPOINT=true`. In production it is disabled by code even if the environment variable is set.
 
 ## Security Notes
 
