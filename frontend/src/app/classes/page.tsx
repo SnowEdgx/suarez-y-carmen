@@ -19,7 +19,7 @@ export default async function ClassesPage() {
     supabase.auth.getUser(),
     supabase
       .from("in_person_classes")
-      .select("id, title, city, venue, schedule, description, image_url, map_url, contact_url")
+      .select("id, title, city, venue, schedule, image_url, map_url, contact_url")
       .eq("is_active", true)
       .order("position", { ascending: true })
       .order("created_at", { ascending: true }),

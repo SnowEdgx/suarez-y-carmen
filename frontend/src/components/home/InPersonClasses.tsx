@@ -8,7 +8,6 @@ export type InPersonClassItem = {
   city: string | null;
   venue: string | null;
   schedule: string | null;
-  description: string | null;
   image_url: string | null;
   map_url: string | null;
   contact_url: string | null;
@@ -110,12 +109,6 @@ export default function InPersonClasses({ classes }: InPersonClassesProps) {
                       </p>
                     )}
                   </div>
-
-                  {classItem.description && (
-                    <p className="mt-5 text-sm leading-relaxed text-neutral-400">
-                      {classItem.description}
-                    </p>
-                  )}
 
                   <div className="mt-auto flex flex-wrap gap-4 pt-6">
                     {classItem.contact_url && (
