@@ -12,9 +12,20 @@ const DEMO_VIDEO_SOURCE_URL =
   process.env.SEED_VIDEO_SOURCE_URL ||
   'https://jlpqlqvrhwdjyspwolro.supabase.co/storage/v1/object/public/assets/hero.mp4';
 
+const PUBLIC_ASSET_BASE_URL = (
+  process.env.SUPABASE_PUBLIC_ASSET_BASE_URL ||
+  'https://jlpqlqvrhwdjyspwolro.supabase.co/storage/v1/object/public/assets'
+).replace(/\/+$/, '');
+
+function publicAssetUrl(objectPath) {
+  return `${PUBLIC_ASSET_BASE_URL}/${objectPath.replace(/^\/+/, '')}`;
+}
+
 const ASSETS = {
   IMG_2681: 'https://jlpqlqvrhwdjyspwolro.supabase.co/storage/v1/object/public/assets/IMG_2681.jpeg',
   IMG_4784: 'https://jlpqlqvrhwdjyspwolro.supabase.co/storage/v1/object/public/assets/IMG_4784.jpeg',
+  CLASS_ESTACION_CARTAMA_DANZARTI: publicAssetUrl('classes/estacion-cartama-danzarti.png'),
+  CLASS_COIN_FUSION_STUDIO: publicAssetUrl('classes/coin-fusion-studio.png'),
 };
 
 const COURSE_SEEDS = [
@@ -175,10 +186,10 @@ const IN_PERSON_CLASS_SEEDS = [
     title: 'Clases de bachata en Estaci\u00f3n de C\u00e1rtama',
     city: 'Estaci\u00f3n de C\u00e1rtama',
     venue: 'Academia Danzarti',
-    schedule: 'Aprende desde 0',
+    schedule: null,
     description:
       'Clases presenciales de bachata en Academia Danzarti. Contacta para confirmar grupo y disponibilidad.',
-    image_url: '/images/classes/estacion-cartama-danzarti.png',
+    image_url: ASSETS.CLASS_ESTACION_CARTAMA_DANZARTI,
     contact_url: 'https://www.instagram.com/suarezycarmenoficial/',
     position: 10,
     is_active: true,
@@ -188,10 +199,10 @@ const IN_PERSON_CLASS_SEEDS = [
     title: 'Clases de bachata en Co\u00edn',
     city: 'Co\u00edn',
     venue: 'Fusion Studio',
-    schedule: 'Lunes, 20:00-22:00',
+    schedule: null,
     description:
       'Clases presenciales de bachata en Fusion Studio. Horarios publicados en el cartel oficial.',
-    image_url: '/images/classes/coin-fusion-studio.png',
+    image_url: ASSETS.CLASS_COIN_FUSION_STUDIO,
     contact_url: 'https://www.instagram.com/suarezycarmenoficial/',
     position: 20,
     is_active: true,
@@ -401,7 +412,7 @@ async function upsertInPersonClass(classSeed) {
 
 async function deactivateLegacyInPersonClassSeeds() {
   const seedTitles = new Set(IN_PERSON_CLASS_SEEDS.map((classSeed) => classSeed.title));
-  const legacyTitles = ['Clases regulares en M\u00e1laga'];
+  const legacyTitles = ['Clases regulares en M\u00e1laga', 'Clase de comprobaci\u00f3n editorial'];
 
   for (const title of legacyTitles) {
     if (seedTitles.has(title)) continue;

@@ -18,6 +18,18 @@ type InPersonClassesProps = {
   classes: InPersonClassItem[];
 };
 
+function shouldBypassImageOptimization(src: string) {
+  try {
+    const url = new URL(src);
+    return (
+      (url.hostname === "localhost" || url.hostname === "127.0.0.1") &&
+      url.port === "54321"
+    );
+  } catch {
+    return false;
+  }
+}
+
 function ActionLink({
   href,
   children,
@@ -73,7 +85,7 @@ export default function InPersonClasses({ classes }: InPersonClassesProps) {
             {classes.map((classItem) => (
               <article
                 key={classItem.id}
-                className="overflow-hidden rounded-3xl border border-neutral-800 bg-neutral-900/70 shadow-2xl shadow-black/20"
+                className="flex h-full flex-col overflow-hidden rounded-3xl border border-neutral-800 bg-neutral-900/70 shadow-2xl shadow-black/20"
               >
                 {classItem.image_url && (
                   <div className="relative h-[520px] sm:h-[680px] bg-neutral-950">
@@ -84,24 +96,18 @@ export default function InPersonClasses({ classes }: InPersonClassesProps) {
                       sizes="(max-width: 1024px) 100vw, 50vw"
                       className="object-contain"
                       priority={classes.length <= 2}
+                      unoptimized={shouldBypassImageOptimization(classItem.image_url)}
                     />
                   </div>
                 )}
 
-                <div className="p-6 md:p-8">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div>
-                      <h2 className="text-2xl font-bold text-white">{classItem.title}</h2>
-                      {(classItem.city || classItem.venue) && (
-                        <p className="mt-1 text-sm text-neutral-400">
-                          {[classItem.city, classItem.venue].filter(Boolean).join(" \u00b7 ")}
-                        </p>
-                      )}
-                    </div>
-                    {classItem.schedule && (
-                      <span className="w-fit rounded-full border border-neutral-700 px-3 py-1 text-xs text-neutral-300">
-                        {classItem.schedule}
-                      </span>
+                <div className="flex flex-1 flex-col p-6 md:p-8">
+                  <div>
+                    <h2 className="text-2xl font-bold text-white">{classItem.title}</h2>
+                    {(classItem.city || classItem.venue) && (
+                      <p className="mt-1 text-sm text-neutral-400">
+                        {[classItem.city, classItem.venue].filter(Boolean).join(" \u00b7 ")}
+                      </p>
                     )}
                   </div>
 
@@ -111,7 +117,7 @@ export default function InPersonClasses({ classes }: InPersonClassesProps) {
                     </p>
                   )}
 
-                  <div className="mt-6 flex flex-wrap gap-4">
+                  <div className="mt-auto flex flex-wrap gap-4 pt-6">
                     {classItem.contact_url && (
                       <ActionLink href={classItem.contact_url}>Contactar</ActionLink>
                     )}
