@@ -45,6 +45,9 @@ export default function Navbar({ user = null }: NavbarProps) {
           <Link href="/classes" className="text-sm font-medium text-neutral-300 hover:text-white transition-colors">
             Clases
           </Link>
+          <Link href="/events" className="text-sm font-medium text-neutral-300 hover:text-white transition-colors">
+            Agenda
+          </Link>
           <HomeSectionLink
             sectionId="about"
             className="text-sm font-medium text-neutral-300 hover:text-white transition-colors"
@@ -97,6 +100,9 @@ export default function Navbar({ user = null }: NavbarProps) {
           </Link>
           <Link href="/classes" className="text-neutral-200" onClick={() => setIsMobileMenuOpen(false)}>
             Clases
+          </Link>
+          <Link href="/events" className="text-neutral-200" onClick={() => setIsMobileMenuOpen(false)}>
+            Agenda
           </Link>
           <HomeSectionLink
             sectionId="about"
