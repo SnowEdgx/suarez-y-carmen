@@ -1,7 +1,8 @@
 const path = require('path');
 const { supabase } = require('../config/supabase');
 
-const DEFAULT_VIDEO_BUCKET = (process.env.SUPABASE_VIDEO_BUCKET || 'course-videos').trim();
+const configuredVideoBucket = (process.env.SUPABASE_VIDEO_BUCKET || '').trim();
+const DEFAULT_VIDEO_BUCKET = configuredVideoBucket || 'course-videos';
 const RAW_SIGNED_URL_TTL_SECONDS = Number.parseInt(
   process.env.VIDEO_SIGNED_URL_TTL_SECONDS || '900',
   10
@@ -20,6 +21,10 @@ function isHttpUrl(value) {
   } catch {
     return false;
   }
+}
+
+function isAllowedStorageBucket(bucket) {
+  return bucket === DEFAULT_VIDEO_BUCKET;
 }
 
 function isSafeStorageObjectPath(objectPath) {
@@ -44,6 +49,7 @@ function parseStorageReferenceFromPath(rawValue) {
     const bucket = value.slice(0, separatorIndex).trim();
     const objectPath = value.slice(separatorIndex + 1).trim().replace(/^\/+/, '');
     if (!bucket || !objectPath) return null;
+    if (!isAllowedStorageBucket(bucket)) return null;
     if (!isSafeStorageObjectPath(objectPath)) return null;
     return { bucket, path: objectPath };
   }
@@ -84,6 +90,7 @@ function parseStorageReferenceFromUrl(rawValue) {
   const objectPath = segments.slice(objectSegmentIndex + 3).join('/');
 
   if (!bucket || !objectPath) return null;
+  if (!isAllowedStorageBucket(bucket)) return null;
   if (!isSafeStorageObjectPath(objectPath)) return null;
   return { bucket, path: objectPath };
 }
