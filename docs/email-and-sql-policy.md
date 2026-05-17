@@ -20,7 +20,7 @@ Regla: cualquier cambio de esquema o permisos va siempre como migración formal.
 Definir en el entorno de Supabase (local o cloud):
 
 - `SUPABASE_AUTH_SMTP_PASS`: SMTP password de Resend
-- `SUPABASE_AUTH_SMTP_FROM`: remitente verificado (ej. `academy@mail.tudominio.com`)
+- `SUPABASE_AUTH_SMTP_FROM`: remitente verificado (ej. `academy@suarezycarmenbachata.com`)
 - Plantilla local: `supabase/.env.example`
 - Archivo local recomendado (no versionado): `supabase/.env.local`
 
@@ -57,7 +57,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\supabase-start.ps1 -Restart
    - SPF
    - DKIM
    - DMARC
-3. Usar remitente real (`academy@...`) para mejorar confianza y entregabilidad.
+3. Usar remitente real (`academy@suarezycarmenbachata.com`) para mejorar confianza y entregabilidad.
 4. Si Resend devuelve `550 domain is not verified`, completar primero la verificación DNS antes de pruebas E2E de signup.
 
 ## Flujo de plantillas

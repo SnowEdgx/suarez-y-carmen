@@ -77,7 +77,7 @@ export default async function TermsPage() {
           <section className="border border-neutral-800 rounded-2xl p-6 bg-neutral-900/40">
             <h2 className="text-white font-semibold mb-2">8. Soporte y contacto</h2>
             <p>
-              Para incidencias de acceso, pagos o protección de datos, el canal de contacto operativo es academy@suarezycarmen.com.
+              Para incidencias de acceso, pagos o protección de datos, el canal de contacto operativo es academy@suarezycarmenbachata.com.
             </p>
           </section>
         </div>

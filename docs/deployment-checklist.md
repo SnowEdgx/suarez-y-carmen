@@ -32,8 +32,8 @@ Required variables:
 ```env
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
-NEXT_PUBLIC_SITE_URL=
-NEXT_PUBLIC_BACKEND_URL=
+NEXT_PUBLIC_SITE_URL=https://suarezycarmenbachata.com
+NEXT_PUBLIC_BACKEND_URL=https://api.suarezycarmenbachata.com
 BACKEND_INTERNAL_URL=
 ```
 
@@ -52,8 +52,8 @@ Required variables:
 NODE_ENV=production
 PORT=
 TRUST_PROXY=
-FRONTEND_URL=
-CORS_ORIGINS=
+FRONTEND_URL=https://suarezycarmenbachata.com
+CORS_ORIGINS=https://suarezycarmenbachata.com
 SUPABASE_URL=
 SUPABASE_SERVICE_ROLE_KEY=
 SUPABASE_VIDEO_BUCKET=
@@ -96,9 +96,9 @@ Production setup:
 
 Production setup:
 
-- Verify the sending domain or subdomain.
+- Verify `suarezycarmenbachata.com` or a dedicated sending subdomain.
 - Configure SPF, DKIM and DMARC.
-- Use a sender aligned with the brand domain.
+- Use a sender aligned with the brand domain, for example `academy@suarezycarmenbachata.com`.
 - Keep Auth confirmation and recovery templates synchronized with Supabase.
 
 ## Strapi CMS
@@ -135,9 +135,9 @@ Deployment notes:
 
 Final domain tasks:
 
-- Point the frontend domain to the frontend host.
-- Point the backend API domain/subdomain to the backend host.
-- Point the CMS admin domain/subdomain to the CMS host if it is exposed.
+- Point `suarezycarmenbachata.com` to the frontend host.
+- Point `api.suarezycarmenbachata.com` to the backend host.
+- Point `cms.suarezycarmenbachata.com` to the CMS host if it is exposed.
 - Enable HTTPS for every public host.
 - Update Supabase Auth redirect URLs.
 - Update Stripe webhook URL.

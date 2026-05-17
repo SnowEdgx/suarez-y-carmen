@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename);
 
 const BRAND = {
   appName: 'Suárez y Carmen Academy',
-  supportEmail: 'academy@suarezycarmen.com',
+  supportEmail: 'academy@suarezycarmenbachata.com',
   primary: '#dc2626',
   bg: '#09090b',
   card: '#171717',

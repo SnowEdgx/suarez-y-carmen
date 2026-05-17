@@ -21,10 +21,10 @@ export default async function ContactPage() {
           <section className="border border-neutral-800 rounded-2xl p-6 bg-neutral-900/40">
             <h2 className="text-white font-semibold mb-2">Correo de soporte</h2>
             <a
-              href="mailto:academy@suarezycarmen.com"
+              href="mailto:academy@suarezycarmenbachata.com"
               className="text-red-400 hover:text-red-300 transition-colors text-sm"
             >
-              academy@suarezycarmen.com
+              academy@suarezycarmenbachata.com
             </a>
           </section>
 

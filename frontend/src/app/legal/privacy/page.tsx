@@ -22,7 +22,7 @@ export default async function PrivacyPage() {
             <h2 className="text-white font-semibold mb-2">1. Responsable y contacto</h2>
             <p>
               La gestión del tratamiento de datos se realiza para operar la academia online de Suárez y Carmen. Para consultas sobre
-              privacidad puedes escribir a academy@suarezycarmen.com.
+              privacidad puedes escribir a academy@suarezycarmenbachata.com.
             </p>
           </section>
 
