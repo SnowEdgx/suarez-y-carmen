@@ -7,7 +7,23 @@ const { supabase } = require('./config/supabase');
 const app = express();
 const PORT = process.env.PORT || 4000;
 const isProduction = process.env.NODE_ENV === 'production';
-app.set('trust proxy', 1);
+
+function resolveTrustProxy() {
+  const rawValue = process.env.TRUST_PROXY?.trim();
+  if (!rawValue) return isProduction ? 1 : false;
+
+  if (rawValue === 'true') return true;
+  if (rawValue === 'false') return false;
+
+  const numericValue = Number(rawValue);
+  if (Number.isInteger(numericValue) && numericValue >= 0 && numericValue <= 10) {
+    return numericValue;
+  }
+
+  return rawValue;
+}
+
+app.set('trust proxy', resolveTrustProxy());
 
 const corsOrigins = (process.env.CORS_ORIGINS || process.env.FRONTEND_URL || '')
   .split(',')

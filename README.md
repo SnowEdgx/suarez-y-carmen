@@ -154,7 +154,7 @@ El repositorio tambien ejecuta en CI auditoria de dependencias, lint, type-check
 - Los valores por defecto de `docker-compose.yml` son solo para desarrollo local.
 - En produccion hay que sustituir `CMS_SYNC_TOKEN`, secretos de Strapi, credenciales de base de datos, claves de Stripe, Supabase service role y SMTP.
 - `NODE_ENV=production` debe estar definido en el backend desplegado para desactivar endpoints de diagnostico.
-- Configurar correctamente `FRONTEND_URL`, `CORS_ORIGINS`, `NEXT_PUBLIC_SITE_URL`, `BACKEND_URL`, `BACKEND_INTERNAL_URL` y `PUBLIC_URL` segun el dominio real.
+- Configurar correctamente `FRONTEND_URL`, `CORS_ORIGINS`, `TRUST_PROXY`, `NEXT_PUBLIC_SITE_URL`, `BACKEND_URL`, `BACKEND_INTERNAL_URL` y `PUBLIC_URL` segun el dominio real.
 - En produccion, no activar `ENABLE_SUPABASE_TEST_ENDPOINT` salvo diagnostico temporal controlado.
 - El backend Express mantiene la logica sensible: checkout, webhooks, sincronizacion CMS y URLs firmadas de video.
 - El frontend aplica cabeceras de seguridad basicas: `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy` y `Permissions-Policy`.

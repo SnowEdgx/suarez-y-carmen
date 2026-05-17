@@ -51,6 +51,7 @@ Required variables:
 ```env
 NODE_ENV=production
 PORT=
+TRUST_PROXY=
 FRONTEND_URL=
 CORS_ORIGINS=
 SUPABASE_URL=
@@ -66,6 +67,7 @@ VIDEO_AUDIT_HASH_SECRET=
 Deployment notes:
 
 - `NODE_ENV=production` is required.
+- `TRUST_PROXY` must match the hosting provider topology. Use `1` for a single trusted reverse proxy.
 - `CORS_ORIGINS` must include only approved frontend origins.
 - `ENABLE_SUPABASE_TEST_ENDPOINT` must stay disabled by default.
 - `VIDEO_PLAYBACK_TOKEN_SECRET` and `VIDEO_AUDIT_HASH_SECRET` must be long random secrets.
