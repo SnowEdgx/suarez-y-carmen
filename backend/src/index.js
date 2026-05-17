@@ -8,6 +8,8 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 const isProduction = process.env.NODE_ENV === 'production';
 
+app.disable('x-powered-by');
+
 function resolveTrustProxy() {
   const rawValue = process.env.TRUST_PROXY?.trim();
   if (!rawValue) return isProduction ? 1 : false;
@@ -65,7 +67,8 @@ app.use('/api/video-devices', require('./routes/video-device.routes'));
 
 // Health check.
 app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.set('Cache-Control', 'no-store');
+  res.json({ status: 'ok' });
 });
 
 // Supabase connection test (explicitly enabled for local diagnostics only).

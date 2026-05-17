@@ -51,10 +51,11 @@ Response:
 
 ```json
 {
-  "status": "ok",
-  "timestamp": "2026-05-17T00:00:00.000Z"
+  "status": "ok"
 }
 ```
+
+The health response is intentionally minimal and must not expose runtime details, provider configuration or server timestamps.
 
 ## Stripe Checkout
 
