@@ -1,13 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import type { EmailOtpType } from '@supabase/supabase-js'
+import { getSafeInternalPath } from '@/lib/safe-redirect'
 import { createClient } from '@/lib/supabase/server'
-
-function getSafeRedirectPath(rawPath: string | null, fallback = '/courses') {
-  if (!rawPath || typeof rawPath !== 'string') return fallback
-  if (!rawPath.startsWith('/')) return fallback
-  if (rawPath.startsWith('//')) return fallback
-  return rawPath
-}
 
 function getBaseUrl(request: NextRequest) {
   const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim()
@@ -42,7 +36,7 @@ export async function GET(request: NextRequest) {
   const tokenHash = requestUrl.searchParams.get('token_hash')
   const type = requestUrl.searchParams.get('type') as EmailOtpType | null
   const oauthError = requestUrl.searchParams.get('error')
-  const nextPath = getSafeRedirectPath(requestUrl.searchParams.get('next'), '/courses')
+  const nextPath = getSafeInternalPath(requestUrl.searchParams.get('next'), '/courses')
 
   if (oauthError) {
     return buildLoginErrorRedirect(request, 'oauth_failed')

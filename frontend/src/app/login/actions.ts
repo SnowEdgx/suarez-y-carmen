@@ -8,6 +8,7 @@ import {
   getSessionPreferenceCookieOptions,
   getSessionPreferenceCookieValue,
 } from '@/lib/auth-session'
+import { getSafeInternalPath } from '@/lib/safe-redirect'
 import { createClient } from '@/lib/supabase/server'
 
 const EMAIL_VERIFICATION_ERROR =
@@ -24,14 +25,6 @@ function isEmailVerified(user: AuthUser) {
 
 function getSiteUrl() {
   return (process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000').replace(/\/$/, '')
-}
-
-function getSafeRedirectPath(rawValue: FormDataEntryValue | null) {
-  const fallback = '/courses'
-  if (!rawValue || typeof rawValue !== 'string') return fallback
-  if (!rawValue.startsWith('/')) return fallback
-  if (rawValue.startsWith('//')) return fallback
-  return rawValue
 }
 
 function getAuthCallbackUrl(nextPath: string) {
@@ -104,7 +97,7 @@ export async function login(formData: FormData) {
     return { error: EMAIL_VERIFICATION_ERROR }
   }
 
-  const redirectPath = getSafeRedirectPath(formData.get('next'))
+  const redirectPath = getSafeInternalPath(formData.get('next'), '/courses')
   await persistSessionPreference(rememberSession)
   revalidatePath('/', 'layout')
   redirect(redirectPath)

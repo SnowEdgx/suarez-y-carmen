@@ -3,13 +3,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getBackendUrl } from '@/lib/backend-url'
-
-function getSafePath(rawPath: FormDataEntryValue | null, fallback = '/courses') {
-  if (!rawPath || typeof rawPath !== 'string') return fallback
-  if (!rawPath.startsWith('/')) return fallback
-  if (rawPath.startsWith('//')) return fallback
-  return rawPath
-}
+import { getSafeCoursePath } from '@/lib/safe-redirect'
 
 function buildPathWithCheckoutCode(pathname: string, code: string) {
   const separator = pathname.includes('?') ? '&' : '?'
@@ -26,7 +20,7 @@ async function readJsonSafely(response: Response) {
 
 export async function startCourseCheckout(formData: FormData) {
   const courseId = formData.get('courseId')
-  const returnTo = getSafePath(formData.get('returnTo'), '/courses')
+  const returnTo = getSafeCoursePath(formData.get('returnTo'), '/courses')
 
   if (!courseId || typeof courseId !== 'string') {
     redirect(buildPathWithCheckoutCode(returnTo, 'invalid_course'))
