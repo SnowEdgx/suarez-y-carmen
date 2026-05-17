@@ -13,6 +13,7 @@ import {
 } from "@/lib/checkout-status";
 import { getCourseImageUrl, shouldBypassImageOptimization } from "@/lib/course-images";
 import { DEVICE_ID_HEADER } from "@/lib/device-session";
+import { logAppError } from "@/lib/error-logging";
 import { createClient } from "@/lib/supabase/server";
 import { startCourseCheckout } from "../actions";
 import { setLessonProgress } from "./actions";
@@ -58,18 +59,6 @@ function formatPrice(priceCents: number | null) {
     currency: "EUR",
     minimumFractionDigits: 0,
   }).format((priceCents as number) / 100);
-}
-
-function getErrorMessage(error: unknown) {
-  if (error instanceof Error) return error.message;
-  if (error && typeof error === "object" && "message" in error) {
-    return String((error as { message?: unknown }).message);
-  }
-  return "Unknown error";
-}
-
-function logCourseDetailError(context: string, error: unknown) {
-  console.error(`[Course Detail] ${context}: ${getErrorMessage(error)}`);
 }
 
 function resolveProgressMessage(code: string | null) {
@@ -148,7 +137,7 @@ export default async function CourseDetailPage({ params, searchParams }: CourseD
     .maybeSingle();
 
   if (courseResponse.error) {
-    logCourseDetailError("Could not load course", courseResponse.error);
+    logAppError("Course Detail", "Could not load course", courseResponse.error);
     throw new Error("Course detail load failed.");
   }
 
@@ -167,7 +156,7 @@ export default async function CourseDetailPage({ params, searchParams }: CourseD
 
   let lessons: LessonRow[] = [];
   if (lessonsResponse.error) {
-    logCourseDetailError("Could not load lessons", lessonsResponse.error);
+    logAppError("Course Detail", "Could not load lessons", lessonsResponse.error);
     loadMessages.push({
       type: "error",
       text: "No pudimos cargar las lecciones del curso. Recarga la página en unos segundos.",
@@ -189,7 +178,7 @@ export default async function CourseDetailPage({ params, searchParams }: CourseD
 
     if (purchaseResponse.error) {
       purchaseCheckUnavailable = true;
-      logCourseDetailError("Could not verify course purchase", purchaseResponse.error);
+      logAppError("Course Detail", "Could not verify course purchase", purchaseResponse.error);
       loadMessages.push({
         type: "error",
         text: "No pudimos verificar tu acceso a este curso. Por seguridad, no se mostrará contenido privado hasta poder comprobarlo.",
@@ -238,7 +227,7 @@ export default async function CourseDetailPage({ params, searchParams }: CourseD
     if (!progressResponse.error) {
       completedLessonIds = ((progressResponse.data || []) as ProgressRow[]).map((progress) => progress.lesson_id);
     } else {
-      logCourseDetailError("Could not load lesson progress", progressResponse.error);
+      logAppError("Course Detail", "Could not load lesson progress", progressResponse.error);
       loadMessages.push({
         type: "error",
         text: "No pudimos cargar tu progreso. Puedes seguir viendo las lecciones disponibles.",

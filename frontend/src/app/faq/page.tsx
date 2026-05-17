@@ -1,5 +1,6 @@
 import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
+import { logAppError } from "@/lib/error-logging";
 import { createClient } from "@/lib/supabase/server";
 
 type FaqItem = {
@@ -34,18 +35,6 @@ const FALLBACK_FAQS: FaqItem[] = [
   },
 ];
 
-function getErrorMessage(error: unknown) {
-  if (error instanceof Error) return error.message;
-  if (error && typeof error === "object" && "message" in error) {
-    return String((error as { message?: unknown }).message);
-  }
-  return "Unknown error";
-}
-
-function logFaqError(context: string, error: unknown) {
-  console.error(`[FAQ Page] ${context}: ${getErrorMessage(error)}`);
-}
-
 export default async function FaqPage() {
   const supabase = await createClient();
   const [
@@ -66,7 +55,7 @@ export default async function FaqPage() {
   let loadError = false;
   if (faqsResponse.error) {
     loadError = true;
-    logFaqError("Could not load FAQs", faqsResponse.error);
+    logAppError("FAQ Page", "Could not load FAQs", faqsResponse.error);
   } else if (faqsResponse.data && faqsResponse.data.length > 0) {
     faqs = faqsResponse.data as FaqItem[];
   }

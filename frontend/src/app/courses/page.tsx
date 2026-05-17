@@ -7,6 +7,7 @@ import {
   resolveStripeReturnMessage,
   type CheckoutMessage,
 } from '@/lib/checkout-status'
+import { logAppError } from '@/lib/error-logging'
 import { createClient } from '@/lib/supabase/server'
 
 type CourseRow = {
@@ -32,18 +33,6 @@ function shouldFallbackMissingPriceColumn(error: { code?: string | null; message
   if (error.code === '42703') return true
   const combined = `${error.message || ''} ${error.details || ''}`.toLowerCase()
   return combined.includes('price_cents')
-}
-
-function getErrorMessage(error: unknown) {
-  if (error instanceof Error) return error.message
-  if (error && typeof error === 'object' && 'message' in error) {
-    return String((error as { message?: unknown }).message)
-  }
-  return 'Unknown error'
-}
-
-function logCoursesPageError(context: string, error: unknown) {
-  console.error(`[Courses Page] ${context}: ${getErrorMessage(error)}`)
 }
 
 export default async function CoursesPage({ searchParams }: CoursesPageProps) {
@@ -89,7 +78,7 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
       .order('created_at', { ascending: false })
 
     if (fallback.error) {
-      logCoursesPageError('Could not load courses fallback', fallback.error)
+      logAppError('Courses Page', 'Could not load courses fallback', fallback.error)
       pageMessages.push({
         type: 'error',
         text: 'No pudimos cargar los cursos ahora mismo. Recarga la página en unos segundos.',
@@ -106,7 +95,7 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
       }))
     }
   } else if (coursesResult.error) {
-    logCoursesPageError('Could not load courses', coursesResult.error)
+    logAppError('Courses Page', 'Could not load courses', coursesResult.error)
     pageMessages.push({
       type: 'error',
       text: 'No pudimos cargar los cursos ahora mismo. Recarga la página en unos segundos.',
@@ -129,7 +118,7 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
       purchasedCourseIds = (purchases.data || []).map((entry: { course_id: string }) => entry.course_id)
     } else {
       purchaseStatusUnavailable = true
-      logCoursesPageError('Could not verify purchased courses', purchases.error)
+      logAppError('Courses Page', 'Could not verify purchased courses', purchases.error)
       pageMessages.push({
         type: 'error',
         text: 'No pudimos verificar tus cursos comprados. Por seguridad, las compras quedan bloqueadas temporalmente.',

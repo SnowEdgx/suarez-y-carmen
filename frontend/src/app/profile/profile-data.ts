@@ -2,6 +2,7 @@ import "server-only";
 
 import { getBackendUrl } from "@/lib/backend-url";
 import { DEVICE_ID_HEADER, isValidDeviceId } from "@/lib/device-session";
+import { logAppError } from "@/lib/error-logging";
 import { createClient } from "@/lib/supabase/server";
 
 export type PurchaseStatus = "pending" | "paid" | "refunded" | "canceled";
@@ -52,18 +53,6 @@ type PurchasesWithProgressResult = {
   purchases: PurchaseCard[];
   loadError: string | null;
 };
-
-function getErrorMessage(error: unknown) {
-  if (error instanceof Error) return error.message;
-  if (error && typeof error === "object" && "message" in error) {
-    return String((error as { message?: unknown }).message);
-  }
-  return "Unknown error";
-}
-
-function logProfileDataError(context: string, error: unknown) {
-  console.error(`[Profile Data] ${context}: ${getErrorMessage(error)}`);
-}
 
 function normalizePurchaseStatus(status: unknown): PurchaseStatus {
   return status === "paid" || status === "refunded" || status === "canceled" ? status : "pending";
@@ -126,7 +115,7 @@ async function loadVideoDevices(accessToken: string | null, deviceId: string | n
       loadError: null,
     };
   } catch (error) {
-    logProfileDataError("Could not load video devices", error);
+    logAppError("Profile Data", "Could not load video devices", error);
     return unavailableFallback;
   }
 }
@@ -142,7 +131,7 @@ async function loadPurchasesWithProgress(
     .order("created_at", { ascending: false });
 
   if (purchasesResponse.error) {
-    logProfileDataError("Could not load purchased courses", purchasesResponse.error);
+    logAppError("Profile Data", "Could not load purchased courses", purchasesResponse.error);
     return {
       purchases: [],
       loadError: "No pudimos cargar tus compras ahora mismo. Recarga la página en unos segundos.",
@@ -165,7 +154,7 @@ async function loadPurchasesWithProgress(
       .eq("is_published", true);
 
     if (lessonsResponse.error) {
-      logProfileDataError("Could not load purchased course lessons", lessonsResponse.error);
+      logAppError("Profile Data", "Could not load purchased course lessons", lessonsResponse.error);
       loadError = "No pudimos cargar el progreso de tus cursos.";
     } else {
       lessonRows = (lessonsResponse.data || []) as Array<{ id: string; course_id: string }>;
@@ -184,7 +173,7 @@ async function loadPurchasesWithProgress(
       .eq("is_completed", true);
 
     if (progressResponse.error) {
-      logProfileDataError("Could not load course progress", progressResponse.error);
+      logAppError("Profile Data", "Could not load course progress", progressResponse.error);
       loadError = "No pudimos cargar el progreso de tus cursos.";
     } else {
       completedLessonIds = new Set(
@@ -238,7 +227,7 @@ export async function loadProfilePageData(options: {
   const alerts: ProfilePageAlert[] = [];
 
   if (profileResponse.error) {
-    logProfileDataError("Could not load profile", profileResponse.error);
+    logAppError("Profile Data", "Could not load profile", profileResponse.error);
     alerts.push({
       type: "error",
       text: "No pudimos cargar todos tus datos personales. Puedes seguir usando tus cursos si aparecen disponibles.",

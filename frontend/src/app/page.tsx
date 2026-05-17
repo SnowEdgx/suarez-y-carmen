@@ -5,20 +5,9 @@ import About from "@/components/home/About";
 import Pricing from "@/components/home/Pricing";
 import InPersonClasses, { type InPersonClassItem } from "@/components/home/InPersonClasses";
 import Footer from "@/components/home/Footer";
+import { logAppError } from "@/lib/error-logging";
 import { createClient } from "@/lib/supabase/server";
 import type { HomeHeroContent } from "@/components/home/Hero";
-
-function getErrorMessage(error: unknown) {
-  if (error instanceof Error) return error.message;
-  if (error && typeof error === "object" && "message" in error) {
-    return String((error as { message?: unknown }).message);
-  }
-  return "Unknown error";
-}
-
-function logHomeContentError(context: string, error: unknown) {
-  console.error(`[Home Content] ${context}: ${getErrorMessage(error)}`);
-}
 
 export default async function Home() {
   const supabase = await createClient();
@@ -42,14 +31,14 @@ export default async function Home() {
 
   let homeContent: HomeHeroContent | null = null;
   if (homeContentResponse.error) {
-    logHomeContentError("Could not load home content", homeContentResponse.error);
+    logAppError("Home Content", "Could not load home content", homeContentResponse.error);
   } else {
     homeContent = homeContentResponse.data as HomeHeroContent | null;
   }
 
   let inPersonClasses: InPersonClassItem[] = [];
   if (inPersonClassesResponse.error) {
-    logHomeContentError("Could not load in-person classes", inPersonClassesResponse.error);
+    logAppError("Home Content", "Could not load in-person classes", inPersonClassesResponse.error);
   } else {
     inPersonClasses = (inPersonClassesResponse.data || []) as InPersonClassItem[];
   }
