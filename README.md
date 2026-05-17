@@ -111,6 +111,7 @@ No se versionan claves reales. Crea:
 Mas detalle en `docs/email-and-sql-policy.md`.
 Integracion CMS en `docs/cms-strapi-integration.md`.
 Contrato de API en `docs/api-reference.md`.
+Checklist de despliegue en `docs/deployment-checklist.md`.
 
 ## Endpoints backend
 
