@@ -115,7 +115,7 @@ Checklist de despliegue en `docs/deployment-checklist.md`.
 
 ## Endpoints backend
 
-Endpoints publicos por diseno:
+Endpoints publicos por diseño:
 - `GET /api/health`: comprobacion basica de estado sin detalles internos.
 - `POST /api/stripe/webhook`: webhook de Stripe, protegido mediante firma.
 - `POST /api/stripe/create-checkout-session`: requiere sesión de usuario.
