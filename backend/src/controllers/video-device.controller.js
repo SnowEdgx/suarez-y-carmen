@@ -1,4 +1,4 @@
-const { getAuthenticatedUser } = require('../utils/auth');
+const { getAuthenticatedUser, isEmailVerified } = require('../utils/auth');
 const { isUuid } = require('../utils/validation');
 const {
   getPlaybackDeviceId,
@@ -22,6 +22,9 @@ exports.listVideoDevices = async (req, res) => {
     if (!user) {
       return res.status(401).json({ error: 'Inicia sesi\u00f3n para gestionar tus dispositivos.' });
     }
+    if (!isEmailVerified(user)) {
+      return res.status(403).json({ error: 'Verifica tu correo para gestionar tus dispositivos.' });
+    }
 
     const deviceSummary = await listVideoDevicesForUser({
       userId: user.id,
@@ -41,6 +44,9 @@ exports.revokeVideoDevice = async (req, res) => {
     const user = await getAuthenticatedUser(req);
     if (!user) {
       return res.status(401).json({ error: 'Inicia sesi\u00f3n para gestionar tus dispositivos.' });
+    }
+    if (!isEmailVerified(user)) {
+      return res.status(403).json({ error: 'Verifica tu correo para gestionar tus dispositivos.' });
     }
 
     const deviceRowId = typeof req.params.deviceId === 'string' ? req.params.deviceId.trim() : '';

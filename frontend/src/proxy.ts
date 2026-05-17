@@ -18,6 +18,10 @@ function requiresAuth(pathname: string) {
   return PROTECTED_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`))
 }
 
+function isEmailVerified(user: { email_confirmed_at?: string | null; confirmed_at?: string | null } | null) {
+  return Boolean(user?.email_confirmed_at || user?.confirmed_at)
+}
+
 export async function proxy(request: NextRequest) {
   const existingDeviceId = request.cookies.get(DEVICE_ID_COOKIE)?.value
   const deviceId = isValidDeviceId(existingDeviceId) ? existingDeviceId : crypto.randomUUID()
@@ -64,6 +68,14 @@ export async function proxy(request: NextRequest) {
     const redirectUrl = request.nextUrl.clone()
     redirectUrl.pathname = '/login'
     redirectUrl.searchParams.set('next', `${request.nextUrl.pathname}${request.nextUrl.search}`)
+    return NextResponse.redirect(redirectUrl)
+  }
+
+  if (requiresAuth(request.nextUrl.pathname) && !isEmailVerified(user)) {
+    const redirectUrl = request.nextUrl.clone()
+    redirectUrl.pathname = '/login'
+    redirectUrl.searchParams.set('next', `${request.nextUrl.pathname}${request.nextUrl.search}`)
+    redirectUrl.searchParams.set('error', 'verify_email_required')
     return NextResponse.redirect(redirectUrl)
   }
 
