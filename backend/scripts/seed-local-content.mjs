@@ -132,40 +132,38 @@ const HOME_CONTENT_SEED = {
   hero_eyebrow: 'Academia online de bachata',
   hero_title: 'Master the head movements.',
   hero_subtitle:
-    'Domina la sensualidad, el estilo y la conexión con Suárez y Carmen. Aprende desde casa paso a paso con cursos individuales y acceso inmediato.',
+    'Domina la sensualidad, el estilo y la conexi\u00f3n con Su\u00e1rez y Carmen. Aprende desde casa paso a paso con cursos individuales y acceso inmediato.',
   hero_video_url: DEMO_VIDEO_SOURCE_URL,
-  primary_cta_label: 'Ver catálogo',
+  primary_cta_label: 'Ver cat\u00e1logo',
   primary_cta_href: '/courses',
-  secondary_cta_label: 'Ver metodología',
-  secondary_cta_href: '#methodology',
   is_published: true,
 };
 
 const FAQ_SEEDS = [
   {
     fallbackId: '41111111-1111-4111-8111-111111111111',
-    question: 'Cómo se compra un curso',
+    question: 'C\u00f3mo se compra un curso',
     answer:
-      'Cada curso se compra de forma individual desde el catálogo. Tras el pago validado, el acceso queda activado en tu cuenta.',
+      'Cada curso se compra de forma individual desde el cat\u00e1logo. Tras el pago validado, el acceso queda activado en tu cuenta.',
     position: 10,
   },
   {
     fallbackId: '41111111-1111-4111-8111-111111111112',
-    question: 'Cómo accedo al contenido comprado',
+    question: 'C\u00f3mo accedo al contenido comprado',
     answer:
-      'Inicia sesión con tu cuenta verificada y entra en el detalle del curso. Si el pago está confirmado, las lecciones completas aparecen desbloqueadas.',
+      'Inicia sesi\u00f3n con tu cuenta verificada y entra en el detalle del curso. Si el pago est\u00e1 confirmado, las lecciones completas aparecen desbloqueadas.',
     position: 20,
   },
   {
     fallbackId: '41111111-1111-4111-8111-111111111113',
-    question: 'Qué acceso incluye la compra',
+    question: 'Qu\u00e9 acceso incluye la compra',
     answer:
       'La compra desbloquea las lecciones completas del curso adquirido y permite guardar tu progreso dentro de la cuenta.',
     position: 30,
   },
   {
     fallbackId: '41111111-1111-4111-8111-111111111114',
-    question: 'Los eventos presenciales se pagan aquí',
+    question: 'Los eventos presenciales se pagan aqu\u00ed',
     answer: 'No. La plataforma redirige a la ticketera oficial del evento cuando corresponda.',
     position: 40,
   },
@@ -174,15 +172,28 @@ const FAQ_SEEDS = [
 const IN_PERSON_CLASS_SEEDS = [
   {
     fallbackId: '51111111-1111-4111-8111-111111111111',
-    title: 'Clases regulares en Málaga',
-    city: 'Málaga',
-    venue: 'Sala por confirmar',
-    schedule: 'Próximamente',
+    title: 'Clases de bachata en Estaci\u00f3n de C\u00e1rtama',
+    city: 'Estaci\u00f3n de C\u00e1rtama',
+    venue: 'Academia Danzarti',
+    schedule: 'Aprende desde 0',
     description:
-      'Información editable para comunicar clases presenciales, horarios y contacto sin modificar código.',
-    image_url: ASSETS.IMG_2681,
+      'Clases presenciales de bachata en Academia Danzarti. Contacta para confirmar grupo y disponibilidad.',
+    image_url: '/images/classes/estacion-cartama-danzarti.png',
     contact_url: 'https://www.instagram.com/suarezycarmenoficial/',
     position: 10,
+    is_active: true,
+  },
+  {
+    fallbackId: '51111111-1111-4111-8111-111111111112',
+    title: 'Clases de bachata en Co\u00edn',
+    city: 'Co\u00edn',
+    venue: 'Fusion Studio',
+    schedule: 'Lunes, 20:00-22:00',
+    description:
+      'Clases presenciales de bachata en Fusion Studio. Horarios publicados en el cartel oficial.',
+    image_url: '/images/classes/coin-fusion-studio.png',
+    contact_url: 'https://www.instagram.com/suarezycarmenoficial/',
+    position: 20,
     is_active: true,
   },
 ];
@@ -388,6 +399,22 @@ async function upsertInPersonClass(classSeed) {
   );
 }
 
+async function deactivateLegacyInPersonClassSeeds() {
+  const seedTitles = new Set(IN_PERSON_CLASS_SEEDS.map((classSeed) => classSeed.title));
+  const legacyTitles = ['Clases regulares en M\u00e1laga'];
+
+  for (const title of legacyTitles) {
+    if (seedTitles.has(title)) continue;
+
+    const result = await supabase
+      .from('in_person_classes')
+      .update({ is_active: false, updated_at: new Date().toISOString() })
+      .eq('title', title);
+
+    assertNoError(result, `Could not deactivate legacy in-person class ${title}`);
+  }
+}
+
 async function ensureVideoBucket() {
   const bucket = await supabase.storage.getBucket(VIDEO_BUCKET);
   if (!bucket.error) return;
@@ -474,6 +501,7 @@ for (const faqSeed of FAQ_SEEDS) {
 for (const classSeed of IN_PERSON_CLASS_SEEDS) {
   await upsertInPersonClass(classSeed);
 }
+await deactivateLegacyInPersonClassSeeds();
 
 await uploadDemoVideos();
 

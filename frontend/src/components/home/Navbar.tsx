@@ -38,16 +38,13 @@ export default function Navbar({ user = null }: NavbarProps) {
           S&C
         </Link>
 
-        <nav className="hidden md:flex items-center gap-8" aria-label="Navegación principal">
+        <nav className="hidden md:flex items-center gap-8" aria-label={"Navegaci\u00f3n principal"}>
           <Link href="/courses" className="text-sm font-medium text-neutral-300 hover:text-white transition-colors">
             Cursos
           </Link>
-          <HomeSectionLink
-            sectionId="methodology"
-            className="text-sm font-medium text-neutral-300 hover:text-white transition-colors"
-          >
-            Metodología
-          </HomeSectionLink>
+          <Link href="/classes" className="text-sm font-medium text-neutral-300 hover:text-white transition-colors">
+            Clases
+          </Link>
           <HomeSectionLink
             sectionId="about"
             className="text-sm font-medium text-neutral-300 hover:text-white transition-colors"
@@ -65,7 +62,7 @@ export default function Navbar({ user = null }: NavbarProps) {
                 href="/login"
                 className="text-sm font-medium text-white hover:text-neutral-300 transition-colors drop-shadow-md"
               >
-                Iniciar sesión
+                {"Iniciar sesi\u00f3n"}
               </Link>
               <Link
                 href="/courses"
@@ -81,7 +78,7 @@ export default function Navbar({ user = null }: NavbarProps) {
           type="button"
           className="md:hidden text-white"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          aria-label={isMobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
+          aria-label={isMobileMenuOpen ? "Cerrar men\u00fa" : "Abrir men\u00fa"}
           aria-controls="mobile-navigation"
           aria-expanded={isMobileMenuOpen}
         >
@@ -93,18 +90,14 @@ export default function Navbar({ user = null }: NavbarProps) {
         <nav
           id="mobile-navigation"
           className="md:hidden absolute top-full left-0 w-full bg-neutral-900 border-t border-neutral-800 p-6 flex flex-col gap-4 shadow-2xl"
-          aria-label="Navegación móvil"
+          aria-label={"Navegaci\u00f3n m\u00f3vil"}
         >
           <Link href="/courses" className="text-neutral-200" onClick={() => setIsMobileMenuOpen(false)}>
             Cursos
           </Link>
-          <HomeSectionLink
-            sectionId="methodology"
-            className="text-neutral-200"
-            onNavigate={() => setIsMobileMenuOpen(false)}
-          >
-            Metodología
-          </HomeSectionLink>
+          <Link href="/classes" className="text-neutral-200" onClick={() => setIsMobileMenuOpen(false)}>
+            Clases
+          </Link>
           <HomeSectionLink
             sectionId="about"
             className="text-neutral-200"
@@ -124,14 +117,14 @@ export default function Navbar({ user = null }: NavbarProps) {
                   className="mt-2 text-center py-3 bg-red-600 text-white font-semibold rounded-full w-full"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  Cerrar sesión
+                  {"Cerrar sesi\u00f3n"}
                 </button>
               </form>
             </>
           ) : (
             <>
               <Link href="/login" className="text-white font-medium" onClick={() => setIsMobileMenuOpen(false)}>
-                Iniciar sesión
+                {"Iniciar sesi\u00f3n"}
               </Link>
               <Link
                 href="/courses"

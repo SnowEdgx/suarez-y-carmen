@@ -1,9 +1,6 @@
 import Navbar from "@/components/home/Navbar";
 import Hero from "@/components/home/Hero";
-import Features from "@/components/home/Features";
 import About from "@/components/home/About";
-import Pricing from "@/components/home/Pricing";
-import InPersonClasses, { type InPersonClassItem } from "@/components/home/InPersonClasses";
 import Footer from "@/components/home/Footer";
 import { logAppError } from "@/lib/error-logging";
 import { createClient } from "@/lib/supabase/server";
@@ -14,19 +11,13 @@ export default async function Home() {
   const [
     { data: { user } },
     homeContentResponse,
-    inPersonClassesResponse,
   ] = await Promise.all([
     supabase.auth.getUser(),
     supabase
       .from("home_content")
-      .select("hero_eyebrow, hero_title, hero_subtitle, hero_video_url, primary_cta_label, primary_cta_href, secondary_cta_label, secondary_cta_href")
+      .select("hero_eyebrow, hero_title, hero_subtitle, hero_video_url, primary_cta_label, primary_cta_href")
       .eq("id", "home")
       .maybeSingle(),
-    supabase
-      .from("in_person_classes")
-      .select("id, title, city, venue, schedule, description, image_url, map_url, contact_url")
-      .order("position", { ascending: true })
-      .order("created_at", { ascending: true }),
   ]);
 
   let homeContent: HomeHeroContent | null = null;
@@ -36,22 +27,12 @@ export default async function Home() {
     homeContent = homeContentResponse.data as HomeHeroContent | null;
   }
 
-  let inPersonClasses: InPersonClassItem[] = [];
-  if (inPersonClassesResponse.error) {
-    logAppError("Home Content", "Could not load in-person classes", inPersonClassesResponse.error);
-  } else {
-    inPersonClasses = (inPersonClassesResponse.data || []) as InPersonClassItem[];
-  }
-
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 font-sans selection:bg-red-600 selection:text-white">
       <Navbar user={user} />
       <Hero content={homeContent} />
       <main id="main-content" className="relative z-10 bg-neutral-950">
-        <Features />
         <About />
-        <InPersonClasses classes={inPersonClasses} />
-        <Pricing />
       </main>
       <Footer />
     </div>
