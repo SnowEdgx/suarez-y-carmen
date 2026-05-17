@@ -1,0 +1,351 @@
+'use client'
+
+import { Suspense, useMemo, useRef, useState } from 'react'
+import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
+import { isRedirectError } from 'next/dist/client/components/redirect-error'
+import {
+  login,
+  resendSignupVerification,
+  requestPasswordRecovery,
+  signup,
+} from './actions'
+import Navbar from '@/components/home/Navbar'
+import Footer from '@/components/home/Footer'
+
+type ActionResult = {
+  error?: string
+  success?: string
+  requiresEmailVerification?: boolean
+  email?: string
+}
+
+function getQueryErrorMessage(code: string | null) {
+  switch (code) {
+    case 'verify_email_required':
+      return 'Debes verificar tu correo antes de iniciar sesión.'
+    case 'oauth_failed':
+      return 'No pudimos completar el acceso externo. Inténtalo de nuevo.'
+    case 'invalid_or_expired_link':
+      return 'El enlace de verificación no es válido o ha caducado.'
+    case 'auth_callback_failed':
+      return 'No pudimos validar tu sesión. Intenta acceder de nuevo.'
+    default:
+      return null
+  }
+}
+
+function LoginPageContent() {
+  const searchParams = useSearchParams()
+  const nextPath = searchParams.get('next') ?? '/courses'
+  const callbackError = getQueryErrorMessage(searchParams.get('error'))
+  const isVerifiedRedirect = searchParams.get('verified') === '1'
+  const isPasswordUpdated = searchParams.get('password_updated') === '1'
+
+  const [isLoginMode, setIsLoginMode] = useState(true)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string | null>(null)
+  const [isPending, setIsPending] = useState(false)
+  const [isResendingVerification, setIsResendingVerification] = useState(false)
+  const [isRecoveryPending, setIsRecoveryPending] = useState(false)
+  const formRef = useRef<HTMLFormElement>(null)
+
+  const visibleErrorMessage = errorMessage ?? callbackError
+  const defaultEmail = pendingVerificationEmail ?? searchParams.get('email') ?? ''
+
+  const topInfoMessage = useMemo(() => {
+    if (successMessage) return { type: 'success' as const, text: successMessage }
+    if (isVerifiedRedirect) {
+      return { type: 'success' as const, text: 'Correo verificado correctamente. Ya puedes iniciar sesión.' }
+    }
+    if (isPasswordUpdated) {
+      return { type: 'success' as const, text: 'Contraseña actualizada. Ya puedes iniciar sesión.' }
+    }
+    return null
+  }, [successMessage, isVerifiedRedirect, isPasswordUpdated])
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setIsPending(true)
+    setErrorMessage(null)
+    setSuccessMessage(null)
+
+    const formData = new FormData(event.currentTarget)
+    const action = isLoginMode ? login : signup
+
+    try {
+      const result = (await action(formData)) as ActionResult | undefined
+
+      if (result?.error) {
+        setErrorMessage(result.error)
+        return
+      }
+
+      if (result?.success) {
+        setSuccessMessage(result.success)
+      }
+
+      if (result?.requiresEmailVerification) {
+        setPendingVerificationEmail(result.email ?? (formData.get('email') as string))
+        setIsLoginMode(true)
+      }
+    } catch (error) {
+      if (isRedirectError(error)) {
+        throw error
+      }
+      setErrorMessage('Ocurrió un error inesperado al contactar con el servidor.')
+    } finally {
+      setIsPending(false)
+    }
+  }
+
+  async function handleResendVerification() {
+    if (!pendingVerificationEmail) return
+
+    setIsResendingVerification(true)
+    setErrorMessage(null)
+    setSuccessMessage(null)
+
+    const formData = new FormData()
+    formData.append('email', pendingVerificationEmail)
+
+    try {
+      const result = (await resendSignupVerification(formData)) as ActionResult
+      if (result.error) {
+        setErrorMessage(result.error)
+        return
+      }
+
+      if (result.success) {
+        setSuccessMessage(result.success)
+      }
+    } finally {
+      setIsResendingVerification(false)
+    }
+  }
+
+  async function handlePasswordRecovery(email: string) {
+    setIsRecoveryPending(true)
+    setErrorMessage(null)
+    setSuccessMessage(null)
+
+    const formData = new FormData()
+    formData.append('email', email)
+
+    try {
+      const result = (await requestPasswordRecovery(formData)) as ActionResult
+      if (result.error) {
+        setErrorMessage(result.error)
+        return
+      }
+
+      if (result.success) {
+        setSuccessMessage(result.success)
+      }
+    } finally {
+      setIsRecoveryPending(false)
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-neutral-950 text-neutral-100 font-sans selection:bg-red-600 selection:text-white flex flex-col">
+      <Navbar />
+
+      <main id="main-content" className="flex-1 flex items-center justify-center p-6 mt-16 relative z-10 w-full">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg h-[400px] bg-red-600/10 blur-[100px] rounded-full pointer-events-none" />
+
+        <div className="relative w-full max-w-md bg-neutral-900/60 backdrop-blur-xl border border-neutral-800 p-8 rounded-3xl shadow-2xl">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-serif font-bold text-white mb-2">
+              {isLoginMode ? 'Bienvenido de nuevo' : 'Crea tu cuenta'}
+            </h1>
+            <p className="text-neutral-400">
+              {isLoginMode
+                ? 'Accede a tus cursos y sigue perfeccionando tu baile.'
+                : 'Únete a Suárez y Carmen y domina tu estilo.'}
+            </p>
+          </div>
+
+          {visibleErrorMessage && (
+            <div
+              role="alert"
+              className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium text-center"
+            >
+              {visibleErrorMessage}
+            </div>
+          )}
+
+          {topInfoMessage && (
+            <div
+              role="status"
+              aria-live="polite"
+              className="mb-6 p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-sm font-medium text-center"
+            >
+              {topInfoMessage.text}
+            </div>
+          )}
+
+          {pendingVerificationEmail && (
+            <div
+              role="status"
+              aria-live="polite"
+              className="mb-6 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-200 text-sm"
+            >
+              <p className="text-center font-medium mb-3">
+                Cuenta pendiente de verificación: {pendingVerificationEmail}
+              </p>
+              <button
+                type="button"
+                onClick={handleResendVerification}
+                disabled={isResendingVerification}
+                aria-busy={isResendingVerification}
+                className="w-full py-2.5 bg-blue-500/20 hover:bg-blue-500/30 text-blue-200 rounded-lg transition-colors disabled:opacity-50 disabled:pointer-events-none"
+              >
+                {isResendingVerification ? 'Reenviando...' : 'Reenviar correo de verificación'}
+              </button>
+            </div>
+          )}
+
+          <form ref={formRef} onSubmit={handleSubmit} className="space-y-4" aria-busy={isPending}>
+            <input type="hidden" name="next" value={nextPath} />
+
+            {!isLoginMode && (
+              <div>
+                <label className="block text-sm font-medium text-neutral-400 mb-1.5" htmlFor="name">
+                  Nombre completo
+                </label>
+                <input
+                  id="name"
+                  name="name"
+                  type="text"
+                  required
+                  className="w-full bg-neutral-950 border border-neutral-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-600/50 transition-all font-medium placeholder-neutral-600"
+                  placeholder="Ej. Juan Pérez"
+                />
+              </div>
+            )}
+
+            <div>
+              <label className="block text-sm font-medium text-neutral-400 mb-1.5" htmlFor="email">
+                Correo electrónico
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                required
+                className="w-full bg-neutral-950 border border-neutral-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-600/50 transition-all font-medium placeholder-neutral-600"
+                placeholder="tu@email.com"
+                defaultValue={defaultEmail}
+              />
+            </div>
+
+            <div>
+              <div className="flex justify-between items-center mb-1.5">
+                <label className="block text-sm font-medium text-neutral-400" htmlFor="password">
+                  {'Contrase\u00f1a'}
+                </label>
+                {isLoginMode && (
+                  <Link
+                    href="/auth/recover"
+                    className="text-xs text-neutral-400 hover:text-white transition-colors"
+                  >
+                    {'He olvidado mi contrase\u00f1a'}
+                  </Link>
+                )}
+              </div>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                required
+                minLength={isLoginMode ? undefined : 8}
+                className="w-full bg-neutral-950 border border-neutral-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-600/50 transition-all font-medium placeholder-neutral-600"
+                placeholder="********"
+              />
+              {!isLoginMode && (
+                <p className="mt-1.5 text-xs text-neutral-500">
+                  Mínimo 8 caracteres.
+                </p>
+              )}
+            </div>
+
+            {isLoginMode && (
+              <label className="flex items-start gap-3 rounded-xl border border-neutral-800 bg-neutral-950/60 px-4 py-3 text-sm text-neutral-400">
+                <input
+                  name="rememberSession"
+                  type="checkbox"
+                  value="true"
+                  className="mt-1 h-4 w-4 rounded border-neutral-700 bg-neutral-950 text-red-600 focus:ring-red-600/40"
+                />
+                <span>
+                  <span className="block font-medium text-neutral-200">
+                    {'Mantener sesi\u00f3n iniciada'}
+                  </span>
+                  <span className="block text-xs text-neutral-500">
+                    {'No recomendado en ordenadores compartidos.'}
+                  </span>
+                </span>
+              </label>
+            )}
+
+            <button
+              type="submit"
+              disabled={isPending}
+              aria-busy={isPending}
+              className="w-full py-3.5 mt-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
+            >
+              {isPending ? 'Cargando...' : isLoginMode ? 'Iniciar sesión' : 'Registrarse'}
+            </button>
+          </form>
+
+          {isLoginMode && (
+            <button
+              type="button"
+              onClick={() => {
+                const currentEmail = formRef.current
+                  ? new FormData(formRef.current).get('email')
+                  : defaultEmail
+
+                handlePasswordRecovery(typeof currentEmail === 'string' ? currentEmail : defaultEmail)
+              }}
+              disabled={isRecoveryPending}
+              aria-busy={isRecoveryPending}
+              className="mt-3 w-full text-xs text-neutral-500 hover:text-neutral-300 transition-colors disabled:opacity-60"
+            >
+              {isRecoveryPending
+                ? 'Enviando enlace de recuperación...'
+                : 'Enviar enlace de recuperación al correo introducido'}
+            </button>
+          )}
+
+          <div className="mt-8 text-center text-sm text-neutral-400">
+            {isLoginMode ? '¿No tienes cuenta?' : '¿Ya tienes una cuenta?'}{' '}
+            <button
+              type="button"
+              onClick={() => {
+                setIsLoginMode(!isLoginMode)
+                setErrorMessage(null)
+                setSuccessMessage(null)
+              }}
+              className="text-white hover:text-red-500 font-semibold transition-colors"
+            >
+              {isLoginMode ? 'Regístrate' : 'Inicia sesión'}
+            </button>
+          </div>
+        </div>
+      </main>
+
+      <Footer />
+    </div>
+  )
+}
+
+export default function LoginClient() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-neutral-950" />}>
+      <LoginPageContent />
+    </Suspense>
+  )
+}
