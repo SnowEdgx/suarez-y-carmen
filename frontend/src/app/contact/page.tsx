@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
 import { createClient } from "@/lib/supabase/server";
+
+export const metadata: Metadata = {
+  title: "Contacto",
+  description: "Canales oficiales de contacto y soporte de la academia online de Suárez y Carmen.",
+};
 
 export default async function ContactPage() {
   const supabase = await createClient();

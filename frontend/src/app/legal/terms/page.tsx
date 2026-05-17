@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
 import { createClient } from "@/lib/supabase/server";
+
+export const metadata: Metadata = {
+  title: "Términos y condiciones",
+  description: "Condiciones de uso, compra de cursos digitales, pagos, soporte y uso permitido del contenido.",
+};
 
 export default async function TermsPage() {
   const supabase = await createClient();

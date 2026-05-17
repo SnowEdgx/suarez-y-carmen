@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
 import { logAppError } from "@/lib/error-logging";
@@ -7,6 +8,11 @@ type FaqItem = {
   id: string;
   question: string;
   answer: string;
+};
+
+export const metadata: Metadata = {
+  title: "Preguntas frecuentes",
+  description: "Respuestas sobre compra de cursos, acceso al contenido, eventos presenciales y soporte de la academia.",
 };
 
 const FALLBACK_FAQS: FaqItem[] = [

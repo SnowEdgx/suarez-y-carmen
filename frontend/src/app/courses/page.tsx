@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Navbar from '@/components/home/Navbar'
 import Footer from '@/components/home/Footer'
 import CourseGrid from '@/components/home/CourseGrid'
@@ -26,6 +27,11 @@ type CourseFallbackRow = Omit<CourseRow, 'price_cents'> & {
 
 type CoursesPageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>
+}
+
+export const metadata: Metadata = {
+  title: 'Cursos',
+  description: 'Explora los cursos online de bachata de Suárez y Carmen y accede a previews públicas antes de comprar.',
 }
 
 function shouldFallbackMissingPriceColumn(error: { code?: string | null; message?: string | null; details?: string | null } | null) {

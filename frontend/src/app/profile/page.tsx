@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
 import { createClient } from "@/lib/supabase/server";
@@ -9,6 +10,15 @@ import VideoDevicesPanel from "./VideoDevicesPanel";
 import PurchaseHistory from "./PurchaseHistory";
 import ProfileSummaryCard from "./ProfileSummaryCard";
 import { loadProfilePageData } from "./profile-data";
+
+export const metadata: Metadata = {
+  title: "Mi perfil",
+  description: "Área privada para consultar perfil, cursos comprados, progreso y dispositivos autorizados.",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default async function ProfilePage() {
   const supabase = await createClient();

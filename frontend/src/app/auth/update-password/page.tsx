@@ -1,8 +1,18 @@
+import type { Metadata } from 'next'
 import Navbar from '@/components/home/Navbar'
 import Footer from '@/components/home/Footer'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import UpdatePasswordForm from './UpdatePasswordForm'
+
+export const metadata: Metadata = {
+  title: 'Actualizar contraseña',
+  description: 'Formulario seguro para definir una nueva contraseña de acceso a la academia.',
+  robots: {
+    index: false,
+    follow: false,
+  },
+}
 
 export default async function UpdatePasswordPage() {
   const supabase = await createClient()

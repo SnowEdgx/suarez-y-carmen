@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
 import { createClient } from "@/lib/supabase/server";
+
+export const metadata: Metadata = {
+  title: "Política de privacidad",
+  description: "Información sobre tratamiento de datos personales, finalidad, conservación y derechos de usuario.",
+};
 
 export default async function PrivacyPage() {
   const supabase = await createClient();

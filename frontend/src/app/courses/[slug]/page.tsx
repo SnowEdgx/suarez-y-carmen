@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { headers } from "next/headers";
@@ -47,6 +48,43 @@ type CourseDetailPageProps = {
   params: Promise<{ slug: string }>;
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
+
+export async function generateMetadata({ params }: Pick<CourseDetailPageProps, "params">): Promise<Metadata> {
+  const { slug } = await params;
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("courses")
+    .select("title, description, is_published")
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (error) {
+    logAppError("Course Metadata", "Could not load course metadata", error);
+  }
+
+  if (!data?.is_published) {
+    return {
+      title: "Curso no encontrado",
+      robots: {
+        index: false,
+        follow: false,
+      },
+    };
+  }
+
+  const description =
+    data.description || "Curso online de bachata de Suárez y Carmen con acceso controlado al contenido completo.";
+
+  return {
+    title: data.title,
+    description,
+    openGraph: {
+      title: data.title,
+      description,
+      type: "article",
+    },
+  };
+}
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
