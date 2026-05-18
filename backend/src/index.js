@@ -75,9 +75,9 @@ app.get('/api/health', (_req, res) => {
 if (!isProduction && process.env.ENABLE_SUPABASE_TEST_ENDPOINT === 'true') {
   app.get('/api/supabase-test', async (_req, res) => {
     try {
-      const { data, error } = await supabase.from('courses').select('id').limit(1);
+      const { error } = await supabase.from('courses').select('id', { head: true, count: 'exact' }).limit(1);
       if (error) throw error;
-      res.json({ supabase: 'connected', courses_query: data });
+      res.json({ supabase: 'connected' });
     } catch (err) {
       console.error('[Supabase Test] Connection check failed:', err.message);
       res.status(500).json({ supabase: 'error', message: 'Supabase connection test failed.' });
