@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 
 const PUBLIC_ROUTES = [
   "",
+  "/about",
   "/courses",
   "/classes",
   "/events",

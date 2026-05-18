@@ -1,6 +1,5 @@
 import Navbar from "@/components/home/Navbar";
 import Hero from "@/components/home/Hero";
-import About from "@/components/home/About";
 import Footer from "@/components/home/Footer";
 import { logAppError } from "@/lib/error-logging";
 import { createClient } from "@/lib/supabase/server";
@@ -30,9 +29,8 @@ export default async function Home() {
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 font-sans selection:bg-red-600 selection:text-white">
       <Navbar user={user} />
-      <Hero content={homeContent} />
-      <main id="main-content" className="relative z-10 bg-neutral-950">
-        <About />
+      <main id="main-content">
+        <Hero content={homeContent} />
       </main>
       <Footer />
     </div>

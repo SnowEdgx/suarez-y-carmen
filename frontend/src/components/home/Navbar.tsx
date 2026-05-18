@@ -5,7 +5,6 @@ import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import UserMenu from "./UserMenu";
-import HomeSectionLink from "./HomeSectionLink";
 import { signOutAction } from "@/app/auth/actions";
 
 interface NavbarProps {
@@ -48,12 +47,9 @@ export default function Navbar({ user = null }: NavbarProps) {
           <Link href="/events" className="text-sm font-medium text-neutral-300 hover:text-white transition-colors">
             Agenda
           </Link>
-          <HomeSectionLink
-            sectionId="about"
-            className="text-sm font-medium text-neutral-300 hover:text-white transition-colors"
-          >
+          <Link href="/about" className="text-sm font-medium text-neutral-300 hover:text-white transition-colors">
             Sobre nosotros
-          </HomeSectionLink>
+          </Link>
         </nav>
 
         <div className="hidden md:flex items-center gap-6">
@@ -104,13 +100,9 @@ export default function Navbar({ user = null }: NavbarProps) {
           <Link href="/events" className="text-neutral-200" onClick={() => setIsMobileMenuOpen(false)}>
             Agenda
           </Link>
-          <HomeSectionLink
-            sectionId="about"
-            className="text-neutral-200"
-            onNavigate={() => setIsMobileMenuOpen(false)}
-          >
+          <Link href="/about" className="text-neutral-200" onClick={() => setIsMobileMenuOpen(false)}>
             Sobre nosotros
-          </HomeSectionLink>
+          </Link>
           <hr className="border-neutral-800 my-2" />
           {user ? (
             <>
