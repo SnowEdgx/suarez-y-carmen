@@ -19,11 +19,28 @@ export type CourseDetailLesson = {
   is_free_preview: boolean;
 };
 
+export type CourseDetailResource = {
+  id: string;
+  title: string;
+  description: string | null;
+  file_name: string | null;
+  mime_type: string | null;
+  position: number;
+  is_free_preview: boolean;
+};
+
+export type CourseResourceAccessState = {
+  url: string | null;
+  errorMessage: string | null;
+};
+
 export type CourseDetailViewProps = {
   course: CourseDetailCourse;
   lessons: CourseDetailLesson[];
+  resources: CourseDetailResource[];
   previewLessons: CourseDetailLesson[];
   accessibleLessonIds: Set<string>;
+  resourceAccessById: Record<string, CourseResourceAccessState>;
   completedLessonSet: Set<string>;
   completedAccessibleLessons: number;
   progressPercent: number;

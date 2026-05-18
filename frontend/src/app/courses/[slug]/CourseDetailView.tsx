@@ -1,5 +1,6 @@
 import Link from "next/link";
 import CourseHero from "./CourseHero";
+import CourseResourcesPanel from "./CourseResourcesPanel";
 import LessonList from "./LessonList";
 import SelectedLessonPanel from "./SelectedLessonPanel";
 import StatusMessages from "./StatusMessages";
@@ -25,15 +26,22 @@ export default function CourseDetailView(props: CourseDetailViewProps) {
 
       <section className="mt-14 grid grid-cols-1 lg:grid-cols-3 gap-8">
         <SelectedLessonPanel {...props} />
-        <LessonList
-          course={props.course}
-          lessons={props.lessons}
-          hasPurchased={props.hasPurchased}
-          accessibleLessonIds={props.accessibleLessonIds}
-          completedLessonSet={props.completedLessonSet}
-          featuredLesson={props.featuredLesson}
-          isAuthenticated={props.isAuthenticated}
-        />
+        <div className="space-y-6">
+          <LessonList
+            course={props.course}
+            lessons={props.lessons}
+            hasPurchased={props.hasPurchased}
+            accessibleLessonIds={props.accessibleLessonIds}
+            completedLessonSet={props.completedLessonSet}
+            featuredLesson={props.featuredLesson}
+            isAuthenticated={props.isAuthenticated}
+          />
+          <CourseResourcesPanel
+            resources={props.resources}
+            accessByResourceId={props.resourceAccessById}
+            hasPurchased={props.hasPurchased}
+          />
+        </div>
       </section>
     </main>
   );

@@ -88,6 +88,36 @@ async function findLesson(entry, courseId, position) {
   return byPosition.data || null;
 }
 
+async function findCourseResource(entry, courseId, position) {
+  const cmsDocumentId = optionalString(entry.cmsDocumentId, 255);
+  if (cmsDocumentId) {
+    const byDocumentId = await supabase
+      .from('course_resources')
+      .select('id')
+      .eq('cms_document_id', cmsDocumentId)
+      .maybeSingle();
+    if (byDocumentId.error) throw byDocumentId.error;
+    if (byDocumentId.data) return byDocumentId.data;
+  }
+
+  const title = optionalString(entry.title, 255);
+  if (!title) return null;
+
+  let query = supabase
+    .from('course_resources')
+    .select('id')
+    .eq('course_id', courseId)
+    .eq('title', title);
+
+  if (Number.isInteger(position)) {
+    query = query.eq('position', position);
+  }
+
+  const byTitle = await query.limit(1).maybeSingle();
+  if (byTitle.error) throw byTitle.error;
+  return byTitle.data || null;
+}
+
 async function findEvent(entry) {
   const cmsDocumentId = optionalString(entry.cmsDocumentId, 255);
   if (cmsDocumentId) {
@@ -153,6 +183,7 @@ async function findInPersonClass(entry) {
 module.exports = {
   findCourse,
   findCourseByReference,
+  findCourseResource,
   findEvent,
   findFaq,
   findInPersonClass,

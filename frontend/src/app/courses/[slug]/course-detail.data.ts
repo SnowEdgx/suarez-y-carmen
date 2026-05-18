@@ -1,7 +1,7 @@
 import type { createClient } from "@/lib/supabase/server";
 import type { CheckoutMessage } from "@/lib/checkout-status";
 import { logAppError } from "@/lib/error-logging";
-import type { CourseDetailCourse, CourseDetailLesson } from "./course-detail.model";
+import type { CourseDetailCourse, CourseDetailLesson, CourseDetailResource } from "./course-detail.model";
 
 type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
 
@@ -66,6 +66,34 @@ export async function loadCourseLessons(supabase: SupabaseClient, courseId: stri
 
   return {
     lessons: (lessonsResponse.data || []) as CourseDetailLesson[],
+    message: null,
+  };
+}
+
+export async function loadCourseResources(supabase: SupabaseClient, courseId: string): Promise<{
+  resources: CourseDetailResource[];
+  message: CheckoutMessage | null;
+}> {
+  const resourcesResponse = await supabase
+    .from("course_resources")
+    .select("id, title, description, file_name, mime_type, position, is_free_preview")
+    .eq("course_id", courseId)
+    .order("position", { ascending: true })
+    .order("created_at", { ascending: true });
+
+  if (resourcesResponse.error) {
+    logAppError("Course Detail", "Could not load course resources", resourcesResponse.error);
+    return {
+      resources: [],
+      message: {
+        type: "error",
+        text: "No pudimos cargar los materiales del curso. Recarga la p\u00e1gina en unos segundos.",
+      },
+    };
+  }
+
+  return {
+    resources: (resourcesResponse.data || []) as CourseDetailResource[],
     message: null,
   };
 }

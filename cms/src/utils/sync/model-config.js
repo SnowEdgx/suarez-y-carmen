@@ -2,6 +2,7 @@
 
 const {
   buildCourseEntry,
+  buildCourseResourceEntry,
   buildEventEntry,
   buildFaqEntry,
   buildHomeContentEntry,
@@ -19,6 +20,11 @@ const SYNC_MODELS = {
     model: 'lesson',
     populate: { course: true },
     buildEntry: buildLessonEntry,
+  },
+  'api::course-resource.course-resource': {
+    model: 'course_resource',
+    populate: { course: true, file: true },
+    buildEntry: buildCourseResourceEntry,
   },
   'api::event.event': {
     model: 'event',

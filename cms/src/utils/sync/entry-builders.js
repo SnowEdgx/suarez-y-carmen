@@ -34,6 +34,28 @@ function buildLessonEntry(lesson) {
   };
 }
 
+function buildCourseResourceEntry(resource) {
+  const fileUrl = resolveMediaUrl(resource.file);
+  const fileItem = Array.isArray(resource.file) ? resource.file[0] : resource.file;
+
+  return {
+    cmsDocumentId: resource.documentId,
+    cmsEntryId: resource.id ? String(resource.id) : null,
+    courseDocumentId: resource.course?.documentId,
+    courseSlug: resource.course?.slug,
+    title: resource.title,
+    description: resource.description,
+    position: resource.position,
+    isFreePreview: resource.isFreePreview,
+    resourceStoragePath: resource.resourceStoragePath,
+    resourceUrl: resource.resourceUrl || fileUrl,
+    fileName: resource.fileName || fileItem?.name,
+    mimeType: resource.mimeType || fileItem?.mime,
+    isPublished: Boolean(resource.publishedAt),
+    publishedAt: resource.publishedAt,
+  };
+}
+
 function buildEventEntry(event) {
   return {
     cmsDocumentId: event.documentId,
@@ -101,6 +123,7 @@ function buildInPersonClassEntry(classItem) {
 
 module.exports = {
   buildCourseEntry,
+  buildCourseResourceEntry,
   buildEventEntry,
   buildFaqEntry,
   buildHomeContentEntry,

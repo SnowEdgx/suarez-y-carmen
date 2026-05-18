@@ -63,6 +63,7 @@ app.use('/api/cms', require('./routes/cms.routes'));
 
 app.use(express.json({ limit: '100kb' }));
 app.use('/api/lessons', require('./routes/lesson.routes'));
+app.use('/api/course-resources', require('./routes/course-resource.routes'));
 app.use('/api/video-devices', require('./routes/video-device.routes'));
 
 // Health check.

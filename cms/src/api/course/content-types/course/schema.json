@@ -50,6 +50,12 @@
       "relation": "oneToMany",
       "target": "api::lesson.lesson",
       "mappedBy": "course"
+    },
+    "resources": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::course-resource.course-resource",
+      "mappedBy": "course"
     }
   }
 }

@@ -13,9 +13,14 @@ import { DEVICE_ID_HEADER } from "@/lib/device-session";
 import { createClient } from "@/lib/supabase/server";
 import CourseDetailView from "./CourseDetailView";
 import {
+  resolveCourseResourceAccess,
+  resolveResourceAccessMessage,
+} from "./course-resource-access";
+import {
   loadCompletedLessonIds,
   loadCourseLessons,
   loadCourseMetadata,
+  loadCourseResources,
   loadPublishedCourse,
   resolveCoursePurchaseAccess,
 } from "./course-detail.data";
@@ -103,6 +108,11 @@ export default async function CourseDetailPage({ params, searchParams }: CourseD
     loadMessages.push(lessonLoadMessage);
   }
 
+  const { resources, message: resourceLoadMessage } = await loadCourseResources(supabase, course.id);
+  if (resourceLoadMessage) {
+    loadMessages.push(resourceLoadMessage);
+  }
+
   const { hasPurchased, purchaseCheckUnavailable, message: purchaseMessage } = await resolveCoursePurchaseAccess(
     supabase,
     {
@@ -140,6 +150,23 @@ export default async function CourseDetailPage({ params, searchParams }: CourseD
   const featuredLessonVideoUrl = featuredLessonVideoAccess.url;
   const featuredLessonVideoMessage = resolveVideoAccessMessage(featuredLessonVideoAccess.errorCode);
   const hasValidPrice = Number.isInteger(course.price_cents) && (course.price_cents as number) > 0;
+  const resourceAccessEntries = await Promise.all(
+    resources.map(async (resource) => {
+      const access = await resolveCourseResourceAccess({
+        resourceId: resource.id,
+        accessToken,
+      });
+
+      return [
+        resource.id,
+        {
+          url: access.url,
+          errorMessage: resolveResourceAccessMessage(access.errorCode),
+        },
+      ] as const;
+    })
+  );
+  const resourceAccessById = Object.fromEntries(resourceAccessEntries);
 
   const { completedLessonIds, message: progressLoadMessage } = await loadCompletedLessonIds(supabase, {
     userId: user?.id ?? null,
@@ -166,8 +193,10 @@ export default async function CourseDetailPage({ params, searchParams }: CourseD
       <CourseDetailView
         course={course}
         lessons={lessons}
+        resources={resources}
         previewLessons={previewLessons}
         accessibleLessonIds={accessibleLessonIds}
+        resourceAccessById={resourceAccessById}
         completedLessonSet={completedLessonSet}
         completedAccessibleLessons={completedAccessibleLessons}
         progressPercent={progressPercent}

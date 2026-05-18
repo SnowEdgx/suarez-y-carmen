@@ -1,4 +1,12 @@
-const VALID_MODELS = new Set(['course', 'lesson', 'event', 'home_content', 'faq', 'in_person_class']);
+const VALID_MODELS = new Set([
+  'course',
+  'lesson',
+  'course_resource',
+  'event',
+  'home_content',
+  'faq',
+  'in_person_class',
+]);
 const VALID_ACTIONS = new Set(['upsert', 'delete']);
 const VALID_LEVELS = new Set(['B\u00e1sico', 'Intermedio', 'Avanzado', 'Masterclass']);
 const VALID_EVENT_TYPES = new Set(['Clase', 'Taller', 'Social', 'Congreso']);
@@ -125,16 +133,41 @@ function normalizeHref(value, fieldName) {
   return normalizeUrl(href, fieldName);
 }
 
-function normalizeVideoStoragePath(value) {
+function normalizePrivateStoragePath(value, fieldName) {
   const rawPath = optionalString(value, 1000);
   if (!rawPath) return null;
 
   const normalized = rawPath.replace(/^\/+/, '');
-  if (normalized.includes('..') || normalized.startsWith('http://') || normalized.startsWith('https://')) {
-    throw createHttpError(422, 'videoStoragePath must be a private storage object path.');
+  const segments = normalized.split('/');
+  const hasUnsafeSegment = segments.some((segment) => {
+    if (!segment || segment === '.' || segment === '..') return true;
+
+    try {
+      const decodedSegment = decodeURIComponent(segment);
+      return decodedSegment === '.' || decodedSegment === '..' || decodedSegment.includes('/') || decodedSegment.includes('\\');
+    } catch {
+      return true;
+    }
+  });
+
+  if (
+    hasUnsafeSegment ||
+    normalized.includes('\0') ||
+    normalized.includes('\\') ||
+    /^[a-z][a-z0-9+.-]*:\/\//i.test(normalized)
+  ) {
+    throw createHttpError(422, `${fieldName} must be a private storage object path.`);
   }
 
   return normalized;
+}
+
+function normalizeVideoStoragePath(value) {
+  return normalizePrivateStoragePath(value, 'videoStoragePath');
+}
+
+function normalizeResourceStoragePath(value) {
+  return normalizePrivateStoragePath(value, 'resourceStoragePath');
 }
 
 function assertSupabase(result, context) {
@@ -154,6 +187,7 @@ module.exports = {
   normalizeLevel,
   normalizeSlug,
   normalizeUrl,
+  normalizeResourceStoragePath,
   normalizeVideoStoragePath,
   optionalBoolean,
   optionalInteger,

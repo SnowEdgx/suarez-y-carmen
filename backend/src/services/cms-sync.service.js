@@ -5,12 +5,14 @@ const {
 } = require('./cms-sync/validation');
 const {
   unpublishCourse,
+  unpublishCourseResource,
   unpublishEvent,
   unpublishFaq,
   unpublishHomeContent,
   unpublishInPersonClass,
   unpublishLesson,
   upsertCourse,
+  upsertCourseResource,
   upsertEvent,
   upsertFaq,
   upsertHomeContent,
@@ -26,6 +28,10 @@ const CMS_SYNC_HANDLERS = {
   lesson: {
     upsert: upsertLesson,
     delete: unpublishLesson,
+  },
+  course_resource: {
+    upsert: upsertCourseResource,
+    delete: unpublishCourseResource,
   },
   event: {
     upsert: upsertEvent,

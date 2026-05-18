@@ -1,0 +1,60 @@
+{
+  "kind": "collectionType",
+  "collectionName": "cms_course_resources",
+  "info": {
+    "singularName": "course-resource",
+    "pluralName": "course-resources",
+    "displayName": "Course Resource",
+    "description": "Downloadable course materials synced into Supabase."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "course": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::course.course",
+      "inversedBy": "resources",
+      "required": true
+    },
+    "title": {
+      "type": "string",
+      "required": true,
+      "maxLength": 255
+    },
+    "description": {
+      "type": "text"
+    },
+    "position": {
+      "type": "integer",
+      "default": 0
+    },
+    "isFreePreview": {
+      "type": "boolean",
+      "default": false,
+      "required": true
+    },
+    "resourceStoragePath": {
+      "type": "string",
+      "maxLength": 1000
+    },
+    "resourceUrl": {
+      "type": "string",
+      "maxLength": 2000
+    },
+    "fileName": {
+      "type": "string",
+      "maxLength": 255
+    },
+    "mimeType": {
+      "type": "string",
+      "maxLength": 120
+    },
+    "file": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["files"]
+    }
+  }
+}
