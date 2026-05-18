@@ -169,7 +169,8 @@ exports.createCheckoutSession = async (req, res) => {
     }
 
     if (!Number.isInteger(course.price_cents) || course.price_cents <= 0) {
-      return res.status(500).json({ error: 'El curso tiene un precio inválido en configuración.' });
+      console.error('[Stripe Controller] Course has invalid price configuration:', course.id);
+      return res.status(503).json({ error: 'La compra no está disponible temporalmente.' });
     }
 
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
@@ -282,12 +283,13 @@ exports.getCheckoutSessionStatus = async (req, res) => {
         }
 
         if (!Number.isInteger(normalizedAmountCents) || normalizedAmountCents <= 0) {
+          console.error('[Stripe Controller] Could not infer paid checkout amount:', session.id);
           return res.json({
             status: PURCHASE_STATUS.PAID,
             sessionId: session.id,
             courseId,
             accessGranted: false,
-            warning: 'Pago confirmado, pero no se pudo inferir el importe para registrar la compra.',
+            code: 'access_sync_pending',
           });
         }
 
@@ -309,11 +311,12 @@ exports.getCheckoutSessionStatus = async (req, res) => {
         });
       }
 
+      console.error('[Stripe Controller] Paid checkout session is missing valid course metadata:', session.id);
       return res.json({
         status: PURCHASE_STATUS.PAID,
         sessionId: session.id,
         accessGranted: false,
-        warning: 'Pago confirmado, pero no se pudo identificar el curso en metadata.',
+        code: 'access_sync_pending',
       });
     }
 
@@ -350,7 +353,8 @@ exports.webhook = async (req, res) => {
     const signature = req.headers['stripe-signature'];
 
     if (!process.env.STRIPE_WEBHOOK_SECRET) {
-      return res.status(503).json({ error: 'Webhook no configurado.' });
+      console.error('[Stripe Webhook] Webhook secret is not configured.');
+      return res.status(503).json({ error: 'Webhook processing unavailable.' });
     }
 
     event = stripeClient.webhooks.constructEvent(
@@ -360,7 +364,7 @@ exports.webhook = async (req, res) => {
     );
   } catch (err) {
     console.warn('[Stripe Webhook] Signature verification error:', err.message);
-    return res.status(400).json({ error: 'Firma de webhook invalida.' });
+    return res.status(400).json({ error: 'Webhook request rejected.' });
   }
 
   try {
@@ -370,7 +374,7 @@ exports.webhook = async (req, res) => {
     }
   } catch (err) {
     console.error('[Stripe Webhook] Error storing event:', err.message);
-    return res.status(500).json({ error: 'No se pudo registrar el evento de Stripe.' });
+    return res.status(500).json({ error: 'Webhook processing failed.' });
   }
 
   try {
@@ -403,7 +407,7 @@ exports.webhook = async (req, res) => {
   } catch (err) {
     console.error('[Stripe Webhook] Processing error:', err.message);
     await rollbackStripeEvent(event.id);
-    return res.status(500).json({ error: 'No se pudo completar el procesamiento del evento.' });
+    return res.status(500).json({ error: 'Webhook processing failed.' });
   }
 
   return res.json({ received: true });

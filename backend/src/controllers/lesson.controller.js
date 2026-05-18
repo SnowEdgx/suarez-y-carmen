@@ -147,6 +147,10 @@ function applyVideoSecurityHeaders(res) {
   );
 }
 
+function sendVideoUnavailable(res, status = 500) {
+  return res.status(status).json({ error: 'No se pudo cargar el vídeo en este momento.' });
+}
+
 function copyHeader(sourceHeaders, targetResponse, sourceName, targetName = sourceName) {
   const value = sourceHeaders.get(sourceName);
   if (value) targetResponse.set(targetName, value);
@@ -330,9 +334,8 @@ exports.getLessonVideoUrl = async (req, res) => {
       });
     }
 
-    return res
-      .status(500)
-      .json({ error: 'El vídeo de esta lección no está configurado de forma segura.' });
+    console.error('[Lesson Controller] Lesson storage reference is missing:', lesson.id);
+    return sendVideoUnavailable(res, 500);
   } catch (err) {
     const status = err.status || 500;
     console.error('[Lesson Controller] Error resolving lesson video:', err.message);
@@ -358,7 +361,7 @@ exports.serveHlsManifest = async (req, res) => {
     context = await getPlaybackContextFromToken({ req, rawToken });
 
     if (!isHlsManifestPath(context.rootReference.path)) {
-      return res.status(400).json({ error: 'El vídeo no está configurado como HLS.' });
+      return res.status(400).json({ error: 'Solicitud de vídeo no válida.' });
     }
 
     return await serveHlsObject({
@@ -400,7 +403,7 @@ exports.serveHlsResource = async (req, res) => {
     context = await getPlaybackContextFromToken({ req, rawToken });
 
     if (!isHlsManifestPath(context.rootReference.path)) {
-      return res.status(400).json({ error: 'El vídeo no está configurado como HLS.' });
+      return res.status(400).json({ error: 'Solicitud de vídeo no válida.' });
     }
 
     const requestedPath = typeof req.query.path === 'string' ? req.query.path : '';
@@ -479,7 +482,8 @@ exports.streamLessonVideo = async (req, res) => {
         statusCode: 500,
         errorCode: 'missing_storage_reference',
       });
-      return res.status(500).json({ error: 'El vídeo de esta lección no está configurado de forma segura.' });
+      console.error('[Lesson Controller] Lesson storage reference is missing:', lesson.id);
+      return sendVideoUnavailable(res, 500);
     }
 
     return await streamStorageObject({
