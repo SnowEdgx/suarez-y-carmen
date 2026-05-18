@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type SecureVideoPlayerProps = {
   src: string;
@@ -13,7 +13,13 @@ function isHlsSource(src: string) {
 
 export default function SecureVideoPlayer({ src, title }: SecureVideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [hasPlaybackError, setHasPlaybackError] = useState(false);
+  const [reloadNonce, setReloadNonce] = useState(0);
   const shouldUseHls = isHlsSource(src);
+
+  useEffect(() => {
+    setHasPlaybackError(false);
+  }, [src]);
 
   useEffect(() => {
     const videoElement = videoRef.current;
@@ -39,6 +45,11 @@ export default function SecureVideoPlayer({ src, title }: SecureVideoPlayerProps
           lowLatencyMode: false,
         });
         hlsInstance = hls;
+        hls.on(Hls.Events.ERROR, (_event, data: { fatal?: boolean }) => {
+          if (data?.fatal && isMounted) {
+            setHasPlaybackError(true);
+          }
+        });
         hls.loadSource(src);
         hls.attachMedia(videoElement);
       })
@@ -53,24 +64,49 @@ export default function SecureVideoPlayer({ src, title }: SecureVideoPlayerProps
       videoElement.removeAttribute("src");
       videoElement.load();
     };
-  }, [shouldUseHls, src]);
+  }, [reloadNonce, shouldUseHls, src]);
 
   return (
-    <video
-      ref={videoRef}
-      aria-label={title}
-      title={title}
-      controls
-      controlsList="nodownload noplaybackrate noremoteplayback"
-      disablePictureInPicture
-      disableRemotePlayback
-      onContextMenu={(event) => event.preventDefault()}
-      playsInline
-      preload="metadata"
-      className="w-full rounded-xl border border-neutral-700 bg-black"
-      src={shouldUseHls ? undefined : src}
-    >
-      Tu navegador no puede reproducir este vídeo.
-    </video>
+    <div className="relative overflow-hidden rounded-xl border border-neutral-700 bg-black">
+      <video
+        key={`${src}-${reloadNonce}`}
+        ref={videoRef}
+        aria-label={title}
+        title={title}
+        controls
+        controlsList="nodownload noplaybackrate noremoteplayback"
+        disablePictureInPicture
+        disableRemotePlayback
+        onContextMenu={(event) => event.preventDefault()}
+        onError={() => setHasPlaybackError(true)}
+        playsInline
+        preload="metadata"
+        className="w-full bg-black"
+        src={shouldUseHls ? undefined : src}
+      >
+        Tu navegador no puede reproducir este vídeo.
+      </video>
+
+      {hasPlaybackError && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/85 px-6 text-center">
+          <div className="max-w-sm">
+            <p className="text-sm font-medium text-white">No se pudo reproducir el vídeo.</p>
+            <p className="mt-2 text-xs leading-5 text-neutral-400">
+              Comprueba tu conexión y vuelve a intentarlo. Si el problema continúa, contacta con soporte.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setHasPlaybackError(false);
+                setReloadNonce((current) => current + 1);
+              }}
+              className="mt-4 rounded-full bg-red-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-red-700"
+            >
+              Reintentar
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
