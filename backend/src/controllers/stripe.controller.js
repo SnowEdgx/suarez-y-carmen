@@ -3,112 +3,22 @@ const { getAuthenticatedUser, isEmailVerified } = require('../utils/auth');
 const { UUID_REGEX } = require('../utils/validation');
 const {
   PURCHASE_STATUS,
-  updatePurchaseStatusByPaymentIntent,
-  updatePurchaseStatusBySessionId,
   upsertCoursePurchase,
 } = require('../services/purchase.service');
 const {
   markStripeEventReceived,
   rollbackStripeEvent,
 } = require('../services/stripe-event.service');
-
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-const stripe = stripeSecretKey ? require('stripe')(stripeSecretKey) : null;
-const CHECKOUT_SESSION_REGEX = /^cs_[A-Za-z0-9_]+$/;
-
-function requireStripe() {
-  if (!stripe) {
-    const error = new Error('Stripe is not configured in backend. STRIPE_SECRET_KEY is missing.');
-    error.status = 503;
-    throw error;
-  }
-
-  return stripe;
-}
-
-async function getReusableCheckoutSession(stripeClient, checkoutSessionId) {
-  if (!checkoutSessionId) return null;
-
-  try {
-    const existingSession = await stripeClient.checkout.sessions.retrieve(checkoutSessionId);
-    if (
-      existingSession &&
-      existingSession.status === 'open' &&
-      existingSession.payment_status !== 'paid' &&
-      existingSession.url
-    ) {
-      return existingSession;
-    }
-  } catch (error) {
-    console.warn('[Stripe Controller] Could not retrieve prior checkout session:', error.message);
-  }
-
-  return null;
-}
-
-async function handleCheckoutSessionCompleted(session) {
-  if (session.payment_status !== 'paid') return;
-
-  const userId = session.metadata?.userId;
-  const courseId = session.metadata?.courseId;
-
-  if (!userId || !courseId) {
-    throw new Error('Missing checkout metadata (userId/courseId).');
-  }
-
-  const amountCents = session.amount_total || 0;
-  const currency = session.currency || 'eur';
-  const paymentIntentId =
-    typeof session.payment_intent === 'string'
-      ? session.payment_intent
-      : session.payment_intent?.id || null;
-
-  await upsertCoursePurchase({
-    userId,
-    courseId,
-    checkoutSessionId: session.id,
-    paymentIntentId,
-    amountCents,
-    currency,
-    status: PURCHASE_STATUS.PAID,
-  });
-}
-
-function extractPaymentIntentId(value) {
-  if (!value) return null;
-  if (typeof value === 'string') return value;
-  if (typeof value === 'object' && typeof value.id === 'string') return value.id;
-  return null;
-}
-
-function sanitizeCheckoutSessionId(rawValue) {
-  if (typeof rawValue !== 'string') return null;
-  const value = rawValue.trim();
-  if (!CHECKOUT_SESSION_REGEX.test(value)) return null;
-  return value;
-}
-
-function sanitizeReturnPath(rawValue) {
-  if (typeof rawValue !== 'string') return '/courses';
-
-  const value = rawValue.trim();
-  if (!value || value.length > 500) return '/courses';
-  if (!value.startsWith('/') || value.startsWith('//')) return '/courses';
-  if (/[\r\n\t]/.test(value)) return '/courses';
-  if (value !== '/courses' && !value.startsWith('/courses/')) return '/courses';
-
-  return value;
-}
-
-function buildFrontendReturnUrl(frontendUrl, returnPath, params) {
-  const baseUrl = frontendUrl.replace(/\/+$/, '');
-  const separator = returnPath.includes('?') ? '&' : '?';
-  const query = Object.entries(params)
-    .map(([key, value]) => `${encodeURIComponent(key)}=${value}`)
-    .join('&');
-
-  return `${baseUrl}${returnPath}${separator}${query}`;
-}
+const {
+  buildFrontendReturnUrl,
+  extractPaymentIntentId,
+  getReusableCheckoutSession,
+  requireStripe,
+  sanitizeCheckoutSessionId,
+  sanitizeReturnPath,
+} = require('../services/stripe-client.service');
+const { resolveCheckoutSessionStatus } = require('../services/stripe-checkout-status.service');
+const { processStripeEvent } = require('../services/stripe-webhook.service');
 
 // Creates a secure Checkout session for a single-course purchase.
 exports.createCheckoutSession = async (req, res) => {
@@ -260,83 +170,7 @@ exports.getCheckoutSessionStatus = async (req, res) => {
       return res.status(403).json({ error: 'No tienes permisos para consultar esta sesión.' });
     }
 
-    const paymentIntentId = extractPaymentIntentId(session.payment_intent);
-    const courseId = session.metadata?.courseId;
-    const amountCents = Number.isInteger(session.amount_total) ? session.amount_total : 0;
-    const currency = session.currency || 'eur';
-
-    if (session.payment_status === 'paid') {
-      if (courseId && UUID_REGEX.test(courseId)) {
-        let normalizedAmountCents = amountCents;
-
-        if (!Number.isInteger(normalizedAmountCents) || normalizedAmountCents <= 0) {
-          const { data: existingPurchase } = await supabase
-            .from('user_courses')
-            .select('amount_cents')
-            .eq('user_id', user.id)
-            .eq('course_id', courseId)
-            .maybeSingle();
-
-          if (existingPurchase && Number.isInteger(existingPurchase.amount_cents)) {
-            normalizedAmountCents = existingPurchase.amount_cents;
-          }
-        }
-
-        if (!Number.isInteger(normalizedAmountCents) || normalizedAmountCents <= 0) {
-          console.error('[Stripe Controller] Could not infer paid checkout amount:', session.id);
-          return res.json({
-            status: PURCHASE_STATUS.PAID,
-            sessionId: session.id,
-            courseId,
-            accessGranted: false,
-            code: 'access_sync_pending',
-          });
-        }
-
-        await upsertCoursePurchase({
-          userId: user.id,
-          courseId,
-          checkoutSessionId: session.id,
-          paymentIntentId,
-          amountCents: normalizedAmountCents,
-          currency,
-          status: PURCHASE_STATUS.PAID,
-        });
-
-        return res.json({
-          status: PURCHASE_STATUS.PAID,
-          sessionId: session.id,
-          courseId,
-          accessGranted: true,
-        });
-      }
-
-      console.error('[Stripe Controller] Paid checkout session is missing valid course metadata:', session.id);
-      return res.json({
-        status: PURCHASE_STATUS.PAID,
-        sessionId: session.id,
-        accessGranted: false,
-        code: 'access_sync_pending',
-      });
-    }
-
-    if (session.status === 'open') {
-      await updatePurchaseStatusBySessionId(session.id, PURCHASE_STATUS.PENDING);
-      return res.json({
-        status: PURCHASE_STATUS.PENDING,
-        sessionId: session.id,
-        courseId: courseId && UUID_REGEX.test(courseId) ? courseId : null,
-        accessGranted: false,
-      });
-    }
-
-    await updatePurchaseStatusBySessionId(session.id, PURCHASE_STATUS.CANCELED);
-    return res.json({
-      status: PURCHASE_STATUS.CANCELED,
-      sessionId: session.id,
-      courseId: courseId && UUID_REGEX.test(courseId) ? courseId : null,
-      accessGranted: false,
-    });
+    return res.json(await resolveCheckoutSessionStatus({ session, user }));
   } catch (err) {
     const status = err.status || 500;
     console.error('[Stripe Controller] Error checking checkout session status:', err.message);
@@ -378,32 +212,7 @@ exports.webhook = async (req, res) => {
   }
 
   try {
-    if (event.type === 'checkout.session.completed') {
-      await handleCheckoutSessionCompleted(event.data.object);
-      console.log('[Stripe Webhook] Checkout session completed and access processed.');
-    }
-
-    if (event.type === 'checkout.session.expired') {
-      await updatePurchaseStatusBySessionId(event.data.object.id, PURCHASE_STATUS.CANCELED);
-      console.log('[Stripe Webhook] Checkout session expiration processed.');
-    }
-
-    if (event.type === 'checkout.session.async_payment_failed') {
-      await updatePurchaseStatusBySessionId(event.data.object.id, PURCHASE_STATUS.CANCELED);
-      console.log('[Stripe Webhook] Async payment failure processed.');
-    }
-
-    if (event.type === 'charge.refunded') {
-      const paymentIntentId = extractPaymentIntentId(event.data.object.payment_intent);
-      await updatePurchaseStatusByPaymentIntent(paymentIntentId, PURCHASE_STATUS.REFUNDED);
-      console.log('[Stripe Webhook] Refund event processed.');
-    }
-
-    if (event.type === 'charge.dispute.created') {
-      const paymentIntentId = extractPaymentIntentId(event.data.object.payment_intent);
-      await updatePurchaseStatusByPaymentIntent(paymentIntentId, PURCHASE_STATUS.CANCELED);
-      console.log('[Stripe Webhook] Dispute event processed.');
-    }
+    await processStripeEvent(event);
   } catch (err) {
     console.error('[Stripe Webhook] Processing error:', err.message);
     await rollbackStripeEvent(event.id);
