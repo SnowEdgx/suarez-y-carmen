@@ -7,10 +7,20 @@ import { createClient } from '@/lib/supabase/server'
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 const SLUG_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/i
 
-function getCoursePath(rawSlug: FormDataEntryValue | null) {
+type LessonAccessRow = {
+  id: string
+  course_id: string
+  courses: { slug: string; is_published: boolean } | { slug: string; is_published: boolean }[] | null
+}
+
+function getCourseSlug(rawSlug: FormDataEntryValue | null) {
   const slug = typeof rawSlug === 'string' ? rawSlug.trim() : ''
-  if (!SLUG_REGEX.test(slug)) return '/courses'
-  return `/courses/${slug}`
+  return SLUG_REGEX.test(slug) ? slug : null
+}
+
+function getCoursePath(courseSlug: string | null) {
+  if (!courseSlug) return '/courses'
+  return `/courses/${courseSlug}`
 }
 
 function buildProgressPath(coursePath: string, code: string, lessonId?: string) {
@@ -21,10 +31,11 @@ function buildProgressPath(coursePath: string, code: string, lessonId?: string) 
 
 export async function setLessonProgress(formData: FormData) {
   const lessonId = typeof formData.get('lessonId') === 'string' ? (formData.get('lessonId') as string) : ''
-  const coursePath = getCoursePath(formData.get('courseSlug'))
+  const courseSlug = getCourseSlug(formData.get('courseSlug'))
+  const coursePath = getCoursePath(courseSlug)
   const shouldComplete = formData.get('completed') === 'true'
 
-  if (!UUID_REGEX.test(lessonId)) {
+  if (!courseSlug || !UUID_REGEX.test(lessonId)) {
     redirect(buildProgressPath(coursePath, 'invalid_lesson'))
   }
 
@@ -39,8 +50,9 @@ export async function setLessonProgress(formData: FormData) {
 
   const lessonAccess = await supabase
     .from('lessons')
-    .select('id')
+    .select('id, course_id, courses!inner(slug, is_published)')
     .eq('id', lessonId)
+    .eq('is_published', true)
     .maybeSingle()
 
   if (lessonAccess.error) {
@@ -48,7 +60,10 @@ export async function setLessonProgress(formData: FormData) {
     redirect(buildProgressPath(coursePath, 'error', lessonId))
   }
 
-  if (!lessonAccess.data) {
+  const lesson = lessonAccess.data as LessonAccessRow | null
+  const course = Array.isArray(lesson?.courses) ? lesson?.courses[0] : lesson?.courses
+
+  if (!lesson || !course?.is_published || course.slug !== courseSlug) {
     redirect(buildProgressPath(coursePath, 'access_denied', lessonId))
   }
 

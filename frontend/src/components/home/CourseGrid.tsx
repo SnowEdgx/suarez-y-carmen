@@ -29,6 +29,10 @@ function formatPrice(priceCents: number | null) {
   }).format((priceCents as number) / 100);
 }
 
+function getCoursePath(slug: string) {
+  return `/courses/${encodeURIComponent(slug)}`;
+}
+
 export default function CourseGrid({
   courses,
   purchasedCourseIds,
@@ -59,6 +63,7 @@ export default function CourseGrid({
               const isOwned = purchasedSet.has(course.id);
               const hasPrice = Number.isInteger(course.price_cents) && (course.price_cents as number) > 0;
               const imageSrc = getCourseImageUrl(course.cover_image_url);
+              const coursePath = getCoursePath(course.slug);
 
               return (
                 <article key={course.id} className="group relative rounded-xl overflow-hidden bg-neutral-900 border border-neutral-800 flex flex-col min-h-[420px]">
@@ -90,7 +95,7 @@ export default function CourseGrid({
                     <div className="mt-auto space-y-3">
                       {isOwned ? (
                         <Link
-                          href={`/courses/${course.slug}`}
+                          href={coursePath}
                           className="w-full text-center py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors block"
                         >
                           Ver curso
@@ -124,7 +129,7 @@ export default function CourseGrid({
                         </form>
                       ) : (
                         <Link
-                          href={`/login?next=/courses/${course.slug}`}
+                          href={`/login?next=${encodeURIComponent(coursePath)}`}
                           className="w-full text-center py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors block"
                         >
                           Inicia sesión para comprar
@@ -132,7 +137,7 @@ export default function CourseGrid({
                       )}
 
                       <Link
-                        href={`/courses/${course.slug}`}
+                        href={coursePath}
                         className="w-full text-center py-2.5 border border-neutral-700 text-neutral-200 hover:text-white hover:border-neutral-500 rounded-lg transition-colors block"
                       >
                         Ver detalle y previews

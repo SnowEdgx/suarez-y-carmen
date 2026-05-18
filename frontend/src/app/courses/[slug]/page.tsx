@@ -99,6 +99,14 @@ function formatPrice(priceCents: number | null) {
   }).format((priceCents as number) / 100);
 }
 
+function getCoursePath(slug: string) {
+  return `/courses/${encodeURIComponent(slug)}`;
+}
+
+function getLessonPath(coursePath: string, lessonId: string) {
+  return `${coursePath}?lesson=${encodeURIComponent(lessonId)}`;
+}
+
 function resolveProgressMessage(code: string | null) {
   switch (code) {
     case "completed":
@@ -281,9 +289,9 @@ export default async function CourseDetailPage({ params, searchParams }: CourseD
   const statusMessages = [checkoutMessage, stripeReturnMessage, progressMessage, lessonMessage, ...loadMessages].filter(
     Boolean
   ) as CheckoutMessage[];
-  const coursePath = `/courses/${course.slug}`;
-  const selectedLessonPath = featuredLesson ? `${coursePath}?lesson=${featuredLesson.id}` : coursePath;
-  const checkoutReturnPath = requestedLesson ? `${coursePath}?lesson=${requestedLesson.id}` : selectedLessonPath;
+  const coursePath = getCoursePath(course.slug);
+  const selectedLessonPath = featuredLesson ? getLessonPath(coursePath, featuredLesson.id) : coursePath;
+  const checkoutReturnPath = requestedLesson ? getLessonPath(coursePath, requestedLesson.id) : selectedLessonPath;
 
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 font-sans selection:bg-red-600 selection:text-white flex flex-col">
@@ -501,7 +509,7 @@ export default async function CourseDetailPage({ params, searchParams }: CourseD
                 const isAccessible = accessibleLessonIds.has(lesson.id);
                 const isCompleted = completedLessonSet.has(lesson.id);
                 const isSelected = featuredLesson?.id === lesson.id;
-                const lessonPath = `${coursePath}?lesson=${lesson.id}`;
+                const lessonPath = getLessonPath(coursePath, lesson.id);
 
                 return (
                   <li
