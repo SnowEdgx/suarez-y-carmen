@@ -7,9 +7,10 @@ type AboutImageProps = {
   src: string;
   alt: string;
   heightClassName: string;
+  priority?: boolean;
 };
 
-function AboutImage({ src, alt, heightClassName }: AboutImageProps) {
+function AboutImage({ src, alt, heightClassName, priority = false }: AboutImageProps) {
   return (
     <div
       className={`relative overflow-hidden rounded-3xl border border-white/10 bg-neutral-900 shadow-2xl shadow-black/30 ${heightClassName}`}
@@ -18,8 +19,9 @@ function AboutImage({ src, alt, heightClassName }: AboutImageProps) {
         src={src}
         alt={alt}
         fill
-        sizes="(max-width: 1024px) 50vw, 25vw"
+        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 45vw, 25vw"
         className="object-cover"
+        priority={priority}
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
     </div>
@@ -29,15 +31,15 @@ function AboutImage({ src, alt, heightClassName }: AboutImageProps) {
 const pillars = [
   {
     icon: GraduationCap,
-    title: "Formaci\u00f3n progresiva",
+    title: "Formación progresiva",
     description:
-      "Cursos estructurados por niveles para trabajar bases, t\u00e9cnica corporal, musicalidad y combinaciones con criterio.",
+      "Cursos estructurados por niveles para trabajar bases, técnica corporal, musicalidad y combinaciones con criterio.",
   },
   {
     icon: Music2,
-    title: "Estilo y conexi\u00f3n",
+    title: "Estilo y conexión",
     description:
-      "El objetivo no es memorizar figuras aisladas, sino entender c\u00f3mo moverse, escuchar la m\u00fasica y bailar con naturalidad.",
+      "El objetivo no es memorizar figuras aisladas, sino entender cómo moverse, escuchar la música y bailar con naturalidad.",
   },
   {
     icon: Users,
@@ -47,9 +49,9 @@ const pillars = [
   },
   {
     icon: ShieldCheck,
-    title: "Acceso ordenado",
+    title: "Aprendizaje ordenado",
     description:
-      "Cada alumno accede al contenido adquirido desde su cuenta, con una plataforma pensada para crecer sin depender solo de redes sociales.",
+      "Cada alumno accede a sus cursos desde una cuenta propia, con lecciones claras y progreso visible.",
   },
 ];
 
@@ -65,16 +67,16 @@ export default function About() {
               Sobre nosotros
             </p>
             <h1 className="mb-6 font-serif text-5xl font-bold tracking-tight text-white md:text-7xl">
-              {"Su\u00e1rez y Carmen"}
+              Suárez y Carmen
             </h1>
             <p className="mb-6 text-lg leading-relaxed text-neutral-300 md:text-xl">
               {
-                "Somos un d\u00fao de bailarines e instructores de bachata que combina formaci\u00f3n presencial, eventos y cursos online para acercar una metodolog\u00eda clara a alumnos de distintos niveles."
+                "Somos un dúo de bailarines e instructores de bachata que combina formación presencial, eventos y cursos online para acercar una metodología clara a alumnos de distintos niveles."
               }
             </p>
             <p className="mb-10 max-w-2xl text-base leading-relaxed text-neutral-400 md:text-lg">
               {
-                "La plataforma nace para ordenar esa actividad en un espacio propio: mostrar el valor antes de la compra, facilitar el acceso a cursos individuales y mantener una relaci\u00f3n m\u00e1s directa con la comunidad."
+                "Nuestro enfoque une técnica, musicalidad y estilo para que puedas entrenar desde casa y seguir creciendo también en sala."
               }
             </p>
 
@@ -99,24 +101,26 @@ export default function About() {
             <div className="flex flex-col gap-4">
               <AboutImage
                 src={STORAGE_ASSETS.IMG_2681}
-                alt="Su\u00e1rez y Carmen durante una sesi\u00f3n de baile"
+                alt="Suárez y Carmen durante una sesión de baile"
                 heightClassName="h-72 md:h-96"
+                priority
               />
               <AboutImage
                 src={STORAGE_ASSETS.IMG_2872}
-                alt="Detalle de una clase de bachata de Su\u00e1rez y Carmen"
+                alt="Detalle de una clase de bachata de Suárez y Carmen"
                 heightClassName="h-52 md:h-64"
               />
             </div>
             <div className="flex flex-col gap-4 pt-10">
               <AboutImage
                 src={STORAGE_ASSETS.IMG_4784}
-                alt="Su\u00e1rez y Carmen bailando bachata"
+                alt="Suárez y Carmen bailando bachata"
                 heightClassName="h-52 md:h-64"
+                priority
               />
               <AboutImage
                 src={STORAGE_ASSETS.IMG_4587}
-                alt="Su\u00e1rez y Carmen en una producci\u00f3n visual"
+                alt="Suárez y Carmen en una producción visual"
                 heightClassName="h-72 md:h-96"
               />
             </div>
@@ -129,7 +133,7 @@ export default function About() {
           <div className="rounded-3xl border border-neutral-800 bg-neutral-900/60 p-7">
             <p className="text-4xl font-bold text-white">+5</p>
             <p className="mt-2 text-sm uppercase tracking-[0.22em] text-neutral-500">
-              {"A\u00f1os de experiencia"}
+              Años de experiencia
             </p>
           </div>
           <div className="rounded-3xl border border-neutral-800 bg-neutral-900/60 p-7">
@@ -138,7 +142,7 @@ export default function About() {
           </div>
           <div className="rounded-3xl border border-neutral-800 bg-neutral-900/60 p-7">
             <p className="text-4xl font-bold text-white">Online + sala</p>
-            <p className="mt-2 text-sm uppercase tracking-[0.22em] text-neutral-500">Modelo h\u00edbrido</p>
+            <p className="mt-2 text-sm uppercase tracking-[0.22em] text-neutral-500">Entrenamiento híbrido</p>
           </div>
         </div>
       </section>
@@ -146,13 +150,13 @@ export default function About() {
       <section className="relative px-6 py-20 md:px-12">
         <div className="mx-auto max-w-7xl">
           <div className="mb-12 max-w-3xl">
-            <p className="mb-3 text-sm font-semibold uppercase tracking-[0.28em] text-red-500">Metodolog\u00eda</p>
+            <p className="mb-3 text-sm font-semibold uppercase tracking-[0.28em] text-red-500">Metodología</p>
             <h2 className="mb-5 font-serif text-4xl font-bold text-white md:text-5xl">
               {"Una forma de aprender bachata con estructura"}
             </h2>
             <p className="text-lg leading-relaxed text-neutral-400">
               {
-                "El contenido se plantea como una progresi\u00f3n: primero se consolidan fundamentos, despu\u00e9s se trabaja la calidad del movimiento y finalmente se integran figuras, musicalidad y estilo."
+                "El contenido se plantea como una progresión: primero se consolidan fundamentos, después se trabaja la calidad del movimiento y finalmente se integran figuras, musicalidad y estilo."
               }
             </p>
           </div>
@@ -178,18 +182,18 @@ export default function About() {
       <section className="relative px-6 pb-24 md:px-12">
         <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="rounded-3xl border border-neutral-800 bg-neutral-900/60 p-8 md:p-10">
-            <p className="mb-3 text-sm font-semibold uppercase tracking-[0.28em] text-red-500">Proyecto</p>
+            <p className="mb-3 text-sm font-semibold uppercase tracking-[0.28em] text-red-500">Aprende con nosotros</p>
             <h2 className="mb-5 font-serif text-3xl font-bold text-white md:text-4xl">
-              {"Una plataforma propia para una marca art\u00edstica"}
+              Cursos para entrenar a tu ritmo
             </h2>
             <p className="mb-5 leading-relaxed text-neutral-400">
               {
-                "La web no funciona como un cat\u00e1logo cerrado sin contexto. La parte p\u00fablica presenta la marca, cursos, clases y agenda; la parte privada centraliza el acceso del alumno al contenido comprado."
+                "Puedes explorar el catálogo, ver previews y comprar únicamente los cursos que quieras trabajar. Cada curso está pensado para que sepas qué practicar y cómo avanzar."
               }
             </p>
             <p className="leading-relaxed text-neutral-400">
               {
-                "Esta separaci\u00f3n permite que nuevos visitantes entiendan la propuesta antes de pagar, mientras que los alumnos mantienen un espacio ordenado para seguir su formaci\u00f3n."
+                "Si ya eres alumno, tu área privada reúne tus compras, lecciones disponibles y progreso para retomar la formación sin perder el hilo."
               }
             </p>
           </div>

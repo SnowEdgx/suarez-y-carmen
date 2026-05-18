@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 export const metadata: Metadata = {
   title: "Sobre nosotros",
   description:
-    "Conoce el proyecto de Su\u00e1rez y Carmen: bachata, formaci\u00f3n online, clases presenciales y agenda profesional.",
+    "Conoce a Su\u00e1rez y Carmen: bachata, formaci\u00f3n online, clases presenciales y agenda profesional.",
 };
 
 export default async function AboutPage() {
