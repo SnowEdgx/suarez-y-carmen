@@ -1,0 +1,40 @@
+import Link from "next/link";
+import CourseHero from "./CourseHero";
+import LessonList from "./LessonList";
+import SelectedLessonPanel from "./SelectedLessonPanel";
+import StatusMessages from "./StatusMessages";
+import type { CourseDetailViewProps } from "./course-detail.model";
+
+export default function CourseDetailView(props: CourseDetailViewProps) {
+  return (
+    <main id="main-content" className="pt-28 pb-20 px-6 md:px-12 max-w-7xl mx-auto w-full flex-1">
+      <Link href="/courses" className="text-sm text-neutral-400 hover:text-white transition-colors">
+        Volver al catálogo
+      </Link>
+
+      <StatusMessages messages={props.statusMessages} />
+
+      <CourseHero
+        course={props.course}
+        hasPurchased={props.hasPurchased}
+        hasValidPrice={props.hasValidPrice}
+        purchaseCheckUnavailable={props.purchaseCheckUnavailable}
+        isAuthenticated={props.isAuthenticated}
+        checkoutReturnPath={props.checkoutReturnPath}
+      />
+
+      <section className="mt-14 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <SelectedLessonPanel {...props} />
+        <LessonList
+          course={props.course}
+          lessons={props.lessons}
+          hasPurchased={props.hasPurchased}
+          accessibleLessonIds={props.accessibleLessonIds}
+          completedLessonSet={props.completedLessonSet}
+          featuredLesson={props.featuredLesson}
+          isAuthenticated={props.isAuthenticated}
+        />
+      </section>
+    </main>
+  );
+}
