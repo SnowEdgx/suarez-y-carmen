@@ -193,6 +193,29 @@ Rules:
 - Path traversal attempts are rejected.
 - Playlists and segments remain behind backend access checks.
 
+## Course Resources
+
+| Method | Path | Auth | Purpose |
+|---|---|---|---|
+| `GET` | `/api/course-resources/:resourceId/download-url` | Optional for preview, required for paid resources | Returns a short-lived signed download URL or a safe public preview URL. |
+
+Rules:
+
+- Free preview resources can be resolved without purchase.
+- Paid resources require a verified user and paid course access.
+- Paid resources must reference the private Supabase Storage bucket `course-resources` through `resourceStoragePath`.
+- Public Strapi upload URLs or external URLs are allowed only for intentionally shareable preview resources.
+
+Success response:
+
+```json
+{
+  "url": "https://...",
+  "expiresInSeconds": 300,
+  "source": "signed_storage"
+}
+```
+
 ## Video Devices
 
 | Method | Path | Auth | Purpose |
@@ -217,6 +240,7 @@ Accepted models:
 
 - `course`
 - `lesson`
+- `course_resource`
 - `event`
 - `home_content`
 - `faq`

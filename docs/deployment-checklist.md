@@ -22,7 +22,7 @@ Before deploying:
 - Run CMS build.
 - Apply Supabase migrations in a controlled environment.
 - Verify local checkout and webhook flow in Stripe test mode.
-- Verify private video access, HLS rewriting and device revocation.
+- Verify private video access, private course resources, HLS rewriting and device revocation.
 - Check that no `.env.local`, provider keys, service-role keys or local-only scripts are committed.
 
 ## Frontend
@@ -59,6 +59,7 @@ CORS_ORIGINS=https://suarezycarmenbachata.com
 SUPABASE_URL=
 SUPABASE_SERVICE_ROLE_KEY=
 SUPABASE_VIDEO_BUCKET=
+SUPABASE_RESOURCE_BUCKET=
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
 CMS_SYNC_TOKEN=
@@ -82,6 +83,7 @@ Production setup:
 - Apply migrations through Supabase CLI or a controlled migration workflow.
 - Confirm RLS is enabled on user, purchase, progress, video audit and editorial tables.
 - Keep Storage buckets for private video non-public.
+- Keep Storage buckets for private downloadable resources non-public.
 - Configure Auth redirect URLs for the final frontend domain.
 - Configure SMTP settings for production email delivery.
 

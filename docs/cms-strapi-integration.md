@@ -23,6 +23,7 @@ Strapi currently defines these editorial content types:
 
 - `Course`: title, slug, description, level, price, cover and publication state.
 - `Lesson`: course relation, title, description, order, duration, preview flag and `videoStoragePath`.
+- `Course Resource`: course relation, title, description, order, preview flag, optional public URL for previews and `resourceStoragePath` for private downloadable materials.
 - `Event`: title, city, date, type, image and external links.
 - `Home Content`: editable hero copy and CTAs.
 - `FAQ`: editable public questions and answers.
@@ -38,6 +39,7 @@ The endpoint is protected with a shared `CMS_SYNC_TOKEN` and accepts only:
 
 - `course`
 - `lesson`
+- `course_resource`
 - `event`
 - `home_content`
 - `faq`
@@ -47,6 +49,7 @@ Delete operations are handled as soft publication changes:
 
 - Deleting or unpublishing a course sets `courses.is_published = false`.
 - Deleting or unpublishing a lesson sets `lessons.is_published = false`.
+- Deleting or unpublishing a course resource sets `course_resources.is_published = false`.
 - Deleting or unpublishing an event sets `events.is_active = false`.
 - Deleting or unpublishing home content sets `home_content.is_published = false`.
 - Deleting or unpublishing a FAQ sets `faqs.is_published = false`.
@@ -65,10 +68,22 @@ Strapi must not store private course videos directly.
 For each lesson, the CMS stores only `videoStoragePath`, for example:
 
 ```text
-demo/bachata-sensual-basico/01-base-postura-conexion.mp4
+bachazouk-vol-1/01-bienvenida.mp4
 ```
 
 The actual video file remains in the private Supabase Storage bucket. Express signs access only after checking preview or purchase permissions.
+
+## Downloadable Resource Rule
+
+Course resources that belong to paid content must not use public Strapi upload URLs. Paid resources must store only `resourceStoragePath`, for example:
+
+```text
+bachazouk-vol-1/guia-bachazouk.pdf
+```
+
+The actual file must be uploaded to the private Supabase Storage bucket `course-resources`. Express returns a short-lived signed URL only after checking that the resource is a free preview or that the user owns the course.
+
+Public external URLs or Strapi files are acceptable only for free preview resources that are intentionally shareable.
 
 ## Required Environment Variables
 
@@ -96,8 +111,9 @@ Docker Compose provides local development defaults. Production must override the
 4. Create the first Strapi administrator.
 5. Create and publish a course.
 6. Create lessons linked to that course and provide `videoStoragePath`.
-7. Optionally create public-page content: home content, FAQ entries and in-person classes.
-8. Confirm the synced content appears in Supabase and on the web.
+7. Optionally create downloadable resources linked to that course and provide `resourceStoragePath` for paid materials.
+8. Optionally create public-page content: home content, FAQ entries and in-person classes.
+9. Confirm the synced content appears in Supabase and on the web.
 
 ## Local Validation
 

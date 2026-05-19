@@ -1,4 +1,4 @@
-# Suarez y Carmen | Academia Online de Bachata
+﻿# Suarez y Carmen | Academia Online de Bachata
 
 Proyecto Final de Grado (TFG) - 2o DAW
 
@@ -68,12 +68,15 @@ powershell -ExecutionPolicy Bypass -File .\scripts\supabase-start.ps1
 docker compose up -d --build
 ```
 
-3. Cargar contenido local de demo (cursos, lecciones, eventos y videos privados de prueba):
+3. Opcional: generar fixtures locales de desarrollo para probar cursos, lecciones, eventos y videos privados:
 
 ```bash
 cd backend
 npm run seed:local-content
 ```
+
+El contenido real de cursos, lecciones, eventos, clases y materiales se gestiona desde Strapi y se sincroniza hacia Supabase mediante el backend. Los fixtures anteriores no forman parte del flujo de produccion.
+El script se bloquea por defecto si `SUPABASE_URL` no apunta a un entorno local para evitar publicar contenido de prueba en una base de datos real por error.
 
 URLs:
 - Frontend: http://localhost:3000
@@ -115,15 +118,16 @@ Checklist de despliegue en `docs/deployment-checklist.md`.
 
 ## Endpoints backend
 
-Endpoints publicos por diseño:
+Endpoints publicos por diseno:
 - `GET /api/health`: comprobacion basica de estado sin detalles internos.
 - `POST /api/stripe/webhook`: webhook de Stripe, protegido mediante firma.
-- `POST /api/stripe/create-checkout-session`: requiere sesión de usuario.
-- `GET /api/stripe/checkout-session-status`: requiere sesión de usuario y valida pertenencia de la sesión.
+- `POST /api/stripe/create-checkout-session`: requiere sesion de usuario.
+- `GET /api/stripe/checkout-session-status`: requiere sesion de usuario y valida pertenencia de la sesion.
 - `GET /api/lessons/:lessonId/video-url`: devuelve URLs firmadas solo para previews o usuarios con compra valida.
 - `GET /api/lessons/playback/:token`: sirve video protegido desde backend sin exponer la URL privada de Storage.
 - `GET /api/lessons/hls/:token/manifest`: sirve manifiestos HLS reescritos a rutas protegidas.
 - `GET /api/lessons/hls/:token/resource`: sirve playlists hijas y segmentos HLS protegidos.
+- `GET /api/course-resources/:resourceId/download-url`: devuelve materiales descargables solo si son preview o el usuario tiene compra valida. Los materiales de pago deben usar Storage privado.
 - `GET /api/video-devices`: lista dispositivos de video del usuario autenticado.
 - `POST /api/video-devices/:deviceId/revoke`: revoca un dispositivo de video del usuario autenticado.
 - `POST /api/cms/sync`: sincronizacion Strapi -> Express, protegida con `CMS_SYNC_TOKEN`.
@@ -159,6 +163,7 @@ El repositorio tambien ejecuta en CI auditoria de dependencias, lint, type-check
 - El backend Express mantiene la logica sensible: checkout, webhooks, sincronizacion CMS y URLs firmadas de video.
 - El frontend aplica cabeceras de seguridad basicas: `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy` y `Permissions-Policy`.
 - Los videos privados se sirven mediante proxy temporal del backend; no se debe exponer directamente el bucket privado ni sus URLs firmadas al cliente final.
+- Los materiales descargables de pago deben almacenarse en el bucket privado `course-resources`; Strapi solo debe guardar la ruta privada (`resourceStoragePath`).
 - Los accesos de video se auditan con hashes de IP y user-agent; no se guardan esos valores en claro.
 - El acceso a video comprado limita dispositivos activos por usuario mediante identificadores en cookie HttpOnly y hashes almacenados en base de datos.
 - Si una leccion apunta a un manifiesto `.m3u8`, el backend reescribe el HLS para que playlists y segmentos pasen por rutas protegidas.

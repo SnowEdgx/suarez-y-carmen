@@ -240,6 +240,24 @@ function resolveSupabaseUrl(rawUrl) {
   return rawUrl;
 }
 
+function assertSafeFixtureTarget(rawUrl) {
+  if (process.env.ALLOW_REMOTE_FIXTURES === '1') return;
+
+  let parsed;
+  try {
+    parsed = new URL(rawUrl);
+  } catch {
+    throw new Error('SUPABASE_URL must be a valid URL before running local fixtures.');
+  }
+
+  const localHosts = new Set(['localhost', '127.0.0.1', '::1', 'host.docker.internal']);
+  if (localHosts.has(parsed.hostname)) return;
+
+  throw new Error(
+    'Refusing to seed fixture content into a non-local Supabase URL. Set ALLOW_REMOTE_FIXTURES=1 only for an intentional disposable environment.'
+  );
+}
+
 function assertNoError(result, context) {
   if (result.error) {
     throw new Error(`${context}: ${result.error.message}`);
@@ -483,6 +501,8 @@ if (!supabaseUrl || !supabaseKey) {
   );
 }
 
+assertSafeFixtureTarget(supabaseUrl);
+
 const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
     persistSession: false,
@@ -490,7 +510,7 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
   },
 });
 
-console.log('[seed] Seeding local courses, lessons, public content, events and demo private videos...');
+console.log('[seed] Seeding local fixture courses, lessons, public content, events and private videos...');
 
 for (const courseSeed of COURSE_SEEDS) {
   const courseId = await upsertCourse(courseSeed);
