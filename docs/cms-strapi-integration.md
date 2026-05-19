@@ -23,7 +23,7 @@ Strapi currently defines these editorial content types:
 
 - `Course`: title, slug, description, level, price, cover and publication state.
 - `Lesson`: course relation, title, description, order, duration, preview flag and `videoStoragePath`.
-- `Course Resource`: course relation, title, description, order, preview flag, optional public URL for previews and `resourceStoragePath` for private downloadable materials.
+- `Course Resource`: course relation, title, description, order, preview flag, optional public URL for previews and `resourceStoragePath` for private course materials.
 - `Event`: title, city, date, type, image and external links.
 - `Home Content`: editable hero copy and CTAs.
 - `FAQ`: editable public questions and answers.
@@ -73,7 +73,7 @@ bachazouk-vol-1/01-bienvenida.mp4
 
 The actual video file remains in the private Supabase Storage bucket. Express signs access only after checking preview or purchase permissions.
 
-## Downloadable Resource Rule
+## Course Resource Rule
 
 Course resources that belong to paid content must not use public Strapi upload URLs. Paid resources must store only `resourceStoragePath`, for example:
 
@@ -81,7 +81,7 @@ Course resources that belong to paid content must not use public Strapi upload U
 bachazouk-vol-1/guia-bachazouk.pdf
 ```
 
-The actual file must be uploaded to the private Supabase Storage bucket `course-resources`. Express returns a short-lived signed URL only after checking that the resource is a free preview or that the user owns the course.
+The actual file must be uploaded to the private Supabase Storage bucket `course-resources`. Express returns a short-lived platform path and serves the file through the backend in inline mode only after checking that the resource is a free preview or that the user owns the course.
 
 Public external URLs or Strapi files are acceptable only for free preview resources that are intentionally shareable.
 
@@ -111,7 +111,7 @@ Docker Compose provides local development defaults. Production must override the
 4. Create the first Strapi administrator.
 5. Create and publish a course.
 6. Create lessons linked to that course and provide `videoStoragePath`.
-7. Optionally create downloadable resources linked to that course and provide `resourceStoragePath` for paid materials.
+7. Optionally create course resources linked to that course and provide `resourceStoragePath` for paid materials.
 8. Optionally create public-page content: home content, FAQ entries and in-person classes.
 9. Confirm the synced content appears in Supabase and on the web.
 

@@ -1,9 +1,17 @@
-const { supabase } = require('../config/supabase');
+const { Readable } = require('stream');
+const { getForwardableRangeHeader } = require('../utils/range-header');
 const { isSafeStorageObjectPath } = require('./video-storage/path-validation');
+const { fetchStorageObject } = require('./video-storage.service');
 
 const configuredResourceBucket = (process.env.SUPABASE_RESOURCE_BUCKET || '').trim();
 const DEFAULT_RESOURCE_BUCKET = configuredResourceBucket || 'course-resources';
-const RESOURCE_SIGNED_URL_TTL_SECONDS = 300;
+const CONTENT_TYPE_BY_EXTENSION = new Map([
+  ['.pdf', 'application/pdf'],
+  ['.jpg', 'image/jpeg'],
+  ['.jpeg', 'image/jpeg'],
+  ['.png', 'image/png'],
+  ['.webp', 'image/webp'],
+]);
 
 function isAllowedResourceBucket(bucket) {
   return bucket === DEFAULT_RESOURCE_BUCKET;
@@ -35,24 +43,96 @@ function resolveResourceStorageReference(rawValue) {
   return { bucket: DEFAULT_RESOURCE_BUCKET, path: value };
 }
 
-async function createResourceSignedUrl(storageReference) {
-  const { data, error } = await supabase.storage
-    .from(storageReference.bucket)
-    .createSignedUrl(storageReference.path, RESOURCE_SIGNED_URL_TTL_SECONDS, {
-      download: true,
-    });
+function getResourceContentType(storagePath) {
+  const lowerPath = storagePath.toLowerCase();
+  for (const [extension, contentType] of CONTENT_TYPE_BY_EXTENSION.entries()) {
+    if (lowerPath.endsWith(extension)) return contentType;
+  }
+  return 'application/octet-stream';
+}
 
-  if (error || !data?.signedUrl) {
-    console.error('[Resource Storage Service] Error creating signed URL:', error?.message || 'unknown storage error');
-    const signingError = new Error('Could not create signed resource URL.');
-    signingError.status = 500;
-    throw signingError;
+function sanitizeInlineFileName(value) {
+  if (typeof value !== 'string') return 'material';
+  const fileName = value.split('/').pop()?.trim() || 'material';
+  return fileName.replace(/["\r\n\\]/g, '').slice(0, 180) || 'material';
+}
+
+function getAllowedFrameAncestors() {
+  const rawOrigins = [
+    process.env.FRONTEND_URL,
+    ...(process.env.CORS_ORIGINS || '').split(','),
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+  ];
+  const origins = new Set(["'self'"]);
+
+  for (const rawOrigin of rawOrigins) {
+    const value = typeof rawOrigin === 'string' ? rawOrigin.trim() : '';
+    if (!value) continue;
+
+    try {
+      const url = new URL(value);
+      if (url.protocol === 'http:' || url.protocol === 'https:') {
+        origins.add(url.origin);
+      }
+    } catch {
+      // Ignore malformed deployment values; CORS validation handles them elsewhere.
+    }
   }
 
-  return data.signedUrl;
+  return Array.from(origins).join(' ');
+}
+
+function applyResourceSecurityHeaders(res, storageReference, upstreamHeaders) {
+  res.removeHeader('X-Frame-Options');
+  res.set('Accept-Ranges', 'bytes');
+  res.set('Cache-Control', 'private, no-store, max-age=0, must-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  res.set('X-Content-Type-Options', 'nosniff');
+  res.set('Cross-Origin-Resource-Policy', 'cross-origin');
+  res.set('Content-Security-Policy', `frame-ancestors ${getAllowedFrameAncestors()}`);
+  res.set('Content-Disposition', `inline; filename="${sanitizeInlineFileName(storageReference.path)}"`);
+  res.set(
+    'Access-Control-Expose-Headers',
+    'Accept-Ranges, Content-Length, Content-Range, Content-Type'
+  );
+
+  const upstreamContentType = upstreamHeaders.get('content-type');
+  res.set('Content-Type', upstreamContentType || getResourceContentType(storageReference.path));
+}
+
+function copyHeader(sourceHeaders, targetResponse, sourceName, targetName = sourceName) {
+  const value = sourceHeaders.get(sourceName);
+  if (value) targetResponse.set(targetName, value);
+}
+
+async function streamResourceStorageObject({ req, res, storageReference }) {
+  const rangeHeader = getForwardableRangeHeader(req);
+  const upstreamResponse = await fetchStorageObject(storageReference, { rangeHeader });
+
+  if (!upstreamResponse.ok && upstreamResponse.status !== 206) {
+    console.error('[Resource Storage Service] Storage stream failed:', upstreamResponse.status);
+    const error = new Error('Could not stream course resource.');
+    error.status = 502;
+    throw error;
+  }
+
+  applyResourceSecurityHeaders(res, storageReference, upstreamResponse.headers);
+  res.status(upstreamResponse.status);
+  copyHeader(upstreamResponse.headers, res, 'content-length', 'Content-Length');
+  copyHeader(upstreamResponse.headers, res, 'content-range', 'Content-Range');
+  copyHeader(upstreamResponse.headers, res, 'etag', 'ETag');
+  copyHeader(upstreamResponse.headers, res, 'last-modified', 'Last-Modified');
+
+  if (!upstreamResponse.body) {
+    return res.end();
+  }
+
+  return Readable.fromWeb(upstreamResponse.body).pipe(res);
 }
 
 module.exports = {
-  createResourceSignedUrl,
   resolveResourceStorageReference,
+  streamResourceStorageObject,
 };

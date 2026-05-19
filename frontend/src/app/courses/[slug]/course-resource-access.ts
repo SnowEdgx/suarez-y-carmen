@@ -1,6 +1,6 @@
 import "server-only";
 
-import { getBackendUrl } from "@/lib/backend-url";
+import { getBackendUrl, getPublicBackendUrl } from "@/lib/backend-url";
 
 export type CourseResourceAccess = {
   url: string | null;
@@ -19,7 +19,7 @@ export async function resolveCourseResourceAccess(options: {
   let response: Response;
   try {
     response = await fetch(
-      `${getBackendUrl()}/api/course-resources/${encodeURIComponent(options.resourceId)}/download-url`,
+      `${getBackendUrl()}/api/course-resources/${encodeURIComponent(options.resourceId)}/view-url`,
       {
         method: "GET",
         headers,
@@ -44,6 +44,10 @@ export async function resolveCourseResourceAccess(options: {
     };
   }
 
+  if (typeof payload?.path === "string" && payload.path.startsWith("/")) {
+    return { url: `${getPublicBackendUrl()}${payload.path}`, errorCode: null };
+  }
+
   return {
     url: typeof payload?.url === "string" ? payload.url : null,
     errorCode: typeof payload?.url === "string" ? null : "resource_unavailable",
@@ -53,15 +57,15 @@ export async function resolveCourseResourceAccess(options: {
 export function resolveResourceAccessMessage(errorCode: string | null) {
   switch (errorCode) {
     case "authentication_required":
-      return "Inicia sesi\u00f3n para descargar este material.";
+      return "Inicia sesi\u00f3n para ver este material.";
     case "email_not_verified":
-      return "Verifica tu correo antes de descargar materiales del curso.";
+      return "Verifica tu correo antes de acceder a los materiales del curso.";
     case "course_not_purchased":
       return "Este material se desbloquea al comprar el curso.";
     case "service_unavailable":
       return "No pudimos contactar con el servicio de materiales. Int\u00e9ntalo de nuevo en unos segundos.";
     case "resource_unavailable":
-      return "No pudimos preparar la descarga ahora mismo.";
+      return "No pudimos preparar el material ahora mismo.";
     default:
       return null;
   }

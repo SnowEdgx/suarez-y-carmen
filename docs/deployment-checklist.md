@@ -65,6 +65,7 @@ STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
 CMS_SYNC_TOKEN=
 VIDEO_PLAYBACK_TOKEN_SECRET=
+COURSE_RESOURCE_TOKEN_SECRET=
 VIDEO_AUDIT_HASH_SECRET=
 ```
 
@@ -85,7 +86,7 @@ Production setup:
 - Apply migrations through Supabase CLI or a controlled migration workflow.
 - Confirm RLS is enabled on user, purchase, progress, video audit and editorial tables.
 - Keep Storage buckets for private video non-public.
-- Keep Storage buckets for private downloadable resources non-public.
+- Keep Storage buckets for private course resources non-public.
 - Configure Auth redirect URLs for the final frontend domain.
 - Configure SMTP settings for production email delivery.
 

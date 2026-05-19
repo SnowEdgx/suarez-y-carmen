@@ -197,7 +197,8 @@ Rules:
 
 | Method | Path | Auth | Purpose |
 |---|---|---|---|
-| `GET` | `/api/course-resources/:resourceId/download-url` | Optional for preview, required for paid resources | Returns a short-lived signed download URL or a safe public preview URL. |
+| `GET` | `/api/course-resources/:resourceId/view-url` | Optional for preview, required for paid resources | Returns a short-lived platform view path or a safe public preview URL. |
+| `GET` | `/api/course-resources/view/:token` | Resource token | Serves a private resource through the backend with inline disposition. |
 
 Rules:
 
@@ -205,14 +206,17 @@ Rules:
 - Paid resources require a verified user and paid course access.
 - Paid resources must reference the private Supabase Storage bucket `course-resources` through `resourceStoragePath`.
 - Public Strapi upload URLs or external URLs are allowed only for intentionally shareable preview resources.
+- Private Supabase Storage signed URLs are not returned directly to the browser.
+- The backend serves private resources with `Content-Disposition: inline`; the UI presents them as in-page course material.
+- Inline private resources can be embedded only by the configured frontend origins through `frame-ancestors`.
 
 Success response:
 
 ```json
 {
-  "url": "https://...",
+  "path": "/api/course-resources/view/<token>",
   "expiresInSeconds": 300,
-  "source": "signed_storage"
+  "source": "protected_resource"
 }
 ```
 
@@ -268,3 +272,4 @@ This endpoint exists only outside production when `ENABLE_SUPABASE_TEST_ENDPOINT
 - Public browser code only receives public Supabase anon keys and safe backend URLs.
 - Backend logs may include technical context, but public responses stay concise.
 - Private video delivery relies on purchase checks, short-lived playback tokens, device limits, HLS rewriting and backend proxying.
+- Private course resources rely on purchase checks, short-lived resource tokens, backend proxying and inline rendering. This reduces link sharing but does not claim browser-level DRM.

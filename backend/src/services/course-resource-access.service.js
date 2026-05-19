@@ -1,8 +1,11 @@
 const { supabase } = require('../config/supabase');
 const {
-  createResourceSignedUrl,
   resolveResourceStorageReference,
 } = require('./resource-storage.service');
+const {
+  COURSE_RESOURCE_TOKEN_TTL_SECONDS,
+  createCourseResourceToken,
+} = require('./course-resource-token.service');
 
 function isSafeExternalUrl(value) {
   if (typeof value !== 'string') return false;
@@ -95,14 +98,20 @@ async function resolveCourseResourceAccess({ resourceId, user }) {
 
   const storageReference = resolveResourceStorageReference(resource.resource_storage_path);
   if (storageReference) {
+    const resourceToken = createCourseResourceToken({
+      resourceId: resource.id,
+      storageReference,
+      userId: user?.id || null,
+    });
+
     return {
-      url: await createResourceSignedUrl(storageReference),
-      expiresInSeconds: 300,
-      source: 'signed_storage',
+      path: `/api/course-resources/view/${encodeURIComponent(resourceToken.token)}`,
+      expiresInSeconds: COURSE_RESOURCE_TOKEN_TTL_SECONDS,
+      source: 'protected_resource',
     };
   }
 
-  if (isSafeExternalUrl(resource.resource_url)) {
+  if (resource.is_free_preview && isSafeExternalUrl(resource.resource_url)) {
     return {
       url: resource.resource_url,
       expiresInSeconds: null,

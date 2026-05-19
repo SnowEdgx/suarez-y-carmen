@@ -9,7 +9,7 @@ type CourseResourcesPanelProps = {
 function getResourceLabel(resource: CourseDetailResource) {
   if (resource.file_name) return resource.file_name;
   if (resource.mime_type?.includes("pdf")) return "PDF";
-  return "Material descargable";
+  return "Material del curso";
 }
 
 export default function CourseResourcesPanel({
@@ -25,7 +25,7 @@ export default function CourseResourcesPanel({
 
       {resources.length === 0 ? (
         <p className="text-sm leading-relaxed text-neutral-400">
-          Los materiales descargables aparecer\u00e1n aqu\u00ed cuando el curso est\u00e9 desbloqueado.
+          Los materiales del curso aparecer\u00e1n aqu\u00ed cuando el acceso est\u00e9 desbloqueado.
         </p>
       ) : (
         <ul className="space-y-3">
@@ -46,20 +46,36 @@ export default function CourseResourcesPanel({
                   </div>
 
                   {access.url ? (
-                    <a
-                      href={access.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="shrink-0 rounded-full bg-red-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-red-700"
-                    >
-                      Descargar
-                    </a>
+                    <span className="shrink-0 rounded-full border border-green-500/40 bg-green-500/10 px-4 py-2 text-xs font-semibold text-green-200">
+                      Disponible
+                    </span>
                   ) : (
                     <span className="shrink-0 rounded-full border border-neutral-700 px-4 py-2 text-xs font-semibold text-neutral-500">
                       Bloqueado
                     </span>
                   )}
                 </div>
+
+                {access.url && (
+                  <div className="mt-4 overflow-hidden rounded-xl border border-neutral-800 bg-neutral-950">
+                    <iframe
+                      src={access.url}
+                      title={`Material del curso: ${resource.title}`}
+                      className="h-[420px] w-full bg-neutral-950"
+                      referrerPolicy="no-referrer"
+                    />
+                    <div className="border-t border-neutral-800 px-4 py-3 text-right">
+                      <a
+                        href={access.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-semibold text-neutral-300 underline-offset-4 hover:text-white hover:underline"
+                      >
+                        Abrir en pantalla completa
+                      </a>
+                    </div>
+                  </div>
+                )}
 
                 {access.errorMessage && (
                   <p className="mt-3 text-xs leading-relaxed text-neutral-500">{access.errorMessage}</p>

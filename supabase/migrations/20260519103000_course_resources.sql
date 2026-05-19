@@ -1,4 +1,4 @@
--- Course downloadable resources managed from Strapi and protected through the backend.
+-- Course resources managed from Strapi and protected through the backend.
 
 create table if not exists public.course_resources (
   id uuid default gen_random_uuid() primary key,

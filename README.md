@@ -127,7 +127,8 @@ Endpoints publicos por diseno:
 - `GET /api/lessons/playback/:token`: sirve video protegido desde backend sin exponer la URL privada de Storage.
 - `GET /api/lessons/hls/:token/manifest`: sirve manifiestos HLS reescritos a rutas protegidas.
 - `GET /api/lessons/hls/:token/resource`: sirve playlists hijas y segmentos HLS protegidos.
-- `GET /api/course-resources/:resourceId/download-url`: devuelve materiales descargables solo si son preview o el usuario tiene compra valida. Los materiales de pago deben usar Storage privado.
+- `GET /api/course-resources/:resourceId/view-url`: devuelve una ruta temporal de visualizacion para materiales del curso solo si son preview o el usuario tiene compra valida.
+- `GET /api/course-resources/view/:token`: sirve materiales del curso desde backend en modo inline, sin exponer la URL privada de Storage.
 - `GET /api/video-devices`: lista dispositivos de video del usuario autenticado.
 - `POST /api/video-devices/:deviceId/revoke`: revoca un dispositivo de video del usuario autenticado.
 - `POST /api/cms/sync`: sincronizacion Strapi -> Express, protegida con `CMS_SYNC_TOKEN`.
@@ -163,7 +164,8 @@ El repositorio tambien ejecuta en CI auditoria de dependencias, lint, type-check
 - El backend Express mantiene la logica sensible: checkout, webhooks, sincronizacion CMS y URLs firmadas de video.
 - El frontend aplica cabeceras de seguridad basicas: `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy` y `Permissions-Policy`.
 - Los videos privados se sirven mediante proxy temporal del backend; no se debe exponer directamente el bucket privado ni sus URLs firmadas al cliente final.
-- Los materiales descargables de pago deben almacenarse en el bucket privado `course-resources`; Strapi solo debe guardar la ruta privada (`resourceStoragePath`).
+- Los materiales de pago deben almacenarse en el bucket privado `course-resources`; Strapi solo debe guardar la ruta privada (`resourceStoragePath`).
+- Los materiales y videos se muestran dentro de la plataforma con rutas temporales. Esto reduce comparticion directa de enlaces, aunque ningun contenido servido a un navegador puede impedir al 100% capturas o extraccion por parte de un usuario decidido.
 - Los accesos de video se auditan con hashes de IP y user-agent; no se guardan esos valores en claro.
 - El acceso a video comprado limita dispositivos activos por usuario mediante identificadores en cookie HttpOnly y hashes almacenados en base de datos.
 - Si una leccion apunta a un manifiesto `.m3u8`, el backend reescribe el HLS para que playlists y segmentos pasen por rutas protegidas.

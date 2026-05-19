@@ -5,7 +5,7 @@
     "singularName": "course-resource",
     "pluralName": "course-resources",
     "displayName": "Material del curso",
-    "description": "Materiales descargables del curso sincronizados con Supabase."
+    "description": "Materiales del curso sincronizados con Supabase para acceso protegido."
   },
   "options": {
     "draftAndPublish": true

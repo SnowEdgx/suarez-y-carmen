@@ -11,6 +11,7 @@ const resourceUrlRateLimit = createIpRateLimit({
   message: 'Demasiadas solicitudes. Int\u00e9ntalo de nuevo en un minuto.',
 });
 
-router.get('/:resourceId/download-url', resourceUrlRateLimit, courseResourceController.getCourseResourceUrl);
+router.get('/:resourceId/view-url', resourceUrlRateLimit, courseResourceController.getCourseResourceViewUrl);
+router.get('/view/:token', resourceUrlRateLimit, courseResourceController.viewCourseResource);
 
 module.exports = router;
