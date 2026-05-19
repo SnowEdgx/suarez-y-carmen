@@ -4,8 +4,8 @@
   "info": {
     "singularName": "faq",
     "pluralName": "faqs",
-    "displayName": "FAQ",
-    "description": "Editable frequently asked questions."
+    "displayName": "Preguntas frecuentes",
+    "description": "Preguntas y respuestas editables de la página pública."
   },
   "options": {
     "draftAndPublish": true

@@ -4,8 +4,8 @@
   "info": {
     "singularName": "in-person-class",
     "pluralName": "in-person-classes",
-    "displayName": "In-person Class",
-    "description": "Editable public information for regular in-person classes."
+    "displayName": "Clase presencial",
+    "description": "Información pública editable de clases presenciales regulares."
   },
   "options": {
     "draftAndPublish": true

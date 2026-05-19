@@ -4,8 +4,8 @@
   "info": {
     "singularName": "event",
     "pluralName": "events",
-    "displayName": "Event",
-    "description": "Public agenda items synced into Supabase."
+    "displayName": "Evento",
+    "description": "Elementos de agenda pública sincronizados con Supabase."
   },
   "options": {
     "draftAndPublish": true

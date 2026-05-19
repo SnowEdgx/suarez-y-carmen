@@ -4,8 +4,8 @@
   "info": {
     "singularName": "home-content",
     "pluralName": "home-contents",
-    "displayName": "Home Content",
-    "description": "Editable public home page copy and calls to action."
+    "displayName": "Contenido de inicio",
+    "description": "Textos y llamadas a la acción editables de la página de inicio."
   },
   "options": {
     "draftAndPublish": true

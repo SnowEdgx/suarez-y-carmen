@@ -4,8 +4,8 @@
   "info": {
     "singularName": "course",
     "pluralName": "courses",
-    "displayName": "Course",
-    "description": "Editorial course metadata synced into Supabase."
+    "displayName": "Curso",
+    "description": "Metadatos editoriales de cursos sincronizados con Supabase."
   },
   "options": {
     "draftAndPublish": true
