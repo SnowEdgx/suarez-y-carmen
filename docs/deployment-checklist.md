@@ -20,6 +20,7 @@ Before deploying:
 - Run frontend lint, type-check and build.
 - Run backend syntax checks.
 - Run CMS build.
+- Build production backend and CMS container images with `backend/Dockerfile` and `cms/Dockerfile`.
 - Apply Supabase migrations in a controlled environment.
 - Verify local checkout and webhook flow in Stripe test mode.
 - Verify private video access, private course resources, HLS rewriting and device revocation.
@@ -75,6 +76,7 @@ Deployment notes:
 - `ENABLE_SUPABASE_TEST_ENDPOINT` must stay disabled by default; production code ignores it even if it is accidentally set.
 - `VIDEO_PLAYBACK_TOKEN_SECRET` and `VIDEO_AUDIT_HASH_SECRET` must be long random secrets.
 - Backend logs can contain operational context, but public responses must stay generic.
+- Production backend images use `backend/Dockerfile`; local hot-reload remains in `backend/Dockerfile.dev`.
 
 ## Supabase
 
@@ -134,6 +136,7 @@ Deployment notes:
 - Strapi must not receive Supabase service-role keys, Stripe keys or student tokens.
 - CMS uploads should use persistent storage in production.
 - Publishing content in Strapi must sync through the Express backend.
+- Production CMS images use `cms/Dockerfile`; local hot-reload remains in `cms/Dockerfile.dev`.
 
 ## Domain and HTTPS
 
