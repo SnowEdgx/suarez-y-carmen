@@ -46,6 +46,7 @@ services:
       - ENABLE_SUPABASE_TEST_ENDPOINT=${ENABLE_SUPABASE_TEST_ENDPOINT:-false}
       - RUNNING_IN_DOCKER=true
       - SUPABASE_URL=http://host.docker.internal:54321
+      - SUPABASE_RESOURCE_BUCKET=${SUPABASE_RESOURCE_BUCKET:-course-resources}
       - CMS_SYNC_TOKEN=${CMS_SYNC_TOKEN:-local-cms-sync-token-change-me}
       - VIDEO_PLAYBACK_TOKEN_SECRET=${VIDEO_PLAYBACK_TOKEN_SECRET:-local-video-playback-token-change-me}
       - VIDEO_AUDIT_HASH_SECRET=${VIDEO_AUDIT_HASH_SECRET:-local-video-audit-hash-change-me}
