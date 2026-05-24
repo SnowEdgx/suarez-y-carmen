@@ -9,6 +9,7 @@ function getCmsRemotePattern() {
   try {
     const url = new URL(rawUrl);
     if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+    if (url.username || url.password) return null;
 
     return {
       protocol: url.protocol.replace(":", "") as "http" | "https",
@@ -46,6 +47,10 @@ const nextConfig: NextConfig = {
           {
             key: "Permissions-Policy",
             value: "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+          },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=31536000",
           },
         ],
       },
