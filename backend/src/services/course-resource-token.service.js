@@ -15,8 +15,8 @@ const COURSE_RESOURCE_TOKEN_TTL_SECONDS =
 const COURSE_RESOURCE_TOKEN_SECRET =
   process.env.COURSE_RESOURCE_TOKEN_SECRET || process.env.VIDEO_PLAYBACK_TOKEN_SECRET || supabaseServiceKey;
 
-if (isProduction && !process.env.COURSE_RESOURCE_TOKEN_SECRET && !process.env.VIDEO_PLAYBACK_TOKEN_SECRET) {
-  throw new Error('COURSE_RESOURCE_TOKEN_SECRET or VIDEO_PLAYBACK_TOKEN_SECRET is required in production.');
+if (isProduction && !process.env.COURSE_RESOURCE_TOKEN_SECRET) {
+  throw new Error('COURSE_RESOURCE_TOKEN_SECRET is required in production.');
 }
 
 const MAX_RESOURCE_TOKEN_LENGTH = 4096;
