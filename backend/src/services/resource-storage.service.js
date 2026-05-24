@@ -5,6 +5,7 @@ const { fetchStorageObject } = require('./video-storage.service');
 
 const configuredResourceBucket = (process.env.SUPABASE_RESOURCE_BUCKET || '').trim();
 const DEFAULT_RESOURCE_BUCKET = configuredResourceBucket || 'course-resources';
+const isProduction = process.env.NODE_ENV === 'production';
 const CONTENT_TYPE_BY_EXTENSION = new Map([
   ['.pdf', 'application/pdf'],
   ['.jpg', 'image/jpeg'],
@@ -61,8 +62,7 @@ function getAllowedFrameAncestors() {
   const rawOrigins = [
     process.env.FRONTEND_URL,
     ...(process.env.CORS_ORIGINS || '').split(','),
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
+    ...(!isProduction ? ['http://localhost:3000', 'http://127.0.0.1:3000'] : []),
   ];
   const origins = new Set(["'self'"]);
 
