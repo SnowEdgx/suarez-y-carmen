@@ -7,6 +7,7 @@ import { getBackendUrl } from '@/lib/backend-url'
 import { DEVICE_ID_HEADER, isValidDeviceId } from '@/lib/device-session'
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{12}$/i
+const MAX_PROFILE_NAME_LENGTH = 120
 
 export async function updateProfileName(formData: FormData) {
   const supabase = await createClient()
@@ -18,15 +19,18 @@ export async function updateProfileName(formData: FormData) {
     return { error: 'Tu sesión ha expirado. Vuelve a iniciar sesión.' }
   }
 
-  const fullName = formData.get('fullName') as string
-  if (!fullName || fullName.trim().length < 2) {
+  const fullName = typeof formData.get('fullName') === 'string' ? (formData.get('fullName') as string).trim() : ''
+  if (fullName.length < 2) {
     return { error: 'El nombre debe tener al menos 2 caracteres.' }
+  }
+  if (fullName.length > MAX_PROFILE_NAME_LENGTH) {
+    return { error: 'El nombre no puede superar 120 caracteres.' }
   }
 
   // Upsert supports legacy users that may not have a profile row yet.
   const { error } = await supabase
     .from('profiles')
-    .upsert({ id: user.id, full_name: fullName.trim(), updated_at: new Date().toISOString() })
+    .upsert({ id: user.id, full_name: fullName, updated_at: new Date().toISOString() })
 
   if (error) {
     console.error('[Profile Update] Could not update profile:', error.message)
@@ -35,7 +39,7 @@ export async function updateProfileName(formData: FormData) {
 
   // Keep auth metadata aligned so navbar/profile names stay in sync.
   const { error: authUpdateError } = await supabase.auth.updateUser({
-    data: { name: fullName.trim() },
+    data: { name: fullName },
   })
 
   if (authUpdateError) {

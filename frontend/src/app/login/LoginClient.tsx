@@ -12,7 +12,6 @@ import PendingVerificationNotice from './PendingVerificationNotice'
 import {
   login,
   resendSignupVerification,
-  requestPasswordRecovery,
   signup,
 } from './actions'
 import { getQueryErrorMessage, resolveTopInfoMessage } from './login-messages'
@@ -31,7 +30,6 @@ function LoginPageContent() {
   const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string | null>(null)
   const [isPending, setIsPending] = useState(false)
   const [isResendingVerification, setIsResendingVerification] = useState(false)
-  const [isRecoveryPending, setIsRecoveryPending] = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
 
   const visibleErrorMessage = errorMessage ?? callbackError
@@ -104,31 +102,6 @@ function LoginPageContent() {
     }
   }
 
-  async function handlePasswordRecovery(email: string) {
-    setIsRecoveryPending(true)
-    setErrorMessage(null)
-    setSuccessMessage(null)
-
-    const formData = new FormData()
-    formData.append('email', email)
-
-    try {
-      const result = (await requestPasswordRecovery(formData)) as ActionResult
-      if (result.error) {
-        setErrorMessage(result.error)
-        return
-      }
-
-      if (result.success) {
-        setSuccessMessage(result.success)
-      }
-    } catch {
-      setErrorMessage('No pudimos iniciar la recuperación ahora mismo. Inténtalo de nuevo en unos minutos.')
-    } finally {
-      setIsRecoveryPending(false)
-    }
-  }
-
   function handleModeToggle() {
     setIsLoginMode(!isLoginMode)
     setErrorMessage(null)
@@ -154,34 +127,32 @@ function LoginPageContent() {
           </div>
 
           <div className="relative w-full border-y border-neutral-800 bg-neutral-950/80 py-8 lg:border lg:p-8">
-          <div className="mb-8">
-            <h2 className="text-3xl font-serif font-bold text-white mb-2">
-              {isLoginMode ? 'Bienvenido de nuevo' : 'Crea tu cuenta'}
-            </h2>
-            <p className="text-neutral-400">
-              {isLoginMode
-                ? 'Entra para ver tus cursos y continuar tu progreso.'
-                : 'Crea tu acceso para comprar cursos y guardar tu progreso.'}
-            </p>
-          </div>
+            <div className="mb-8">
+              <h2 className="text-3xl font-serif font-bold text-white mb-2">
+                {isLoginMode ? 'Bienvenido de nuevo' : 'Crea tu cuenta'}
+              </h2>
+              <p className="text-neutral-400">
+                {isLoginMode
+                  ? 'Entra para ver tus cursos y continuar tu progreso.'
+                  : 'Crea tu acceso para comprar cursos y guardar tu progreso.'}
+              </p>
+            </div>
 
-          <LoginAlerts errorMessage={visibleErrorMessage} topInfoMessage={topInfoMessage} />
-          <PendingVerificationNotice
-            email={pendingVerificationEmail}
-            isResending={isResendingVerification}
-            onResend={handleResendVerification}
-          />
-          <LoginAuthForm
-            formRef={formRef}
-            isLoginMode={isLoginMode}
-            nextPath={nextPath}
-            defaultEmail={defaultEmail}
-            isPending={isPending}
-            isRecoveryPending={isRecoveryPending}
-            onSubmit={handleSubmit}
-            onPasswordRecovery={handlePasswordRecovery}
-          />
-          <LoginModeToggle isLoginMode={isLoginMode} onToggle={handleModeToggle} />
+            <LoginAlerts errorMessage={visibleErrorMessage} topInfoMessage={topInfoMessage} />
+            <PendingVerificationNotice
+              email={pendingVerificationEmail}
+              isResending={isResendingVerification}
+              onResend={handleResendVerification}
+            />
+            <LoginAuthForm
+              formRef={formRef}
+              isLoginMode={isLoginMode}
+              nextPath={nextPath}
+              defaultEmail={defaultEmail}
+              isPending={isPending}
+              onSubmit={handleSubmit}
+            />
+            <LoginModeToggle isLoginMode={isLoginMode} onToggle={handleModeToggle} />
           </div>
         </section>
       </main>

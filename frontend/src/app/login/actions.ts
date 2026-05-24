@@ -19,6 +19,9 @@ const RESEND_VERIFICATION_REQUESTED_MESSAGE =
   'Solicitud registrada. Si la cuenta existe y puede recibir correo, enviaremos un nuevo enlace en unos minutos.'
 const RECOVERY_REQUESTED_MESSAGE =
   'Si existe una cuenta con ese correo, enviaremos un enlace seguro para restablecer la contraseña.'
+const MAX_EMAIL_LENGTH = 254
+const MAX_NAME_LENGTH = 120
+const MAX_PASSWORD_LENGTH = 128
 
 type AuthUser = {
   email_confirmed_at?: string | null
@@ -54,6 +57,7 @@ function normalizeEmail(value: FormDataEntryValue | null) {
 }
 
 function isValidEmail(email: string) {
+  if (email.length > MAX_EMAIL_LENGTH) return false
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
 
@@ -83,6 +87,9 @@ export async function login(formData: FormData) {
 
   if (!isValidEmail(email) || password.length < 1) {
     return { error: 'Introduce un correo válido y tu contraseña.' }
+  }
+  if (password.length > MAX_PASSWORD_LENGTH) {
+    return { error: 'La contraseña introducida es demasiado larga.' }
   }
 
   const { data: authData, error } = await supabase.auth.signInWithPassword({
@@ -119,11 +126,17 @@ export async function signup(formData: FormData) {
   if (password.length < 8) {
     return { error: 'La contrase\u00f1a debe tener al menos 8 caracteres.' }
   }
+  if (password.length > MAX_PASSWORD_LENGTH) {
+    return { error: 'La contraseña no puede superar 128 caracteres.' }
+  }
   if (!isValidEmail(email)) {
     return { error: 'Introduce un correo válido.' }
   }
   if (name.length < 2) {
     return { error: 'El nombre debe tener al menos 2 caracteres.' }
+  }
+  if (name.length > MAX_NAME_LENGTH) {
+    return { error: 'El nombre no puede superar 120 caracteres.' }
   }
 
   const { error, data: authData } = await supabase.auth.signUp({
@@ -211,6 +224,9 @@ export async function updatePassword(formData: FormData) {
 
   if (password.length < 8) {
     return { error: 'La nueva contraseña debe tener al menos 8 caracteres.' }
+  }
+  if (password.length > MAX_PASSWORD_LENGTH) {
+    return { error: 'La nueva contraseña no puede superar 128 caracteres.' }
   }
 
   if (password !== confirmPassword) {
