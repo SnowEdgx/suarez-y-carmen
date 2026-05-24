@@ -134,9 +134,13 @@ export default function VideoDevicesPanel({
                       <span className="text-[11px] uppercase tracking-wide px-2.5 py-1 rounded-full border border-neutral-700 bg-neutral-800 text-neutral-400">
                         Revocado
                       </span>
-                    ) : (
+                    ) : device.isActive ? (
                       <span className="text-[11px] uppercase tracking-wide px-2.5 py-1 rounded-full border border-blue-500/20 bg-blue-500/10 text-blue-300">
                         Activo
+                      </span>
+                    ) : (
+                      <span className="text-[11px] uppercase tracking-wide px-2.5 py-1 rounded-full border border-amber-500/20 bg-amber-500/10 text-amber-300">
+                        Inactivo
                       </span>
                     )}
                   </div>

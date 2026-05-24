@@ -60,14 +60,23 @@ function getActiveDeviceCutoffIso() {
   ).toISOString();
 }
 
-function normalizeDevice(row, currentDeviceHash) {
+function isVideoDeviceActive(row, activeCutoffMs = Date.parse(getActiveDeviceCutoffIso())) {
+  if (!row || row.revoked_at) return false;
+
+  const lastSeenAt = Date.parse(row.last_seen_at || row.first_seen_at || '');
+  if (!Number.isFinite(lastSeenAt)) return false;
+
+  return lastSeenAt >= activeCutoffMs;
+}
+
+function normalizeDevice(row, currentDeviceHash, activeCutoffMs) {
   return {
     id: row.id,
     firstSeenAt: row.first_seen_at,
     lastSeenAt: row.last_seen_at,
     revokedAt: row.revoked_at,
     isCurrent: Boolean(currentDeviceHash && row.device_id_hash === currentDeviceHash),
-    isActive: !row.revoked_at,
+    isActive: isVideoDeviceActive(row, activeCutoffMs),
   };
 }
 
@@ -154,6 +163,7 @@ async function assertPlaybackDeviceStillActive({ userId, deviceIdHash }) {
 
 async function listVideoDevicesForUser({ userId, currentDeviceId }) {
   const currentDeviceHash = currentDeviceId ? hashRequestValue(currentDeviceId) : null;
+  const activeCutoffMs = Date.parse(getActiveDeviceCutoffIso());
 
   const { data, error } = await supabase
     .from('user_video_devices')
@@ -163,7 +173,7 @@ async function listVideoDevicesForUser({ userId, currentDeviceId }) {
 
   if (error) throw error;
 
-  const devices = (data || []).map((row) => normalizeDevice(row, currentDeviceHash));
+  const devices = (data || []).map((row) => normalizeDevice(row, currentDeviceHash, activeCutoffMs));
   return {
     devices,
     activeDeviceCount: devices.filter((device) => device.isActive).length,
@@ -217,6 +227,7 @@ module.exports = {
   assertVideoDeviceAccess,
   getPlaybackDeviceId,
   hashRequestValue,
+  isVideoDeviceActive,
   listVideoDevicesForUser,
   revokeVideoDeviceForUser,
 };
