@@ -1,8 +1,10 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { ReactNode } from "react";
 import { STORAGE_ASSETS } from "@/lib/constants";
 import { normalizeDisplayText } from "@/lib/display-text";
 import { hasUnsafeInternalPathSegments } from "@/lib/internal-path";
+import HeroBackgroundVideo from "./HeroBackgroundVideo";
 
 export type HomeHeroContent = {
   hero_eyebrow: string | null;
@@ -85,14 +87,17 @@ export default function Hero({ content = null }: HeroProps) {
 
   return (
     <section className="relative h-screen w-full flex items-center justify-center overflow-hidden bg-neutral-950">
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        className="absolute inset-0 w-full h-full object-cover object-[center_30%]"
-        src={videoUrl}
+      <Image
+        src={STORAGE_ASSETS.IMG_2681}
+        alt=""
+        aria-hidden="true"
+        fill
+        priority
+        quality={72}
+        sizes="100vw"
+        className="absolute inset-0 h-full w-full object-cover object-[center_30%]"
       />
+      <HeroBackgroundVideo videoUrl={videoUrl} posterUrl={STORAGE_ASSETS.IMG_2681} />
 
       <div className="absolute inset-0 bg-black/65 backdrop-blur-sm" />
       <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/40 to-transparent" />

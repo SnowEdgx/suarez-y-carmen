@@ -32,7 +32,7 @@ type CoursesPageProps = {
 
 export const metadata: Metadata = {
   title: 'Cursos',
-  description: 'Explora los cursos online de bachata de Suárez y Carmen y accede a vistas previas antes de comprar.',
+  description: 'Explora los cursos online de bachata de Suárez y Carmen y accede a vistas previas antes de empezar.',
 }
 
 function shouldFallbackMissingCourseColumns(error: { code?: string | null; message?: string | null; details?: string | null } | null) {
@@ -52,28 +52,32 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
   const stripeSessionId = pickSingleParam(params?.session_id)
 
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
-
-  const accessToken = session?.access_token ?? null
-
-  const stripeReturnMessage = await resolveStripeReturnMessage({
-    sessionId: stripeSessionId,
-    wasSuccessful: stripeSuccessParam === 'true',
-    wasCanceled: stripeCanceledParam === 'true',
-    accessToken,
-  })
-
-  const coursesResult = await supabase
+  const userPromise = supabase.auth.getUser()
+  const sessionPromise = supabase.auth.getSession()
+  const coursesPromise = supabase
     .from('courses')
     .select('id, title, slug, description, level, cover_image_url, price_cents, position, is_published')
     .eq('is_published', true)
     .order('position', { ascending: true })
     .order('created_at', { ascending: false })
+
+  const [
+    {
+      data: { user },
+    },
+    {
+      data: { session },
+    },
+    coursesResult,
+  ] = await Promise.all([userPromise, sessionPromise, coursesPromise])
+
+  const accessToken = session?.access_token ?? null
+  const stripeReturnMessagePromise = resolveStripeReturnMessage({
+    sessionId: stripeSessionId,
+    wasSuccessful: stripeSuccessParam === 'true',
+    wasCanceled: stripeCanceledParam === 'true',
+    accessToken,
+  })
 
   let courses: CourseRow[] = []
   const pageMessages: CheckoutMessage[] = []
@@ -113,16 +117,23 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
     courses = (coursesResult.data || []) as CourseRow[]
   }
 
-  let purchasedCourseIds: string[] = []
-  let purchaseStatusUnavailable = false
-
-  if (user) {
-    const purchases = await supabase
+  const purchasesPromise = user
+    ? supabase
       .from('user_courses')
       .select('course_id')
       .eq('user_id', user.id)
       .eq('status', 'paid')
+    : null
 
+  const [stripeReturnMessage, purchases] = await Promise.all([
+    stripeReturnMessagePromise,
+    purchasesPromise,
+  ])
+
+  let purchasedCourseIds: string[] = []
+  let purchaseStatusUnavailable = false
+
+  if (user && purchases) {
     if (!purchases.error) {
       purchasedCourseIds = (purchases.data || []).map((entry: { course_id: string }) => entry.course_id)
     } else {
@@ -144,8 +155,8 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
         <div className="max-w-7xl mx-auto px-6 md:px-12 mt-12 mb-8 text-center">
           <p className="text-red-500 font-semibold tracking-wider uppercase mb-3">Cursos</p>
           <h1 className="text-4xl md:text-5xl font-bold font-serif text-white mb-6">Academia Online</h1>
-          <p className="text-neutral-400 text-lg max-w-2xl mx-auto">
-            Explora el contenido, visualiza vistas previas y compra solo los cursos que quieras.
+          <p className="text-neutral-400 text-lg max-w-3xl mx-auto text-pretty">
+            Descubre el contenido, mira las vistas previas y empieza a entrenar con el curso que mejor encaje contigo.
           </p>
         </div>
 

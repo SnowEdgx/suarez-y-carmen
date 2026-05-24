@@ -51,6 +51,12 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 86400,
+    deviceSizes: [360, 640, 768, 1024, 1280, 1536, 1920],
+    imageSizes: [96, 160, 240, 320, 480],
+    qualities: [72, 74, 75, 76],
+    dangerouslyAllowLocalIP: process.env.NODE_ENV !== "production",
     remotePatterns: [
       {
         protocol: "https",
@@ -83,6 +89,24 @@ const nextConfig: NextConfig = {
         hostname: "127.0.0.1",
         port: "54321",
         pathname: "/storage/v1/object/public/**",
+      },
+      {
+        protocol: "http",
+        hostname: "host.docker.internal",
+        port: "1337",
+        pathname: "/uploads/**",
+      },
+      {
+        protocol: "http",
+        hostname: "host.docker.internal",
+        port: "54321",
+        pathname: "/storage/v1/object/public/**",
+      },
+      {
+        protocol: "http",
+        hostname: "cms",
+        port: "1337",
+        pathname: "/uploads/**",
       },
       {
         protocol: "https",

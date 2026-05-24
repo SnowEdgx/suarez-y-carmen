@@ -6,6 +6,7 @@ import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
 import { logAppError } from "@/lib/error-logging";
 import { normalizeDisplayText } from "@/lib/display-text";
+import { getPublicImageUrl, shouldBypassImageOptimization } from "@/lib/public-images";
 import { createClient } from "@/lib/supabase/server";
 
 type EventRow = {
@@ -71,18 +72,6 @@ function isSafeExternalUrl(value: string | null) {
   try {
     const url = new URL(value);
     return url.protocol === "http:" || url.protocol === "https:";
-  } catch {
-    return false;
-  }
-}
-
-function shouldBypassImageOptimization(src: string) {
-  try {
-    const url = new URL(src);
-    return (
-      (url.hostname === "localhost" || url.hostname === "127.0.0.1") &&
-      (url.port === "1337" || url.port === "54321")
-    );
   } catch {
     return false;
   }
@@ -190,6 +179,7 @@ export default async function EventsPage() {
               const title = normalizeDisplayText(event.title, "Evento");
               const city = normalizeDisplayText(event.city, "Ubicación pendiente");
               const type = normalizeDisplayText(event.type, "Evento");
+              const imageUrl = getPublicImageUrl(event.image_url);
 
               return (
                 <article
@@ -197,14 +187,14 @@ export default async function EventsPage() {
                   className="flex h-full flex-col overflow-hidden rounded-3xl border border-neutral-800 bg-neutral-900/70 shadow-2xl shadow-black/20"
                 >
                   <div className="relative h-72 bg-neutral-950">
-                    {event.image_url ? (
+                    {imageUrl ? (
                       <Image
-                        src={event.image_url}
+                        src={imageUrl}
                         alt={`Imagen de ${title}`}
                         fill
                         sizes="(max-width: 1024px) 100vw, 33vw"
                         className="object-cover"
-                        unoptimized={shouldBypassImageOptimization(event.image_url)}
+                        unoptimized={shouldBypassImageOptimization(imageUrl)}
                       />
                     ) : (
                       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(220,38,38,0.35),transparent_35%),linear-gradient(135deg,#171717,#050505)]" />

@@ -84,46 +84,57 @@ export default async function CourseDetailPage({ params, searchParams }: CourseD
   const requestedLessonId = pickSingleParam(resolvedSearchParams?.lesson);
 
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  const userPromise = supabase.auth.getUser();
+  const sessionPromise = supabase.auth.getSession();
+  const coursePromise = loadPublishedCourse(supabase, slug);
+  const requestHeadersPromise = headers();
+
+  const [
+    {
+      data: { user },
+    },
+    {
+      data: { session },
+    },
+    course,
+    requestHeaders,
+  ] = await Promise.all([userPromise, sessionPromise, coursePromise, requestHeadersPromise]);
 
   const accessToken = session?.access_token ?? null;
-  const requestHeaders = await headers();
   const deviceId = requestHeaders.get(DEVICE_ID_HEADER);
-  const stripeReturnMessage = await resolveStripeReturnMessage({
+  const stripeReturnMessagePromise = resolveStripeReturnMessage({
     sessionId: stripeSessionId,
     wasSuccessful: stripeSuccessParam === "true",
     wasCanceled: stripeCanceledParam === "true",
     accessToken,
   });
 
-  const course = await loadPublishedCourse(supabase, slug);
   if (!course) {
     notFound();
   }
 
   const loadMessages: CheckoutMessage[] = [];
-  const { lessons, message: lessonLoadMessage } = await loadCourseLessons(supabase, course.id);
+  const [lessonResult, resourceResult, purchaseResult, stripeReturnMessage] = await Promise.all([
+    loadCourseLessons(supabase, course.id),
+    loadCourseResources(supabase, course.id),
+    resolveCoursePurchaseAccess(supabase, {
+      userId: user?.id ?? null,
+      courseId: course.id,
+    }),
+    stripeReturnMessagePromise,
+  ]);
+
+  const { lessons, message: lessonLoadMessage } = lessonResult;
   if (lessonLoadMessage) {
     loadMessages.push(lessonLoadMessage);
   }
 
-  const { resources, message: resourceLoadMessage } = await loadCourseResources(supabase, course.id);
+  const { resources, message: resourceLoadMessage } = resourceResult;
   if (resourceLoadMessage) {
     loadMessages.push(resourceLoadMessage);
   }
 
-  const { hasPurchased, purchaseCheckUnavailable, message: purchaseMessage } = await resolveCoursePurchaseAccess(
-    supabase,
-    {
-      userId: user?.id ?? null,
-      courseId: course.id,
-    }
-  );
+  const { hasPurchased, purchaseCheckUnavailable, message: purchaseMessage } = purchaseResult;
   if (purchaseMessage) {
     loadMessages.push(purchaseMessage);
   }

@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { normalizeDisplayText } from "@/lib/display-text";
+import { getPublicImageUrl, shouldBypassImageOptimization } from "@/lib/public-images";
 
 export type InPersonClassItem = {
   id: string;
@@ -17,18 +18,6 @@ export type InPersonClassItem = {
 type InPersonClassesProps = {
   classes: InPersonClassItem[];
 };
-
-function shouldBypassImageOptimization(src: string) {
-  try {
-    const url = new URL(src);
-    return (
-      (url.hostname === "localhost" || url.hostname === "127.0.0.1") &&
-      url.port === "54321"
-    );
-  } catch {
-    return false;
-  }
-}
 
 function ActionLink({
   href,
@@ -86,22 +75,23 @@ export default function InPersonClasses({ classes }: InPersonClassesProps) {
               const title = normalizeDisplayText(classItem.title, "Clase presencial");
               const city = normalizeDisplayText(classItem.city);
               const venue = normalizeDisplayText(classItem.venue);
+              const imageUrl = getPublicImageUrl(classItem.image_url);
 
               return (
                 <article
                   key={classItem.id}
                   className="flex h-full flex-col overflow-hidden rounded-3xl border border-neutral-800 bg-neutral-900/70 shadow-2xl shadow-black/20"
                 >
-                  {classItem.image_url && (
+                  {imageUrl && (
                     <div className="relative h-[520px] sm:h-[680px] bg-neutral-950">
                       <Image
-                        src={classItem.image_url}
+                        src={imageUrl}
                         alt={`Cartel de ${title}`}
                         fill
                         sizes="(max-width: 1024px) 100vw, 50vw"
                         className="object-contain"
                         priority={classes.length <= 2}
-                        unoptimized={shouldBypassImageOptimization(classItem.image_url)}
+                        unoptimized={shouldBypassImageOptimization(imageUrl)}
                       />
                     </div>
                   )}

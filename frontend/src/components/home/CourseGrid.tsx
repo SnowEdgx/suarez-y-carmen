@@ -1,7 +1,8 @@
 import Link from "next/link";
+import Image from "next/image";
 import { PlayCircle } from "lucide-react";
 import { startCourseCheckout } from "@/app/courses/actions";
-import { getCourseImageUrl } from "@/lib/course-images";
+import { getCourseImageUrl, shouldBypassImageOptimization } from "@/lib/course-images";
 import { normalizeDisplayText } from "@/lib/display-text";
 
 type CourseItem = {
@@ -48,8 +49,8 @@ export default function CourseGrid({
         <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
             <h2 id="courses-heading" className="text-3xl md:text-4xl font-bold font-serif text-white mb-4">Cursos</h2>
-            <p className="text-neutral-400 text-lg max-w-2xl">
-              Explora los cursos disponibles, revisa el contenido y compra solo el curso que quieras trabajar.
+            <p className="text-neutral-400 text-lg max-w-3xl text-pretty">
+              Revisa el contenido, mira las vistas previas y empieza por el curso que mejor encaje con tu momento.
             </p>
           </div>
         </div>
@@ -60,7 +61,7 @@ export default function CourseGrid({
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {courses.map((course) => {
+            {courses.map((course, index) => {
               const isOwned = purchasedSet.has(course.id);
               const hasPrice = Number.isInteger(course.price_cents) && (course.price_cents as number) > 0;
               const imageSrc = getCourseImageUrl(course.cover_image_url);
@@ -75,10 +76,16 @@ export default function CourseGrid({
               return (
                 <article key={course.id} className="group relative rounded-xl overflow-hidden bg-neutral-900 border border-neutral-800 flex flex-col min-h-[420px]">
                   <div className="relative isolate aspect-[3/4] shrink-0 overflow-hidden bg-neutral-950">
-                    <div
+                    <Image
+                      src={imageSrc}
+                      alt=""
                       aria-hidden="true"
-                      className="absolute inset-0 h-full w-full bg-cover bg-center opacity-75 transition-opacity duration-500 group-hover:opacity-100"
-                      style={{ backgroundImage: `url(${JSON.stringify(imageSrc)})` }}
+                      fill
+                      priority={index < 2}
+                      quality={74}
+                      unoptimized={shouldBypassImageOptimization(imageSrc)}
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                      className="h-full w-full object-cover object-[center_28%] opacity-75 transition-opacity duration-500 group-hover:opacity-100"
                     />
                     <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/90 via-black/25 to-transparent"></div>
 

@@ -88,9 +88,11 @@ export default function CourseHero({
           src={imageSrc}
           alt={title}
           fill
+          priority
+          quality={76}
           unoptimized={shouldBypassImageOptimization(imageSrc)}
           sizes="(max-width: 1024px) 100vw, 50vw"
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover object-[center_24%]"
         />
       </div>
     </header>

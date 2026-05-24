@@ -67,7 +67,7 @@ export default function SecureVideoPlayer({ src, title }: SecureVideoPlayerProps
   }, [reloadNonce, shouldUseHls, src]);
 
   return (
-    <div className="relative overflow-hidden rounded-xl border border-neutral-700 bg-black">
+    <div className="relative mx-auto max-w-[330px] overflow-hidden rounded-xl border border-neutral-700 bg-black shadow-2xl shadow-black/30 sm:max-w-[360px] lg:max-w-[380px]">
       <video
         key={`${src}-${reloadNonce}`}
         ref={videoRef}
@@ -81,7 +81,7 @@ export default function SecureVideoPlayer({ src, title }: SecureVideoPlayerProps
         onError={() => setHasPlaybackError(true)}
         playsInline
         preload="metadata"
-        className="w-full bg-black"
+        className="aspect-[9/16] max-h-[66vh] w-full bg-black object-contain"
         src={shouldUseHls ? undefined : src}
       >
         Tu navegador no puede reproducir este vídeo.

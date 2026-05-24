@@ -14,17 +14,17 @@ const trainingPrinciples = [
   {
     title: "Base técnica clara",
     description:
-      "Trabajo de postura, peso, conexión y lectura corporal para que cada movimiento tenga sentido antes de añadir complejidad.",
+      "Cuidamos postura, peso, conexión y lectura corporal para que entiendas el movimiento antes de añadir complejidad.",
   },
   {
     title: "Musicalidad aplicada",
     description:
-      "Recursos para interpretar la música, controlar la energía de la pareja y adaptar el baile al contexto social o escénico.",
+      "Entrenamos recursos para interpretar la música, modular la energía y adaptar el baile al contexto social o escénico.",
   },
   {
-    title: "Aprendizaje útil",
+    title: "Práctica con sentido",
     description:
-      "Ejercicios y combinaciones pensados para que el alumno pueda practicar, repetir y reconocer su progreso de forma ordenada.",
+      "Proponemos ejercicios que puedes repetir, medir y llevar poco a poco a tu baile real.",
   },
 ];
 
@@ -36,6 +36,7 @@ function AboutImage({ src, alt, className, priority = false }: AboutImageProps) 
         alt={alt}
         fill
         sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 36vw"
+        quality={76}
         className="object-cover"
         priority={priority}
       />
@@ -60,13 +61,12 @@ export default function About() {
             </h1>
             <div className="space-y-5 text-base leading-relaxed text-neutral-300 md:text-lg">
               <p>
-                Suárez y Carmen son bailarines e instructores de bachata. Su trabajo combina técnica corporal,
-                musicalidad y una forma de enseñar directa, pensada para que el alumno entienda qué hace y por qué lo
-                hace.
+                Somos Suárez y Carmen. Enseñamos bachata desde una idea sencilla: cuando entiendes qué estás haciendo,
+                bailas con más seguridad, más intención y más libertad.
               </p>
               <p className="text-neutral-400">
-                En sus clases y cursos se prioriza una base sólida: conexión en pareja, control del movimiento,
-                interpretación musical y recursos que puedan llevarse de la práctica al baile social.
+                En nuestras clases y cursos trabajamos la técnica sin perder de vista el disfrute. Queremos que puedas
+                entrenar con estructura, resolver dudas reales y llevar lo aprendido a la pista con naturalidad.
               </p>
             </div>
 
@@ -97,9 +97,8 @@ export default function About() {
             <div className="col-span-12 grid gap-4 lg:col-span-5">
               <AboutImage
                 src={STORAGE_ASSETS.IMG_4784}
-                alt="Suárez y Carmen en una sesión de baile"
+                alt="Suárez y Carmen en una sesión de bachata"
                 className="h-56 rounded-[2rem]"
-                priority
               />
               <AboutImage
                 src={STORAGE_ASSETS.IMG_4587}
@@ -121,8 +120,8 @@ export default function About() {
               Aprender con estructura, no solo repetir pasos.
             </h2>
             <p className="leading-relaxed text-neutral-400">
-              El contenido se organiza para que cada alumno pueda avanzar con criterio: primero se entiende la base,
-              después se entrena la calidad del movimiento y finalmente se integran figuras, estilo y musicalidad.
+              Ordenamos el contenido para que avances con criterio: primero asentamos la base, después mejoramos la
+              calidad del movimiento y finalmente integramos figuras, estilo y musicalidad.
             </p>
           </div>
 
@@ -150,8 +149,8 @@ export default function About() {
               Entrena desde casa y continúa en sala.
             </h2>
             <p className="max-w-2xl leading-relaxed text-red-50/80">
-              Los cursos permiten trabajar contenidos concretos a tu ritmo. Las clases presenciales y la agenda de
-              eventos completan la experiencia para quienes quieren seguir entrenando en directo.
+              Puedes trabajar contenidos concretos a tu ritmo desde la academia online y reforzarlos después en clases
+              presenciales, talleres o eventos. La idea es que cada formato sume, no que compita con el otro.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
@@ -176,6 +175,7 @@ export default function About() {
               alt="Suárez y Carmen impartiendo una clase de bachata"
               fill
               sizes="(max-width: 1024px) 100vw, 40vw"
+              quality={74}
               className="object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-neutral-950/50 via-transparent to-transparent" />
