@@ -219,7 +219,11 @@ export async function loadProfilePageData(options: {
   const { supabase, userId, accessToken, currentDeviceId } = options;
 
   const [profileResponse, purchasesResult, videoDevices] = await Promise.all([
-    supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
+    supabase
+      .from("profiles")
+      .select("id, email, full_name, avatar_url, role, created_at, updated_at")
+      .eq("id", userId)
+      .maybeSingle(),
     loadPurchasesWithProgress(supabase, userId),
     loadVideoDevices(accessToken, currentDeviceId),
   ]);

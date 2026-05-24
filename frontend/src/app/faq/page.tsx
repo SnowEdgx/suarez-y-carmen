@@ -38,7 +38,7 @@ const FALLBACK_FAQS: FaqItem[] = [
   },
   {
     id: "events",
-    question: "Los eventos presenciales se pagan aqu\u00ed",
+    question: "\u00bfLos eventos presenciales se pagan aqu\u00ed?",
     answer: "No. La plataforma redirige a la ticketera oficial del evento cuando corresponda.",
   },
 ];
@@ -124,7 +124,12 @@ export default async function FaqPage() {
                   <summary className="cursor-pointer list-none text-lg font-semibold text-white marker:hidden">
                     <span className="flex items-center justify-between gap-6">
                       {question}
-                      <span className="text-sm text-red-300 transition-transform group-open:rotate-45">+</span>
+                      <span
+                        aria-hidden="true"
+                        className="text-sm text-red-300 transition-transform group-open:rotate-45"
+                      >
+                        +
+                      </span>
                     </span>
                   </summary>
                   <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-neutral-400">{answer}</p>

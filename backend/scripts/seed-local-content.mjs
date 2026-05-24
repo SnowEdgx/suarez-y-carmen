@@ -271,7 +271,7 @@ const FAQ_SEEDS = [
   },
   {
     fallbackId: '41111111-1111-4111-8111-111111111114',
-    question: 'Los eventos presenciales se pagan aqu\u00ed',
+    question: '\u00bfLos eventos presenciales se pagan aqu\u00ed?',
     answer: 'No. La plataforma redirige a la ticketera oficial del evento cuando corresponda.',
     position: 40,
   },
