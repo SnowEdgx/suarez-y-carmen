@@ -10,9 +10,9 @@ Regla: cualquier cambio de esquema o permisos va siempre como migración formal.
 ## Transactional auth email stack
 
 - Proveedor: **Supabase Auth + SMTP de Resend**
-- Producción: SMTP custom configurado en Supabase Cloud (dashboard)
-- Local: Supabase usa el servidor de correo de desarrollo visible en `http://localhost:54324`, evitando depender de Resend para pruebas locales
+- Local: SMTP custom con Resend si se arranca Supabase cargando `supabase/.env.local`
 - Producción: Resend se configura en Supabase Cloud como SMTP custom antes de abrir registros reales
+- Inbucket/Mailpit queda como visor de desarrollo si se desactiva temporalmente el SMTP custom
 - Plantillas versionadas en `supabase/templates/*.html`
 - Fuente de plantillas: componentes React renderizados a HTML mediante `frontend/scripts/build-auth-email-templates.mjs`
 

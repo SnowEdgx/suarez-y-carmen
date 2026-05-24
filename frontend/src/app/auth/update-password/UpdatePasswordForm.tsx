@@ -69,6 +69,9 @@ export default function UpdatePasswordForm() {
             className="w-full border-b border-neutral-800 bg-transparent px-0 py-3 font-medium text-white placeholder-neutral-600 transition-colors focus:border-red-500 focus:outline-none"
             placeholder="Mínimo 8 caracteres"
           />
+          <p className="mt-1.5 text-xs text-neutral-500">
+            Incluye mayúsculas, minúsculas y números.
+          </p>
         </div>
 
         <div>

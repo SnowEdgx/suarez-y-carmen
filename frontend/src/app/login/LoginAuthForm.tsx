@@ -73,7 +73,11 @@ export default function LoginAuthForm({
           className="w-full border-b border-neutral-800 bg-transparent px-0 py-3 font-medium text-white placeholder-neutral-600 transition-colors focus:border-red-500 focus:outline-none"
           placeholder="********"
         />
-        {!isLoginMode && <p className="mt-1.5 text-xs text-neutral-500">Mínimo 8 caracteres.</p>}
+        {!isLoginMode && (
+          <p className="mt-1.5 text-xs text-neutral-500">
+            Mínimo 8 caracteres, con mayúsculas, minúsculas y números.
+          </p>
+        )}
       </div>
 
       {isLoginMode && (

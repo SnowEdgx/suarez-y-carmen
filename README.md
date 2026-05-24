@@ -103,7 +103,7 @@ No se versionan claves reales. Crea:
 - `frontend/.env.local` desde `frontend/.env.example`
 - `backend/.env.local` desde `backend/.env.example`
 - `cms/.env.local` desde `cms/.env.example` si se ejecuta Strapi fuera de Docker Compose
-- `supabase/.env.local` desde `supabase/.env.example` solo si se prueba SMTP custom; el flujo local por defecto usa Mailpit
+- `supabase/.env.local` desde `supabase/.env.example` para SMTP de autenticacion con Resend
 
 ## Politica SQL y email auth
 

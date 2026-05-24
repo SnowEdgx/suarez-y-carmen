@@ -20,6 +20,8 @@ const RESEND_VERIFICATION_REQUESTED_MESSAGE =
   'Solicitud registrada. Si la cuenta existe y el correo puede recibir mensajes, llegará un nuevo enlace en unos minutos.'
 const RECOVERY_REQUESTED_MESSAGE =
   'Si existe una cuenta con ese correo, recibirás un enlace seguro para restablecer la contraseña.'
+const PASSWORD_REQUIREMENTS_MESSAGE =
+  'La contraseña debe tener al menos 8 caracteres e incluir mayúsculas, minúsculas y números.'
 const MAX_EMAIL_LENGTH = 254
 const MAX_NAME_LENGTH = 120
 const MAX_PASSWORD_LENGTH = 128
@@ -60,6 +62,15 @@ function getSafeEmail(rawValue: FormDataEntryValue | null) {
 
 function shouldRememberSession(value: FormDataEntryValue | null) {
   return value === 'true' || value === 'on'
+}
+
+function meetsPasswordRequirements(password: string) {
+  return (
+    password.length >= 8 &&
+    /[a-z]/.test(password) &&
+    /[A-Z]/.test(password) &&
+    /\d/.test(password)
+  )
 }
 
 async function persistSessionPreference(rememberSession: boolean) {
@@ -124,10 +135,13 @@ export async function signup(formData: FormData) {
   const name = typeof formData.get('name') === 'string' ? (formData.get('name') as string).trim() : ''
 
   if (password.length < 8) {
-    return { error: 'La contrase\u00f1a debe tener al menos 8 caracteres.' }
+    return { error: PASSWORD_REQUIREMENTS_MESSAGE }
   }
   if (password.length > MAX_PASSWORD_LENGTH) {
     return { error: 'La contraseña no puede superar 128 caracteres.' }
+  }
+  if (!meetsPasswordRequirements(password)) {
+    return { error: PASSWORD_REQUIREMENTS_MESSAGE }
   }
   if (!isValidEmail(email)) {
     return { error: 'Introduce un correo válido.' }
@@ -223,10 +237,13 @@ export async function updatePassword(formData: FormData) {
     typeof formData.get('confirmPassword') === 'string' ? (formData.get('confirmPassword') as string) : ''
 
   if (password.length < 8) {
-    return { error: 'La nueva contraseña debe tener al menos 8 caracteres.' }
+    return { error: PASSWORD_REQUIREMENTS_MESSAGE }
   }
   if (password.length > MAX_PASSWORD_LENGTH) {
     return { error: 'La nueva contraseña no puede superar 128 caracteres.' }
+  }
+  if (!meetsPasswordRequirements(password)) {
+    return { error: PASSWORD_REQUIREMENTS_MESSAGE }
   }
 
   if (password !== confirmPassword) {
