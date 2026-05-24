@@ -21,6 +21,10 @@ function buildLoginErrorRedirect(
   return NextResponse.redirect(url)
 }
 
+function isEmailVerificationDestination(pathname: string) {
+  return pathname === '/auth/verified' || pathname.startsWith('/auth/verified?') || pathname.startsWith('/login?verified=1')
+}
+
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
@@ -39,6 +43,10 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (error) {
+      if (isEmailVerificationDestination(nextPath)) {
+        return buildRedirect(request, '/auth/verified')
+      }
+
       return buildLoginErrorRedirect(request, 'auth_callback_failed')
     }
 

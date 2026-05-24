@@ -43,7 +43,7 @@ function getAuthCallbackUrl(nextPath: string) {
 }
 
 function getEmailRedirectUrl() {
-  return getAuthCallbackUrl('/login?verified=1')
+  return getAuthCallbackUrl('/auth/verified')
 }
 
 function getRecoveryRedirectUrl() {

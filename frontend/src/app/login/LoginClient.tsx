@@ -39,6 +39,7 @@ function LoginPageContent() {
     isVerifiedRedirect,
     isPasswordUpdated,
   })
+  const shouldShowPendingVerificationNotice = Boolean(pendingVerificationEmail && !successMessage)
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -141,7 +142,7 @@ function LoginPageContent() {
 
             <LoginAlerts errorMessage={visibleErrorMessage} topInfoMessage={topInfoMessage} />
             <PendingVerificationNotice
-              email={pendingVerificationEmail}
+              email={shouldShowPendingVerificationNotice ? pendingVerificationEmail : null}
               isResending={isResendingVerification}
               onResend={handleResendVerification}
             />
