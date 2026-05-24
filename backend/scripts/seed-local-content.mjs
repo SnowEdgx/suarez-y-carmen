@@ -43,90 +43,112 @@ const BACHAZOUK_LESSONS = [
     title: 'Bienvenida al programa Bachazouk Vol. 1',
     description: 'Presentaci\u00f3n del curso, objetivos y forma recomendada de practicar.',
     is_free_preview: true,
+    video_storage_path: 'bachazouk-vol-1/01-bienvenida-al-programa-bachazouk-vol-1.mp4',
   },
   {
     title: 'Postura',
     description: 'Trabajo inicial de colocaci\u00f3n corporal para bailar con estabilidad y control.',
+    video_storage_path: 'bachazouk-vol-1/02-postura.mov',
   },
   {
-    title: 'Cabeza',
-    description: 'Bases t\u00e9cnicas para iniciar movimientos de cabeza de forma progresiva y segura.',
-  },
-  {
-    title: 'Conexi\u00f3n',
-    description: 'Puntos de contacto, comunicaci\u00f3n en pareja y lectura de la energ\u00eda del movimiento.',
-  },
-  {
-    title: 'Movimientos activos',
-    description: 'Acciones donde el alumno genera energ\u00eda e intenci\u00f3n dentro de la figura.',
-  },
-  {
-    title: 'Movimientos pasivos',
-    description: 'Recepci\u00f3n del movimiento, control del eje y continuidad sin tensi\u00f3n innecesaria.',
-  },
-  {
-    title: 'Base fuerte',
-    description: 'Fundamentos de apoyo, direcci\u00f3n y preparaci\u00f3n para giros inclinados.',
-  },
-  {
-    title: 'Base circular',
-    description: 'Trabajo de trayectoria circular para transiciones fluidas en bachazouk.',
-  },
-  {
-    title: 'Base 360',
-    description: 'Construcci\u00f3n del giro completo manteniendo eje, conexi\u00f3n y control corporal.',
-  },
-  {
-    title: 'Tilted turns',
-    description: 'Introducci\u00f3n progresiva a los giros inclinados principales del curso.',
-  },
-  {
-    title: 'Tilted rotations',
-    description: 'Rotaciones inclinadas, control del peso y salida limpia de la figura.',
-  },
-  {
-    title: 'Pulso de energ\u00eda',
-    description: 'Uso del pulso para preparar cambios de din\u00e1mica y mantener musicalidad.',
-  },
-  {
-    title: 'Teor\u00eda del libro leading',
-    description: 'Principios de liderazgo aplicados a secuencias complejas de bachazouk.',
-  },
-  {
-    title: 'Leading y following',
-    description: 'Reparto de responsabilidades, escucha corporal y respuesta durante la figura.',
-  },
-  {
-    title: 'Sensaci\u00f3n de toalha',
-    description: 'Ejercicio de textura y continuidad para suavizar transiciones en pareja.',
-  },
-  {
-    title: 'Respiraci\u00f3n como inicio del movimiento',
-    description: 'Uso de la respiraci\u00f3n como se\u00f1al de preparaci\u00f3n y arranque del movimiento.',
+    title: 'Tipos de frame',
+    description: 'Estructuras de conexi\u00f3n para preparar movimientos de bachazouk con seguridad y claridad.',
+    video_storage_path: 'bachazouk-vol-1/03-tipos-de-frame.mp4',
   },
   {
     title: 'Bal\u00e3o',
     description: 'Base t\u00e9cnica del bal\u00e3o y adaptaci\u00f3n al vocabulario de bachazouk.',
+    video_storage_path: 'bachazouk-vol-1/04-balao.mp4',
   },
   {
     title: 'Tipos de bal\u00e3o',
     description: 'Variantes principales de bal\u00e3o y criterios para elegir cada ejecuci\u00f3n.',
+    video_storage_path: 'bachazouk-vol-1/05-tipos-de-balao.mp4',
   },
   {
-    title: 'Desplazamiento',
-    description: 'Gesti\u00f3n del espacio y desplazamientos seguros dentro de la secuencia.',
+    title: 'Pulso de energ\u00eda',
+    description: 'Uso del pulso para preparar cambios de din\u00e1mica y mantener musicalidad.',
+    video_storage_path: 'bachazouk-vol-1/06-pulso-de-energia.mov',
   },
   {
-    title: 'Recuperaci\u00f3n',
-    description: 'Salidas, reajustes de eje y recuperaci\u00f3n tras movimientos inclinados.',
+    title: 'Romper el frame',
+    description: 'Trabajo de transiciones y cambios de estructura sin perder control ni conexi\u00f3n.',
+    video_storage_path: 'bachazouk-vol-1/07-romper-el-frame.mov',
+  },
+  {
+    title: 'Movimientos activos y pasivos',
+    description: 'Introducci\u00f3n al reparto de energ\u00eda entre acciones activas y recepci\u00f3n del movimiento.',
+    video_storage_path: 'bachazouk-vol-1/08-movimientos-activos-y-pasivos.mp4',
+  },
+  {
+    title: 'Movimientos pasivos',
+    description: 'Recepci\u00f3n del movimiento, control del eje y continuidad sin tensi\u00f3n innecesaria.',
+    video_storage_path: 'bachazouk-vol-1/09-movimientos-pasivos.mp4',
+  },
+  {
+    title: 'Base fuerte',
+    description: 'Fundamentos de apoyo, direcci\u00f3n y preparaci\u00f3n para giros inclinados.',
+    video_storage_path: 'bachazouk-vol-1/10-base-fuerte.mp4',
+  },
+  {
+    title: 'Teor\u00eda del libro leading',
+    description: 'Principios de liderazgo aplicados a secuencias complejas de bachazouk.',
+    video_storage_path: 'bachazouk-vol-1/11-teoria-del-libro-leading.mov',
+  },
+  {
+    title: 'Respiraci\u00f3n como inicio del movimiento',
+    description: 'Uso de la respiraci\u00f3n como se\u00f1al de preparaci\u00f3n y arranque del movimiento.',
+    video_storage_path: 'bachazouk-vol-1/12-respiracion-como-inicio-del-movimiento.mov',
+  },
+  {
+    title: 'Tilted turns I',
+    description: 'Introducci\u00f3n progresiva a los giros inclinados principales del curso.',
+    video_storage_path: 'bachazouk-vol-1/13-tilted-turns.mp4',
   },
   {
     title: 'Tipos de footwork en los giros',
-    description: 'Opciones de pies para mejorar estabilidad, limpieza y continuidad.',
+    description: 'Opciones de pies para mejorar estabilidad, limpieza y continuidad en los giros.',
+    video_storage_path: 'bachazouk-vol-1/14-tipos-de-footwork-en-los-giros.mp4',
   },
   {
-    title: 'Secuencia final',
-    description: 'Integraci\u00f3n del contenido del curso en una secuencia completa guiada.',
+    title: 'Following de tilted turns',
+    description: 'Trabajo de respuesta, escucha corporal y continuidad desde el rol de follower.',
+    video_storage_path: 'bachazouk-vol-1/15-following-de-tilted-turns.mov',
+  },
+  {
+    title: 'Chicote',
+    description: 'T\u00e9cnica de chicote aplicada al control de energ\u00eda y direcci\u00f3n del movimiento.',
+    video_storage_path: 'bachazouk-vol-1/16-chicote.mov',
+  },
+  {
+    title: 'Tipos de recuperaciones en tilted turns',
+    description: 'Salidas, reajustes de eje y recuperaciones tras movimientos inclinados.',
+    video_storage_path: 'bachazouk-vol-1/17-tipos-de-recuperaciones-en-tilted-turns.mov',
+  },
+  {
+    title: 'Frango asado',
+    description: 'Figura y mec\u00e1nica de frango asado dentro del vocabulario del curso.',
+    video_storage_path: 'bachazouk-vol-1/18-frango-asado.mov',
+  },
+  {
+    title: 'Sensaci\u00f3n de toalha',
+    description: 'Ejercicio de textura y continuidad para suavizar transiciones en pareja.',
+    video_storage_path: 'bachazouk-vol-1/19-sensacion-de-toalha.mp4',
+  },
+  {
+    title: 'Bate cabello',
+    description: 'Trabajo de control, preparaci\u00f3n y recuperaci\u00f3n en movimientos de cabello.',
+    video_storage_path: 'bachazouk-vol-1/20-bate-cabello.mov',
+  },
+  {
+    title: 'Proceso de leading',
+    description: 'Desglose del proceso de liderazgo para integrar figuras con claridad y seguridad.',
+    video_storage_path: 'bachazouk-vol-1/21-proceso-de-leading.mov',
+  },
+  {
+    title: 'Cierre del programa',
+    description: 'Resumen final del curso y recomendaciones para seguir practicando el contenido.',
+    video_storage_path: 'bachazouk-vol-1/22-cierre-del-programa.mov',
   },
 ].map((lesson, index) => ({
   fallbackId: '22111111-1111-4111-8111-' + String(111111111101 + index).padStart(12, '0'),
@@ -135,11 +157,12 @@ const BACHAZOUK_LESSONS = [
   duration_seconds: null,
   is_free_preview: lesson.is_free_preview ?? false,
   video_storage_path:
+    lesson.video_storage_path ||
     'demo/bachazouk-vol-1/' +
-    String(index + 1).padStart(2, '0') +
-    '-' +
-    toSeedObjectPathSegment(lesson.title) +
-    '.mp4',
+      String(index + 1).padStart(2, '0') +
+      '-' +
+      toSeedObjectPathSegment(lesson.title) +
+      '.mp4',
 }));
 
 const COURSE_SEEDS = [

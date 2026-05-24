@@ -24,6 +24,7 @@ Before deploying:
 - Apply Supabase migrations in a controlled environment.
 - Verify local checkout and webhook flow in Stripe test mode.
 - Verify private video access, private course resources, HLS rewriting and device revocation.
+- Convert final lesson media to browser-safe MP4/HLS before publishing; `.mov` files are acceptable locally but should not be the production delivery format.
 - Check that no `.env.local`, provider keys, service-role keys or local-only scripts are committed.
 
 ## Frontend

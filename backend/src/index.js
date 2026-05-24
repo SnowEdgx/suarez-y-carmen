@@ -58,6 +58,11 @@ app.use(
 
 // Register integration routes before express.json().
 // Stripe webhooks need the raw body for signature verification.
+app.use('/api', (_req, res, next) => {
+  res.set('Cache-Control', 'no-store');
+  next();
+});
+
 app.use('/api/stripe', require('./routes/stripe.routes'));
 app.use('/api/cms', require('./routes/cms.routes'));
 
