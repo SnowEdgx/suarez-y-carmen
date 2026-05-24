@@ -50,6 +50,10 @@ export async function GET(request: NextRequest) {
       return buildLoginErrorRedirect(request, 'auth_callback_failed')
     }
 
+    if (isEmailVerificationDestination(nextPath)) {
+      return buildRedirect(request, '/auth/verified')
+    }
+
     return buildRedirect(request, nextPath)
   }
 
