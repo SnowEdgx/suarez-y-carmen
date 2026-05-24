@@ -11,15 +11,12 @@ import {
   getDeviceCookieOptions,
   isValidDeviceId,
 } from './lib/device-session'
+import { isEmailVerified } from './lib/auth-user'
 
 const PROTECTED_ROUTES = ['/profile', '/admin', '/dashboard', '/account']
 
 function requiresAuth(pathname: string) {
   return PROTECTED_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`))
-}
-
-function isEmailVerified(user: { email_confirmed_at?: string | null; confirmed_at?: string | null } | null) {
-  return Boolean(user?.email_confirmed_at || user?.confirmed_at)
 }
 
 export async function proxy(request: NextRequest) {

@@ -8,6 +8,7 @@ import {
   getSessionPreferenceCookieOptions,
   getSessionPreferenceCookieValue,
 } from '@/lib/auth-session'
+import { isEmailVerified } from '@/lib/auth-user'
 import { getSafeInternalPath } from '@/lib/safe-redirect'
 import { createClient } from '@/lib/supabase/server'
 
@@ -22,15 +23,6 @@ const RECOVERY_REQUESTED_MESSAGE =
 const MAX_EMAIL_LENGTH = 254
 const MAX_NAME_LENGTH = 120
 const MAX_PASSWORD_LENGTH = 128
-
-type AuthUser = {
-  email_confirmed_at?: string | null
-  confirmed_at?: string | null
-} | null
-
-function isEmailVerified(user: AuthUser) {
-  return Boolean(user?.email_confirmed_at ?? user?.confirmed_at)
-}
 
 function getSiteUrl() {
   return (process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000').replace(/\/$/, '')

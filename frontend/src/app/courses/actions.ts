@@ -2,6 +2,7 @@
 
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { isEmailVerified } from '@/lib/auth-user'
 import { getBackendUrl } from '@/lib/backend-url'
 import { getSafeCoursePath } from '@/lib/safe-redirect'
 
@@ -37,6 +38,10 @@ export async function startCourseCheckout(formData: FormData) {
 
   if (!user || !session?.access_token) {
     redirect(`/login?next=${encodeURIComponent(returnTo)}`)
+  }
+
+  if (!isEmailVerified(user)) {
+    redirect(`/login?next=${encodeURIComponent(returnTo)}&error=verify_email_required`)
   }
 
   let response: Response

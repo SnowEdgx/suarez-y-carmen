@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
+import { isEmailVerified } from '@/lib/auth-user'
 import { getBackendUrl } from '@/lib/backend-url'
 import { DEVICE_ID_HEADER, isValidDeviceId } from '@/lib/device-session'
 
@@ -17,6 +18,10 @@ export async function updateProfileName(formData: FormData) {
 
   if (!user) {
     return { error: 'Tu sesión ha expirado. Vuelve a iniciar sesión.' }
+  }
+
+  if (!isEmailVerified(user)) {
+    return { error: 'Verifica tu correo antes de modificar tu perfil.' }
   }
 
   const fullName = typeof formData.get('fullName') === 'string' ? (formData.get('fullName') as string).trim() : ''
@@ -78,6 +83,10 @@ export async function revokeVideoDevice(formData: FormData) {
 
   if (!user || !session?.access_token) {
     return { error: 'Tu sesión ha expirado. Vuelve a iniciar sesión.' }
+  }
+
+  if (!isEmailVerified(user)) {
+    return { error: 'Verifica tu correo antes de gestionar dispositivos.' }
   }
 
   const requestHeaders = await headers()
