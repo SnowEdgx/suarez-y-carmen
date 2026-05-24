@@ -27,6 +27,17 @@ const MAX_EMAIL_LENGTH = 254
 const MAX_NAME_LENGTH = 120
 const MAX_PASSWORD_LENGTH = 128
 
+function isEmailRateLimitError(error: { status?: number; code?: string; message?: string }) {
+  const code = error.code?.toLowerCase() ?? ''
+  const message = error.message?.toLowerCase() ?? ''
+
+  return error.status === 429 || code.includes('rate') || message.includes('rate limit')
+}
+
+function getEmailRateLimitMessage() {
+  return 'Has solicitado un correo hace poco. Espera unos minutos antes de intentarlo de nuevo.'
+}
+
 function getAuthCallbackUrl(nextPath: string) {
   return `${getSiteUrl()}/auth/callback?next=${encodeURIComponent(nextPath)}`
 }
@@ -161,6 +172,10 @@ export async function signup(formData: FormData) {
 
   if (error) {
     console.error('[Login Action] Signup failed:', error.message)
+    if (isEmailRateLimitError(error)) {
+      return { error: getEmailRateLimitMessage() }
+    }
+
     return {
       error:
         'Ocurrió un error al procesar tu solicitud. Reintenta más tarde o contáctanos si persiste.',
@@ -201,6 +216,10 @@ export async function resendSignupVerification(formData: FormData) {
 
   if (error) {
     console.error('[Login Action] Resend verification failed:', error.message)
+    if (isEmailRateLimitError(error)) {
+      return { error: getEmailRateLimitMessage() }
+    }
+
     return { error: 'No pudimos solicitar la verificación en este momento. Inténtalo de nuevo.' }
   }
 
@@ -221,6 +240,10 @@ export async function requestPasswordRecovery(formData: FormData) {
 
   if (error) {
     console.error('[Login Action] Password recovery request failed:', error.message)
+    if (isEmailRateLimitError(error)) {
+      return { error: getEmailRateLimitMessage() }
+    }
+
     return { error: 'No pudimos iniciar la recuperación en este momento. Inténtalo de nuevo.' }
   }
 
