@@ -48,7 +48,7 @@ const BACHAZOUK_LESSONS = [
   {
     title: 'Postura',
     description: 'Trabajo inicial de colocaci\u00f3n corporal para bailar con estabilidad y control.',
-    video_storage_path: 'bachazouk-vol-1/02-postura.mov',
+    video_storage_path: 'bachazouk-vol-1/02-postura.mp4',
   },
   {
     title: 'Tipos de frame',
@@ -68,12 +68,12 @@ const BACHAZOUK_LESSONS = [
   {
     title: 'Pulso de energ\u00eda',
     description: 'Uso del pulso para preparar cambios de din\u00e1mica y mantener musicalidad.',
-    video_storage_path: 'bachazouk-vol-1/06-pulso-de-energia.mov',
+    video_storage_path: 'bachazouk-vol-1/06-pulso-de-energia.mp4',
   },
   {
     title: 'Romper el frame',
     description: 'Trabajo de transiciones y cambios de estructura sin perder control ni conexi\u00f3n.',
-    video_storage_path: 'bachazouk-vol-1/07-romper-el-frame.mov',
+    video_storage_path: 'bachazouk-vol-1/07-romper-el-frame.mp4',
   },
   {
     title: 'Movimientos activos y pasivos',
@@ -93,12 +93,12 @@ const BACHAZOUK_LESSONS = [
   {
     title: 'Teor\u00eda del libro leading',
     description: 'Principios de liderazgo aplicados a secuencias complejas de bachazouk.',
-    video_storage_path: 'bachazouk-vol-1/11-teoria-del-libro-leading.mov',
+    video_storage_path: 'bachazouk-vol-1/11-teoria-del-libro-leading.mp4',
   },
   {
     title: 'Respiraci\u00f3n como inicio del movimiento',
     description: 'Uso de la respiraci\u00f3n como se\u00f1al de preparaci\u00f3n y arranque del movimiento.',
-    video_storage_path: 'bachazouk-vol-1/12-respiracion-como-inicio-del-movimiento.mov',
+    video_storage_path: 'bachazouk-vol-1/12-respiracion-como-inicio-del-movimiento.mp4',
   },
   {
     title: 'Tilted turns I',
@@ -113,22 +113,22 @@ const BACHAZOUK_LESSONS = [
   {
     title: 'Following de tilted turns',
     description: 'Trabajo de respuesta, escucha corporal y continuidad desde el rol de follower.',
-    video_storage_path: 'bachazouk-vol-1/15-following-de-tilted-turns.mov',
+    video_storage_path: 'bachazouk-vol-1/15-following-de-tilted-turns.mp4',
   },
   {
     title: 'Chicote',
     description: 'T\u00e9cnica de chicote aplicada al control de energ\u00eda y direcci\u00f3n del movimiento.',
-    video_storage_path: 'bachazouk-vol-1/16-chicote.mov',
+    video_storage_path: 'bachazouk-vol-1/16-chicote.mp4',
   },
   {
     title: 'Tipos de recuperaciones en tilted turns',
     description: 'Salidas, reajustes de eje y recuperaciones tras movimientos inclinados.',
-    video_storage_path: 'bachazouk-vol-1/17-tipos-de-recuperaciones-en-tilted-turns.mov',
+    video_storage_path: 'bachazouk-vol-1/17-tipos-de-recuperaciones-en-tilted-turns.mp4',
   },
   {
     title: 'Frango asado',
     description: 'Figura y mec\u00e1nica de frango asado dentro del vocabulario del curso.',
-    video_storage_path: 'bachazouk-vol-1/18-frango-asado.mov',
+    video_storage_path: 'bachazouk-vol-1/18-frango-asado.mp4',
   },
   {
     title: 'Sensaci\u00f3n de toalha',
@@ -138,17 +138,17 @@ const BACHAZOUK_LESSONS = [
   {
     title: 'Bate cabello',
     description: 'Trabajo de control, preparaci\u00f3n y recuperaci\u00f3n en movimientos de cabello.',
-    video_storage_path: 'bachazouk-vol-1/20-bate-cabello.mov',
+    video_storage_path: 'bachazouk-vol-1/20-bate-cabello.mp4',
   },
   {
     title: 'Proceso de leading',
     description: 'Desglose del proceso de liderazgo para integrar figuras con claridad y seguridad.',
-    video_storage_path: 'bachazouk-vol-1/21-proceso-de-leading.mov',
+    video_storage_path: 'bachazouk-vol-1/21-proceso-de-leading.mp4',
   },
   {
     title: 'Cierre del programa',
     description: 'Resumen final del curso y recomendaciones para seguir practicando el contenido.',
-    video_storage_path: 'bachazouk-vol-1/22-cierre-del-programa.mov',
+    video_storage_path: 'bachazouk-vol-1/22-cierre-del-programa.mp4',
   },
 ].map((lesson, index) => ({
   fallbackId: '22111111-1111-4111-8111-' + String(111111111101 + index).padStart(12, '0'),
@@ -613,12 +613,29 @@ async function deactivateLegacyCourseSeeds() {
   for (const slug of legacySlugs) {
     if (seedSlugs.has(slug)) continue;
 
+    const courseId = await findExistingId('courses', 'slug', slug);
+    if (!courseId) continue;
+
     const result = await supabase
       .from('courses')
       .update({ is_published: false })
-      .eq('slug', slug);
+      .eq('id', courseId);
 
     assertNoError(result, `Could not deactivate legacy course ${slug}`);
+
+    const lessons = await supabase
+      .from('lessons')
+      .update({ is_published: false })
+      .eq('course_id', courseId);
+
+    assertNoError(lessons, `Could not deactivate legacy lessons for course ${slug}`);
+
+    const resources = await supabase
+      .from('course_resources')
+      .update({ is_published: false, updated_at: new Date().toISOString() })
+      .eq('course_id', courseId);
+
+    assertNoError(resources, `Could not deactivate legacy resources for course ${slug}`);
   }
 }
 

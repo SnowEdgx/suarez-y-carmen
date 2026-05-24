@@ -104,9 +104,9 @@ Production setup:
 
 Production setup:
 
-- Verify `suarezycarmenbachata.com` or a dedicated sending subdomain.
+- Verify the dedicated sending subdomain `mail.suarezycarmenbachata.com`.
 - Configure SPF, DKIM and DMARC.
-- Use a sender aligned with the brand domain, for example `academy@suarezycarmenbachata.com`.
+- Use a sender aligned with the verified sending domain, for example `academy@mail.suarezycarmenbachata.com`.
 - Keep Auth confirmation and recovery templates synchronized with Supabase.
 
 ## Strapi CMS
@@ -150,7 +150,7 @@ Final domain tasks:
 - Enable HTTPS for every public host.
 - Update Supabase Auth redirect URLs.
 - Update Stripe webhook URL.
-- Update Resend domain configuration if needed.
+- Keep Resend configured against `mail.suarezycarmenbachata.com`.
 
 ## Final Smoke Test
 
