@@ -34,7 +34,7 @@ export default function CourseResourcesPanel({
 
       {resources.length === 0 ? (
         <p className="text-sm leading-relaxed text-neutral-400">
-          Los materiales del curso aparecer\u00e1n aqu\u00ed cuando el acceso est\u00e9 desbloqueado.
+          Los materiales del curso aparecerán aquí cuando el acceso esté desbloqueado.
         </p>
       ) : (
         <ul className="space-y-3">
