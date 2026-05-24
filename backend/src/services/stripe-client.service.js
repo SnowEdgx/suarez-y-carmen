@@ -2,15 +2,54 @@ const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const stripe = stripeSecretKey ? require('stripe')(stripeSecretKey) : null;
 const CHECKOUT_SESSION_REGEX = /^cs_[A-Za-z0-9_]+$/;
 const DEFAULT_CHECKOUT_RETURN_PATH = '/courses';
+const LOCAL_FRONTEND_URL = 'http://localhost:3000';
+
+function isProduction() {
+  return process.env.NODE_ENV === 'production';
+}
+
+function createConfigurationError(message) {
+  const error = new Error(message);
+  error.status = 503;
+  return error;
+}
 
 function requireStripe() {
   if (!stripe) {
-    const error = new Error('Stripe is not configured in backend. STRIPE_SECRET_KEY is missing.');
-    error.status = 503;
-    throw error;
+    throw createConfigurationError('Stripe is not configured in backend. STRIPE_SECRET_KEY is missing.');
   }
 
   return stripe;
+}
+
+function normalizeHttpUrl(rawValue, name) {
+  const value = rawValue?.trim();
+
+  if (!value) {
+    if (isProduction()) {
+      throw createConfigurationError(`${name} is required in production.`);
+    }
+
+    return LOCAL_FRONTEND_URL;
+  }
+
+  try {
+    const url = new URL(value);
+    if (!['http:', 'https:'].includes(url.protocol)) {
+      throw new Error('Unsupported URL protocol.');
+    }
+    if (url.username || url.password || url.search || url.hash) {
+      throw new Error('URL must not contain credentials, query or hash.');
+    }
+
+    return value.replace(/\/+$/, '');
+  } catch {
+    throw createConfigurationError(`${name} must be a valid HTTP URL.`);
+  }
+}
+
+function getFrontendUrl() {
+  return normalizeHttpUrl(process.env.FRONTEND_URL, 'FRONTEND_URL');
 }
 
 async function getReusableCheckoutSession(stripeClient, checkoutSessionId) {
@@ -95,6 +134,7 @@ module.exports = {
   buildFrontendReturnUrl,
   extractPaymentIntentId,
   getReusableCheckoutSession,
+  getFrontendUrl,
   requireStripe,
   sanitizeCheckoutSessionId,
   sanitizeReturnPath,

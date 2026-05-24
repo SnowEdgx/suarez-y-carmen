@@ -11,6 +11,7 @@ const {
 } = require('../services/stripe-event.service');
 const {
   buildFrontendReturnUrl,
+  getFrontendUrl,
   getReusableCheckoutSession,
   requireStripe,
   sanitizeCheckoutSessionId,
@@ -82,7 +83,7 @@ exports.createCheckoutSession = async (req, res) => {
       return res.status(503).json({ error: 'La compra no está disponible temporalmente.' });
     }
 
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const frontendUrl = getFrontendUrl();
     const safeReturnPath = sanitizeReturnPath(returnPath);
 
     const session = await stripeClient.checkout.sessions.create({
