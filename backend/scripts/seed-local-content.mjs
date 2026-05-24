@@ -8,6 +8,7 @@ const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..', '..');
 
 const VIDEO_BUCKET = process.env.SUPABASE_VIDEO_BUCKET || 'course-videos';
+const RESOURCE_BUCKET = process.env.SUPABASE_RESOURCE_BUCKET || 'course-resources';
 const DEMO_VIDEO_SOURCE_URL =
   process.env.SEED_VIDEO_SOURCE_URL ||
   'https://jlpqlqvrhwdjyspwolro.supabase.co/storage/v1/object/public/assets/hero.mp4';
@@ -28,82 +29,142 @@ const ASSETS = {
   CLASS_COIN_FUSION_STUDIO: publicAssetUrl('classes/coin-fusion-studio.png'),
 };
 
-const COURSE_SEEDS = [
+function toSeedObjectPathSegment(value) {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'lesson';
+}
+
+const BACHAZOUK_LESSONS = [
   {
-    fallbackId: '11111111-1111-4111-8111-111111111111',
-    title: 'Bachata Sensual: Desde Cero',
-    slug: 'bachata-sensual-basico',
-    description: 'Fundamentos tecnicos para construir una base clara de bachata sensual.',
-    cover_image_url: ASSETS.IMG_2681,
-    level: 'B\u00e1sico',
-    price_cents: 2900,
-    is_published: true,
-    lessons: [
-      {
-        fallbackId: '21111111-1111-4111-8111-111111111111',
-        title: 'Base, postura y conexion',
-        description: 'Vista previa del curso con los puntos clave de postura y conexión inicial.',
-        position: 1,
-        duration_seconds: 420,
-        is_free_preview: true,
-        video_storage_path: 'demo/bachata-sensual-basico/01-base-postura-conexion.mp4',
-      },
-      {
-        fallbackId: '21111111-1111-4111-8111-111111111112',
-        title: 'Ondas básicas y control corporal',
-        description: 'Trabajo progresivo de ondas con foco en control, respiración y timing.',
-        position: 2,
-        duration_seconds: 840,
-        is_free_preview: false,
-        video_storage_path: 'demo/bachata-sensual-basico/02-ondas-basicas.mp4',
-      },
-      {
-        fallbackId: '21111111-1111-4111-8111-111111111113',
-        title: 'Combinación guiada de fundamentos',
-        description: 'Secuencia completa para integrar base, ondas y cambios de peso.',
-        position: 3,
-        duration_seconds: 960,
-        is_free_preview: false,
-        video_storage_path: 'demo/bachata-sensual-basico/03-combinacion-fundamentos.mp4',
-      },
-    ],
+    title: 'Bienvenida al programa Bachazouk Vol. 1',
+    description: 'Presentaci\u00f3n del curso, objetivos y forma recomendada de practicar.',
+    is_free_preview: true,
   },
   {
-    fallbackId: '11111111-1111-4111-8111-111111111112',
-    title: 'Figuras Avanzadas y Musicalidad',
-    slug: 'figuras-avanzadas',
-    description: 'Recursos para interpretar la música y construir figuras con cambios de energía.',
+    title: 'Postura',
+    description: 'Trabajo inicial de colocaci\u00f3n corporal para bailar con estabilidad y control.',
+  },
+  {
+    title: 'Cabeza',
+    description: 'Bases t\u00e9cnicas para iniciar movimientos de cabeza de forma progresiva y segura.',
+  },
+  {
+    title: 'Conexi\u00f3n',
+    description: 'Puntos de contacto, comunicaci\u00f3n en pareja y lectura de la energ\u00eda del movimiento.',
+  },
+  {
+    title: 'Movimientos activos',
+    description: 'Acciones donde el alumno genera energ\u00eda e intenci\u00f3n dentro de la figura.',
+  },
+  {
+    title: 'Movimientos pasivos',
+    description: 'Recepci\u00f3n del movimiento, control del eje y continuidad sin tensi\u00f3n innecesaria.',
+  },
+  {
+    title: 'Base fuerte',
+    description: 'Fundamentos de apoyo, direcci\u00f3n y preparaci\u00f3n para giros inclinados.',
+  },
+  {
+    title: 'Base circular',
+    description: 'Trabajo de trayectoria circular para transiciones fluidas en bachazouk.',
+  },
+  {
+    title: 'Base 360',
+    description: 'Construcci\u00f3n del giro completo manteniendo eje, conexi\u00f3n y control corporal.',
+  },
+  {
+    title: 'Tilted turns',
+    description: 'Introducci\u00f3n progresiva a los giros inclinados principales del curso.',
+  },
+  {
+    title: 'Tilted rotations',
+    description: 'Rotaciones inclinadas, control del peso y salida limpia de la figura.',
+  },
+  {
+    title: 'Pulso de energ\u00eda',
+    description: 'Uso del pulso para preparar cambios de din\u00e1mica y mantener musicalidad.',
+  },
+  {
+    title: 'Teor\u00eda del libro leading',
+    description: 'Principios de liderazgo aplicados a secuencias complejas de bachazouk.',
+  },
+  {
+    title: 'Leading y following',
+    description: 'Reparto de responsabilidades, escucha corporal y respuesta durante la figura.',
+  },
+  {
+    title: 'Sensaci\u00f3n de toalha',
+    description: 'Ejercicio de textura y continuidad para suavizar transiciones en pareja.',
+  },
+  {
+    title: 'Respiraci\u00f3n como inicio del movimiento',
+    description: 'Uso de la respiraci\u00f3n como se\u00f1al de preparaci\u00f3n y arranque del movimiento.',
+  },
+  {
+    title: 'Bal\u00e3o',
+    description: 'Base t\u00e9cnica del bal\u00e3o y adaptaci\u00f3n al vocabulario de bachazouk.',
+  },
+  {
+    title: 'Tipos de bal\u00e3o',
+    description: 'Variantes principales de bal\u00e3o y criterios para elegir cada ejecuci\u00f3n.',
+  },
+  {
+    title: 'Desplazamiento',
+    description: 'Gesti\u00f3n del espacio y desplazamientos seguros dentro de la secuencia.',
+  },
+  {
+    title: 'Recuperaci\u00f3n',
+    description: 'Salidas, reajustes de eje y recuperaci\u00f3n tras movimientos inclinados.',
+  },
+  {
+    title: 'Tipos de footwork en los giros',
+    description: 'Opciones de pies para mejorar estabilidad, limpieza y continuidad.',
+  },
+  {
+    title: 'Secuencia final',
+    description: 'Integraci\u00f3n del contenido del curso en una secuencia completa guiada.',
+  },
+].map((lesson, index) => ({
+  fallbackId: '22111111-1111-4111-8111-' + String(111111111101 + index).padStart(12, '0'),
+  ...lesson,
+  position: index + 1,
+  duration_seconds: null,
+  is_free_preview: lesson.is_free_preview ?? false,
+  video_storage_path:
+    'demo/bachazouk-vol-1/' +
+    String(index + 1).padStart(2, '0') +
+    '-' +
+    toSeedObjectPathSegment(lesson.title) +
+    '.mp4',
+}));
+
+const COURSE_SEEDS = [
+  {
+    fallbackId: '12111111-1111-4111-8111-111111111111',
+    title: 'Bachazouk Vol. 1: 8 Tilted Turns',
+    slug: 'bachazouk-vol-1-tilted-turns',
+    description:
+      'Programa progresivo para trabajar bases de bachazouk, tilted turns, leading, following y recuperaciones con control.',
     cover_image_url: ASSETS.IMG_4784,
-    level: 'Avanzado',
+    level: 'Intermedio',
     price_cents: 3900,
     is_published: true,
-    lessons: [
+    lessons: BACHAZOUK_LESSONS,
+    resources: [
       {
-        fallbackId: '21111111-1111-4111-8111-111111111121',
-        title: 'Musicalidad y cortes',
-        description: 'Vista previa sobre lectura musical y preparación de cortes.',
-        position: 1,
-        duration_seconds: 480,
-        is_free_preview: true,
-        video_storage_path: 'demo/figuras-avanzadas/01-musicalidad-cortes.mp4',
-      },
-      {
-        fallbackId: '21111111-1111-4111-8111-111111111122',
-        title: 'Cambios de energía',
-        description: 'Cómo modular energía, velocidad e intención dentro de una figura.',
-        position: 2,
-        duration_seconds: 900,
+        fallbackId: '23111111-1111-4111-8111-111111111111',
+        title: 'Gu\u00eda del curso Bachazouk Vol. 1',
+        description: 'Documento de apoyo para repasar estructura, conceptos y orden de trabajo del curso.',
+        resource_storage_path: 'demo/bachazouk-vol-1/bachazouk-vol-1.pdf',
+        file_name: 'bachazouk-vol-1.pdf',
+        mime_type: 'application/pdf',
+        position: 10,
         is_free_preview: false,
-        video_storage_path: 'demo/figuras-avanzadas/02-cambios-energia.mp4',
-      },
-      {
-        fallbackId: '21111111-1111-4111-8111-111111111123',
-        title: 'Figura avanzada guiada',
-        description: 'Construcción paso a paso de una figura con énfasis musical.',
-        position: 3,
-        duration_seconds: 1020,
-        is_free_preview: false,
-        video_storage_path: 'demo/figuras-avanzadas/03-figura-avanzada-guiada.mp4',
+        is_published: true,
       },
     ],
   },
@@ -112,28 +173,41 @@ const COURSE_SEEDS = [
 const EVENT_SEEDS = [
   {
     fallbackId: '31111111-1111-4111-8111-111111111111',
-    title: 'Madrid Bachata Festival',
-    city: 'Madrid',
-    event_date: '2026-06-20T10:00:00.000Z',
+    title: "DJ Got Us Fallin' In Love",
+    city: 'Stuttgart',
+    event_date: '2026-05-22T10:00:00.000Z',
+    end_date: '2026-05-25T12:00:00.000Z',
     type: 'Congreso',
     is_active: true,
     ticket_url: 'https://www.instagram.com/suarezycarmenoficial/',
   },
   {
     fallbackId: '31111111-1111-4111-8111-111111111112',
-    title: 'Taller Intensivo: Ondas y Body Rolls',
-    city: 'Malaga',
-    event_date: '2026-07-04T17:00:00.000Z',
+    title: 'Aldonya Dance Academy',
+    city: 'Malmö',
+    event_date: '2026-05-29T10:00:00.000Z',
+    end_date: '2026-05-30T12:00:00.000Z',
     type: 'Taller',
     is_active: true,
     ticket_url: 'https://www.instagram.com/suarezycarmenoficial/',
   },
   {
     fallbackId: '31111111-1111-4111-8111-111111111113',
-    title: 'Bootcamp Bachata Sensual',
-    city: 'Sevilla',
-    event_date: '2026-08-08T09:30:00.000Z',
-    type: 'Taller',
+    title: 'Sunny Waves Dance Festival',
+    city: 'Black Sea Coast, Hotel Laguna',
+    event_date: '2026-07-02T10:00:00.000Z',
+    end_date: '2026-07-06T12:00:00.000Z',
+    type: 'Congreso',
+    is_active: true,
+    ticket_url: 'https://www.instagram.com/suarezycarmenoficial/',
+  },
+  {
+    fallbackId: '31111111-1111-4111-8111-111111111114',
+    title: 'Malmö Bachata Festival',
+    city: 'Malmö',
+    event_date: '2026-09-25T10:00:00.000Z',
+    end_date: '2026-09-27T12:00:00.000Z',
+    type: 'Congreso',
     is_active: true,
     ticket_url: 'https://www.instagram.com/suarezycarmenoficial/',
   },
@@ -265,6 +339,11 @@ function assertNoError(result, context) {
   return result.data;
 }
 
+function isStorageAlreadyExistsError(error) {
+  const message = typeof error?.message === 'string' ? error.message.toLowerCase() : '';
+  return error?.statusCode === '409' || message.includes('already exists') || message.includes('resource already exists');
+}
+
 async function findExistingId(table, column, value) {
   const result = await supabase
     .from(table)
@@ -333,10 +412,49 @@ async function upsertLesson(courseId, lessonSeed) {
           duration_seconds: lessonSeed.duration_seconds,
           position: lessonSeed.position,
           is_free_preview: lessonSeed.is_free_preview,
+          is_published: lessonSeed.is_published ?? true,
         },
         { onConflict: 'id' }
       ),
     `Could not upsert lesson ${lessonSeed.title}`
+  );
+}
+
+async function upsertCourseResource(courseId, resourceSeed) {
+  const existing = await supabase
+    .from('course_resources')
+    .select('id')
+    .eq('course_id', courseId)
+    .eq('position', resourceSeed.position)
+    .maybeSingle();
+
+  if (existing.error) {
+    throw new Error(`Could not query course resource ${resourceSeed.title}: ${existing.error.message}`);
+  }
+
+  const id = existing.data?.id || resourceSeed.fallbackId;
+
+  assertNoError(
+    await supabase
+      .from('course_resources')
+      .upsert(
+        {
+          id,
+          course_id: courseId,
+          title: resourceSeed.title,
+          description: resourceSeed.description,
+          resource_url: resourceSeed.resource_url ?? null,
+          resource_storage_path: resourceSeed.resource_storage_path,
+          file_name: resourceSeed.file_name,
+          mime_type: resourceSeed.mime_type,
+          position: resourceSeed.position,
+          is_free_preview: resourceSeed.is_free_preview,
+          is_published: resourceSeed.is_published,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'id' }
+      ),
+    `Could not upsert course resource ${resourceSeed.title}`
   );
 }
 
@@ -353,6 +471,7 @@ async function upsertEvent(eventSeed) {
           title: eventSeed.title,
           city: eventSeed.city,
           event_date: eventSeed.event_date,
+          end_date: eventSeed.end_date,
           type: eventSeed.type,
           is_active: eventSeed.is_active,
           ticket_url: eventSeed.ticket_url,
@@ -444,6 +563,42 @@ async function deactivateLegacyInPersonClassSeeds() {
   }
 }
 
+async function deactivateLegacyCourseSeeds() {
+  const seedSlugs = new Set(COURSE_SEEDS.map((courseSeed) => courseSeed.slug));
+  const legacySlugs = ['bachata-sensual-basico', 'figuras-avanzadas', 'course'];
+
+  for (const slug of legacySlugs) {
+    if (seedSlugs.has(slug)) continue;
+
+    const result = await supabase
+      .from('courses')
+      .update({ is_published: false })
+      .eq('slug', slug);
+
+    assertNoError(result, `Could not deactivate legacy course ${slug}`);
+  }
+}
+
+async function deactivateLegacyEventSeeds() {
+  const seedTitles = new Set(EVENT_SEEDS.map((eventSeed) => eventSeed.title));
+  const legacyTitles = [
+    'Madrid Bachata Festival',
+    'Taller Intensivo: Ondas y Body Rolls',
+    'Bootcamp Bachata Sensual',
+  ];
+
+  for (const title of legacyTitles) {
+    if (seedTitles.has(title)) continue;
+
+    const result = await supabase
+      .from('events')
+      .update({ is_active: false })
+      .eq('title', title);
+
+    assertNoError(result, `Could not deactivate legacy event ${title}`);
+  }
+}
+
 async function ensureVideoBucket() {
   const bucket = await supabase.storage.getBucket(VIDEO_BUCKET);
   if (!bucket.error) return;
@@ -455,6 +610,47 @@ async function ensureVideoBucket() {
   if (created.error && created.error.message !== 'Bucket already exists') {
     throw new Error(`Could not create storage bucket ${VIDEO_BUCKET}: ${created.error.message}`);
   }
+}
+
+async function ensureResourceBucket() {
+  const bucket = await supabase.storage.getBucket(RESOURCE_BUCKET);
+  if (!bucket.error) return;
+
+  const created = await supabase.storage.createBucket(RESOURCE_BUCKET, {
+    public: false,
+  });
+
+  if (created.error && created.error.message !== 'Bucket already exists') {
+    throw new Error(`Could not create storage bucket ${RESOURCE_BUCKET}: ${created.error.message}`);
+  }
+}
+
+function createDemoPdfBuffer() {
+  const stream = 'BT /F1 18 Tf 72 720 Td (Bachazouk Vol. 1 - material de apoyo) Tj ET';
+  const objects = [
+    '1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj',
+    '2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj',
+    '3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>\nendobj',
+    `4 0 obj\n<< /Length ${Buffer.byteLength(stream, 'utf8')} >>\nstream\n${stream}\nendstream\nendobj`,
+    '5 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj',
+  ];
+
+  let pdf = '%PDF-1.4\n';
+  const offsets = [0];
+  for (const object of objects) {
+    offsets.push(Buffer.byteLength(pdf, 'utf8'));
+    pdf += `${object}\n`;
+  }
+
+  const xrefOffset = Buffer.byteLength(pdf, 'utf8');
+  pdf += `xref\n0 ${objects.length + 1}\n`;
+  pdf += '0000000000 65535 f \n';
+  for (const offset of offsets.slice(1)) {
+    pdf += `${String(offset).padStart(10, '0')} 00000 n \n`;
+  }
+  pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF\n`;
+
+  return Buffer.from(pdf, 'utf8');
 }
 
 async function downloadDemoVideo() {
@@ -483,10 +679,40 @@ async function uploadDemoVideos() {
       .from(VIDEO_BUCKET)
       .upload(objectPath, videoBuffer, {
         contentType: 'video/mp4',
-        upsert: true,
+        upsert: false,
       });
 
+    if (result.error && isStorageAlreadyExistsError(result.error)) continue;
+
     assertNoError(result, `Could not upload demo video ${objectPath}`);
+  }
+}
+
+async function uploadDemoCourseResources() {
+  if (process.env.SKIP_DEMO_RESOURCE_UPLOAD === '1') {
+    console.log('[seed] Skipping demo resource upload because SKIP_DEMO_RESOURCE_UPLOAD=1.');
+    return;
+  }
+
+  await ensureResourceBucket();
+  const pdfBuffer = createDemoPdfBuffer();
+  const paths = COURSE_SEEDS.flatMap((course) =>
+    (course.resources || [])
+      .filter((resource) => resource.resource_storage_path)
+      .map((resource) => resource.resource_storage_path)
+  );
+
+  for (const objectPath of paths) {
+    const result = await supabase.storage
+      .from(RESOURCE_BUCKET)
+      .upload(objectPath, pdfBuffer, {
+        contentType: 'application/pdf',
+        upsert: false,
+      });
+
+    if (result.error && isStorageAlreadyExistsError(result.error)) continue;
+
+    assertNoError(result, `Could not upload demo course resource ${objectPath}`);
   }
 }
 
@@ -517,11 +743,16 @@ for (const courseSeed of COURSE_SEEDS) {
   for (const lessonSeed of courseSeed.lessons) {
     await upsertLesson(courseId, lessonSeed);
   }
+  for (const resourceSeed of courseSeed.resources || []) {
+    await upsertCourseResource(courseId, resourceSeed);
+  }
 }
+await deactivateLegacyCourseSeeds();
 
 for (const eventSeed of EVENT_SEEDS) {
   await upsertEvent(eventSeed);
 }
+await deactivateLegacyEventSeeds();
 
 await upsertHomeContent();
 
@@ -535,5 +766,6 @@ for (const classSeed of IN_PERSON_CLASS_SEEDS) {
 await deactivateLegacyInPersonClassSeeds();
 
 await uploadDemoVideos();
+await uploadDemoCourseResources();
 
 console.log('[seed] Local content seed completed.');

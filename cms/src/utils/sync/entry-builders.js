@@ -63,6 +63,7 @@ function buildEventEntry(event) {
     title: event.title,
     city: event.city,
     eventDate: event.eventDate,
+    endDate: event.endDate,
     type: event.type,
     imageUrl: resolveMediaUrl(event.image),
     locationUrl: event.locationUrl,

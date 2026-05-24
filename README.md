@@ -123,7 +123,7 @@ Endpoints publicos por diseno:
 - `POST /api/stripe/webhook`: webhook de Stripe, protegido mediante firma.
 - `POST /api/stripe/create-checkout-session`: requiere sesion de usuario.
 - `GET /api/stripe/checkout-session-status`: requiere sesion de usuario y valida pertenencia de la sesion.
-- `GET /api/lessons/:lessonId/video-url`: devuelve URLs firmadas solo para previews o usuarios con compra valida.
+- `GET /api/lessons/:lessonId/video-url`: devuelve rutas protegidas solo para vistas previas o usuarios con compra valida.
 - `GET /api/lessons/playback/:token`: sirve video protegido desde backend sin exponer la URL privada de Storage.
 - `GET /api/lessons/hls/:token/manifest`: sirve manifiestos HLS reescritos a rutas protegidas.
 - `GET /api/lessons/hls/:token/resource`: sirve playlists hijas y segmentos HLS protegidos.

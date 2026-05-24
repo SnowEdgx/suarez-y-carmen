@@ -25,6 +25,9 @@
       "type": "datetime",
       "required": true
     },
+    "endDate": {
+      "type": "datetime"
+    },
     "type": {
       "type": "enumeration",
       "enum": ["Clase", "Taller", "Social", "Congreso"],

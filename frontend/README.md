@@ -2,12 +2,12 @@
 
 Interfaz web de la plataforma Suárez y Carmen.
 
-Este paquete contiene la capa de presentación desarrollada con Next.js, React y Tailwind CSS. Su responsabilidad es renderizar la web pública, el catálogo de cursos, el área de alumno, el login, la recuperación de contraseña y la integración visual con los flujos de compra y vídeo protegido.
+Este paquete contiene la capa de presentación desarrollada con Next.js, React y Tailwind CSS. Su responsabilidad es renderizar la web pública, los cursos, el área de alumno, el login, la recuperación de contraseña y la integración visual con los flujos de compra y vídeo protegido.
 
 ## Responsabilidades
 
 - Renderizar la home pública y las páginas informativas.
-- Mostrar el catálogo de cursos publicados.
+- Mostrar los cursos publicados.
 - Gestionar formularios de registro, inicio de sesión y recuperación de contraseña mediante Supabase Auth.
 - Iniciar compras de cursos llamando al backend Express.
 - Consultar el estado de checkout después de volver desde Stripe.

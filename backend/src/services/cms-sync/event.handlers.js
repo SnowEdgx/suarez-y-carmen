@@ -25,12 +25,22 @@ async function upsertEvent(entry) {
     throw createHttpError(422, 'eventDate must be a valid date.');
   }
 
+  const rawEndDate = optionalString(entry.endDate, 80);
+  const parsedEndDate = rawEndDate ? new Date(rawEndDate) : null;
+  if (rawEndDate && Number.isNaN(parsedEndDate.getTime())) {
+    throw createHttpError(422, 'endDate must be a valid date.');
+  }
+  if (parsedEndDate && parsedEndDate.getTime() < parsedEventDate.getTime()) {
+    throw createHttpError(422, 'endDate must be greater than or equal to eventDate.');
+  }
+
   const existing = await findEvent({ ...entry, title, eventDate: parsedEventDate.toISOString() });
   const isActive = optionalBoolean(entry.isActive) ?? resolvePublishedState(entry, true);
   const payload = {
     title,
     city,
     event_date: parsedEventDate.toISOString(),
+    end_date: parsedEndDate ? parsedEndDate.toISOString() : null,
     image_url: normalizeUrl(entry.imageUrl, 'imageUrl'),
     location_url: normalizeUrl(entry.locationUrl, 'locationUrl'),
     ticket_url: normalizeUrl(entry.ticketUrl, 'ticketUrl'),

@@ -48,7 +48,7 @@ export async function loadCourseLessons(supabase: SupabaseClient, courseId: stri
   message: CheckoutMessage | null;
 }> {
   const lessonsResponse = await supabase
-    .from("lessons")
+    .from("public_lessons")
     .select("id, title, description, position, is_free_preview")
     .eq("course_id", courseId)
     .order("position", { ascending: true });

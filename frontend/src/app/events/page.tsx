@@ -13,6 +13,7 @@ type EventRow = {
   title: string;
   city: string;
   event_date: string;
+  end_date: string | null;
   image_url: string | null;
   location_url: string | null;
   ticket_url: string | null;
@@ -24,15 +25,44 @@ export const metadata: Metadata = {
   description: "Pr\u00f3ximos eventos, talleres y congresos de Su\u00e1rez y Carmen.",
 };
 
-function formatEventDate(value: string) {
+function formatDateParts(value: string) {
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Fecha pendiente";
+  if (Number.isNaN(date.getTime())) return null;
 
-  return new Intl.DateTimeFormat("es-ES", {
-    dateStyle: "full",
-    timeStyle: "short",
+  const parts = new Intl.DateTimeFormat("es-ES", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
     timeZone: "Europe/Madrid",
-  }).format(date);
+  }).formatToParts(date);
+
+  return {
+    day: parts.find((part) => part.type === "day")?.value || "",
+    month: parts.find((part) => part.type === "month")?.value || "",
+    year: parts.find((part) => part.type === "year")?.value || "",
+  };
+}
+
+function formatEventDateRange(startValue: string, endValue: string | null) {
+  const start = formatDateParts(startValue);
+  if (!start) return "Fecha pendiente";
+
+  const end = endValue ? formatDateParts(endValue) : null;
+  if (!end) return `${start.day} de ${start.month} de ${start.year}`;
+
+  if (start.day === end.day && start.month === end.month && start.year === end.year) {
+    return `${start.day} de ${start.month} de ${start.year}`;
+  }
+
+  if (start.month === end.month && start.year === end.year) {
+    return `${start.day}-${end.day} de ${start.month} de ${start.year}`;
+  }
+
+  if (start.year === end.year) {
+    return `${start.day} de ${start.month} - ${end.day} de ${end.month} de ${start.year}`;
+  }
+
+  return `${start.day} de ${start.month} de ${start.year} - ${end.day} de ${end.month} de ${end.year}`;
 }
 
 function isSafeExternalUrl(value: string | null) {
@@ -93,9 +123,9 @@ export default async function EventsPage() {
     supabase.auth.getUser(),
     supabase
       .from("events")
-      .select("id, title, city, event_date, image_url, location_url, ticket_url, type")
+      .select("id, title, city, event_date, end_date, image_url, location_url, ticket_url, type")
       .eq("is_active", true)
-      .gte("event_date", now)
+      .or(`event_date.gte.${now},end_date.gte.${now}`)
       .order("event_date", { ascending: true }),
   ]);
 
@@ -186,7 +216,9 @@ export default async function EventsPage() {
                   </div>
 
                   <div className="flex flex-1 flex-col p-6">
-                    <p className="mb-3 text-sm font-semibold text-red-300">{formatEventDate(event.event_date)}</p>
+                    <p className="mb-3 text-sm font-semibold text-red-300">
+                      {formatEventDateRange(event.event_date, event.end_date)}
+                    </p>
                     <h2 className="mb-2 text-2xl font-bold text-white">{title}</h2>
                     <p className="text-sm text-neutral-400">{city}</p>
 
