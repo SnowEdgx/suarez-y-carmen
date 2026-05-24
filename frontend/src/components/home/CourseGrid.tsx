@@ -76,17 +76,24 @@ export default function CourseGrid({
               return (
                 <article key={course.id} className="group relative rounded-xl overflow-hidden bg-neutral-900 border border-neutral-800 flex flex-col min-h-[420px]">
                   <div className="relative isolate aspect-[3/4] shrink-0 overflow-hidden bg-neutral-950">
-                    <Image
-                      src={imageSrc}
-                      alt=""
-                      aria-hidden="true"
-                      fill
-                      priority={index < 2}
-                      quality={74}
-                      unoptimized={shouldBypassImageOptimization(imageSrc)}
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                      className="h-full w-full object-cover object-[center_28%] opacity-75 transition-opacity duration-500 group-hover:opacity-100"
-                    />
+                    {imageSrc ? (
+                      <Image
+                        src={imageSrc}
+                        alt=""
+                        aria-hidden="true"
+                        fill
+                        priority={index < 2}
+                        quality={74}
+                        unoptimized={shouldBypassImageOptimization(imageSrc)}
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                        className="h-full w-full object-cover object-[center_28%] opacity-75 transition-opacity duration-500 group-hover:opacity-100"
+                      />
+                    ) : (
+                      <div
+                        aria-hidden="true"
+                        className="absolute inset-0 bg-[radial-gradient(circle_at_28%_16%,rgba(220,38,38,0.38),transparent_32%),linear-gradient(145deg,#171717,#050505)]"
+                      />
+                    )}
                     <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/90 via-black/25 to-transparent"></div>
 
                     <div className="absolute inset-0 z-20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">

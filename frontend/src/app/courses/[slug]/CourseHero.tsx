@@ -84,16 +84,22 @@ export default function CourseHero({
       </div>
 
       <div className="relative rounded-2xl overflow-hidden border border-neutral-800 bg-neutral-900/50 min-h-[420px]">
-        <Image
-          src={imageSrc}
-          alt={title}
-          fill
-          priority
-          quality={76}
-          unoptimized={shouldBypassImageOptimization(imageSrc)}
-          sizes="(max-width: 1024px) 100vw, 50vw"
-          className="w-full h-full object-cover object-[center_24%]"
-        />
+        {imageSrc ? (
+          <Image
+            src={imageSrc}
+            alt={title}
+            fill
+            priority
+            quality={76}
+            unoptimized={shouldBypassImageOptimization(imageSrc)}
+            sizes="(max-width: 1024px) 100vw, 50vw"
+            className="w-full h-full object-cover object-[center_24%]"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-end bg-[radial-gradient(circle_at_30%_18%,rgba(220,38,38,0.34),transparent_34%),linear-gradient(145deg,#171717,#050505)] p-8">
+            <p className="font-serif text-3xl font-bold text-white/90">Curso online</p>
+          </div>
+        )}
       </div>
     </header>
   );
