@@ -1,6 +1,6 @@
 const { getClientIp } = require('./request');
 
-function createIpRateLimit({ windowMs, maxRequests, message }) {
+function createIpRateLimit({ windowMs, maxRequests, message, code }) {
   const buckets = new Map();
 
   function rateLimit(req, res, next) {
@@ -14,7 +14,11 @@ function createIpRateLimit({ windowMs, maxRequests, message }) {
     }
 
     if (bucket.count >= maxRequests) {
-      return res.status(429).json({ error: message });
+      const payload = { error: message };
+      if (typeof code === 'string' && code) {
+        payload.code = code;
+      }
+      return res.status(429).json(payload);
     }
 
     bucket.count += 1;

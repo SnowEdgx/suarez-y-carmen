@@ -9,6 +9,7 @@ const resourceUrlRateLimit = createIpRateLimit({
   windowMs: RESOURCE_URL_RATE_LIMIT_WINDOW_MS,
   maxRequests: RESOURCE_URL_RATE_LIMIT_MAX_REQUESTS,
   message: 'Demasiadas solicitudes. Int\u00e9ntalo de nuevo en un minuto.',
+  code: 'resource_rate_limited',
 });
 
 router.get('/:resourceId/view-url', resourceUrlRateLimit, courseResourceController.getCourseResourceViewUrl);

@@ -9,6 +9,7 @@ const videoUrlRateLimit = createIpRateLimit({
   windowMs: VIDEO_URL_RATE_LIMIT_WINDOW_MS,
   maxRequests: VIDEO_URL_RATE_LIMIT_MAX_REQUESTS,
   message: 'Demasiadas solicitudes. Inténtalo de nuevo en un minuto.',
+  code: 'playback_rate_limited',
 });
 
 router.get('/playback/:token', videoUrlRateLimit, lessonController.streamLessonVideo);

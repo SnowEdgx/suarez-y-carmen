@@ -10,6 +10,7 @@ const checkoutRateLimit = createIpRateLimit({
   windowMs: CHECKOUT_RATE_LIMIT_WINDOW_MS,
   maxRequests: CHECKOUT_RATE_LIMIT_MAX_REQUESTS,
   message: 'Demasiadas solicitudes. Inténtalo de nuevo en un minuto.',
+  code: 'rate_limited',
 });
 
 function parseCheckoutJsonSafely(req, res, next) {
