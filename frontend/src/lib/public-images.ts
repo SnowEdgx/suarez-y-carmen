@@ -23,6 +23,7 @@ export function getPublicImageUrl(value: string | null | undefined, fallback: st
   try {
     const url = new URL(candidate);
     if (url.protocol !== "http:" && url.protocol !== "https:") return fallback;
+    if (url.username || url.password) return fallback;
 
     return rewriteLocalImageUrlForOptimizer(url);
   } catch {

@@ -111,6 +111,9 @@ function normalizeUrl(value, fieldName) {
     if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
       throw new Error('invalid protocol');
     }
+    if (parsed.username || parsed.password) {
+      throw new Error('url credentials are not allowed');
+    }
   } catch {
     throw createHttpError(422, `${fieldName} must be a valid HTTP URL.`);
   }

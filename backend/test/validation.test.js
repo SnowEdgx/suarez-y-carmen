@@ -6,6 +6,7 @@ const {
 } = require('../src/utils/validation');
 const {
   normalizeHref,
+  normalizeUrl,
 } = require('../src/services/cms-sync/validation');
 
 test('isUuid accepts valid UUIDs', () => {
@@ -41,4 +42,12 @@ test('normalizeHref rejects ambiguous internal editorial links', () => {
   assert.throws(() => normalizeHref('/courses/%2e%2e/profile', 'primaryCtaHref'), /valid HTTP URL/);
   assert.throws(() => normalizeHref('/courses/%2Fprofile', 'primaryCtaHref'), /valid HTTP URL/);
   assert.throws(() => normalizeHref('/courses\\profile', 'primaryCtaHref'), /valid HTTP URL/);
+});
+
+test('normalizeUrl rejects credentials in editorial URLs', () => {
+  assert.equal(
+    normalizeUrl('https://maps.example.com/place?q=bachata#details', 'locationUrl'),
+    'https://maps.example.com/place?q=bachata#details'
+  );
+  assert.throws(() => normalizeUrl('https://user:pass@example.com/course', 'ticketUrl'), /valid HTTP URL/);
 });
