@@ -9,7 +9,7 @@ const repoRoot = path.resolve(__dirname, '..', '..');
 
 const VIDEO_BUCKET = process.env.SUPABASE_VIDEO_BUCKET || 'course-videos';
 const RESOURCE_BUCKET = process.env.SUPABASE_RESOURCE_BUCKET || 'course-resources';
-const DEMO_VIDEO_SOURCE_URL =
+const SEED_VIDEO_SOURCE_URL =
   process.env.SEED_VIDEO_SOURCE_URL ||
   'https://jlpqlqvrhwdjyspwolro.supabase.co/storage/v1/object/public/assets/hero.mp4';
 
@@ -158,7 +158,7 @@ const BACHAZOUK_LESSONS = [
   is_free_preview: lesson.is_free_preview ?? false,
   video_storage_path:
     lesson.video_storage_path ||
-    'demo/bachazouk-vol-1/' +
+    'fixtures/bachazouk-vol-1/' +
       String(index + 1).padStart(2, '0') +
       '-' +
       toSeedObjectPathSegment(lesson.title) +
@@ -242,7 +242,7 @@ const HOME_CONTENT_SEED = {
   hero_title: 'Master the head movements.',
   hero_subtitle:
     'Domina la sensualidad, el estilo y la conexi\u00f3n con Su\u00e1rez y Carmen. Aprende desde casa paso a paso con cursos individuales y acceso inmediato.',
-  hero_video_url: DEMO_VIDEO_SOURCE_URL,
+  hero_video_url: SEED_VIDEO_SOURCE_URL,
   primary_cta_label: 'Ver cursos',
   primary_cta_href: '/courses',
   is_published: true,
@@ -645,7 +645,7 @@ async function deleteLegacyCourseResourceSeeds() {
     .delete()
     .eq('resource_storage_path', 'demo/bachazouk-vol-1/bachazouk-vol-1.pdf');
 
-  assertNoError(result, 'Could not delete legacy demo course resource');
+  assertNoError(result, 'Could not delete legacy course resource');
 }
 
 async function deactivateLegacyEventSeeds() {
@@ -694,7 +694,7 @@ async function ensureResourceBucket() {
   }
 }
 
-function createDemoPdfBuffer() {
+function createSeedPdfBuffer() {
   const stream = 'BT /F1 18 Tf 72 720 Td (Bachazouk Vol. 1 - material de apoyo) Tj ET';
   const objects = [
     '1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj',
@@ -722,23 +722,23 @@ function createDemoPdfBuffer() {
   return Buffer.from(pdf, 'utf8');
 }
 
-async function downloadDemoVideo() {
-  const response = await fetch(DEMO_VIDEO_SOURCE_URL);
+async function downloadSeedVideo() {
+  const response = await fetch(SEED_VIDEO_SOURCE_URL);
   if (!response.ok) {
-    throw new Error(`Could not download demo video (${response.status}) from ${DEMO_VIDEO_SOURCE_URL}`);
+    throw new Error(`Could not download seed video (${response.status}) from ${SEED_VIDEO_SOURCE_URL}`);
   }
 
   return Buffer.from(await response.arrayBuffer());
 }
 
-async function uploadDemoVideos() {
-  if (process.env.SKIP_DEMO_VIDEO_UPLOAD === '1') {
-    console.log('[seed] Skipping demo video upload because SKIP_DEMO_VIDEO_UPLOAD=1.');
+async function uploadSeedVideos() {
+  if (process.env.SKIP_SEED_VIDEO_UPLOAD === '1') {
+    console.log('[seed] Skipping seed video upload.');
     return;
   }
 
   await ensureVideoBucket();
-  const videoBuffer = await downloadDemoVideo();
+  const videoBuffer = await downloadSeedVideo();
   const paths = COURSE_SEEDS.flatMap((course) =>
     course.lessons.map((lesson) => lesson.video_storage_path)
   );
@@ -753,18 +753,18 @@ async function uploadDemoVideos() {
 
     if (result.error && isStorageAlreadyExistsError(result.error)) continue;
 
-    assertNoError(result, `Could not upload demo video ${objectPath}`);
+    assertNoError(result, `Could not upload seed video ${objectPath}`);
   }
 }
 
-async function uploadDemoCourseResources() {
-  if (process.env.SKIP_DEMO_RESOURCE_UPLOAD === '1') {
-    console.log('[seed] Skipping demo resource upload because SKIP_DEMO_RESOURCE_UPLOAD=1.');
+async function uploadSeedCourseResources() {
+  if (process.env.SKIP_SEED_RESOURCE_UPLOAD === '1') {
+    console.log('[seed] Skipping seed resource upload.');
     return;
   }
 
   await ensureResourceBucket();
-  const pdfBuffer = createDemoPdfBuffer();
+  const pdfBuffer = createSeedPdfBuffer();
   const paths = COURSE_SEEDS.flatMap((course) =>
     (course.resources || [])
       .filter((resource) => resource.resource_storage_path)
@@ -781,7 +781,7 @@ async function uploadDemoCourseResources() {
 
     if (result.error && isStorageAlreadyExistsError(result.error)) continue;
 
-    assertNoError(result, `Could not upload demo course resource ${objectPath}`);
+    assertNoError(result, `Could not upload seed course resource ${objectPath}`);
   }
 }
 
@@ -836,7 +836,7 @@ for (const classSeed of IN_PERSON_CLASS_SEEDS) {
 }
 await deactivateLegacyInPersonClassSeeds();
 
-await uploadDemoVideos();
-await uploadDemoCourseResources();
+await uploadSeedVideos();
+await uploadSeedCourseResources();
 
 console.log('[seed] Local content seed completed.');
