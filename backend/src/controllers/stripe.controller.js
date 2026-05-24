@@ -11,7 +11,6 @@ const {
 } = require('../services/stripe-event.service');
 const {
   buildFrontendReturnUrl,
-  extractPaymentIntentId,
   getReusableCheckoutSession,
   requireStripe,
   sanitizeCheckoutSessionId,
