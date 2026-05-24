@@ -1,7 +1,7 @@
 const LOCAL_BACKEND_URL = "http://localhost:4000";
 
-function isProduction() {
-  return process.env.NODE_ENV === "production";
+function requiresExplicitProductionUrl() {
+  return process.env.VERCEL_ENV === "production" || process.env.REQUIRE_PRODUCTION_URLS === "true";
 }
 
 function normalizeHttpUrl(value: string, name: string) {
@@ -26,7 +26,7 @@ function resolveBackendUrl(name: string, ...candidates: Array<string | undefined
     if (value) return normalizeHttpUrl(value, name);
   }
 
-  if (isProduction()) {
+  if (requiresExplicitProductionUrl()) {
     throw new Error(`${name} is required in production.`);
   }
 

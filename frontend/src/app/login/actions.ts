@@ -10,6 +10,7 @@ import {
 } from '@/lib/auth-session'
 import { isEmailVerified } from '@/lib/auth-user'
 import { getSafeInternalPath } from '@/lib/safe-redirect'
+import { getSiteUrl } from '@/lib/site-url'
 import { createClient } from '@/lib/supabase/server'
 
 const EMAIL_VERIFICATION_ERROR =
@@ -25,10 +26,6 @@ const PASSWORD_REQUIREMENTS_MESSAGE =
 const MAX_EMAIL_LENGTH = 254
 const MAX_NAME_LENGTH = 120
 const MAX_PASSWORD_LENGTH = 128
-
-function getSiteUrl() {
-  return (process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000').replace(/\/$/, '')
-}
 
 function getAuthCallbackUrl(nextPath: string) {
   return `${getSiteUrl()}/auth/callback?next=${encodeURIComponent(nextPath)}`

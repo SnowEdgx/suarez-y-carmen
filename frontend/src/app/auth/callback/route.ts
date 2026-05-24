@@ -1,20 +1,11 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import type { EmailOtpType } from '@supabase/supabase-js'
 import { getSafeInternalPath } from '@/lib/safe-redirect'
+import { getSiteUrlFromRequestOrigin } from '@/lib/site-url'
 import { createClient } from '@/lib/supabase/server'
 
 function getBaseUrl(request: NextRequest) {
-  const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim()
-  if (configuredSiteUrl) {
-    return configuredSiteUrl.replace(/\/$/, '')
-  }
-
-  const origin = request.nextUrl.origin
-  if (origin.includes('0.0.0.0')) {
-    return 'http://localhost:3000'
-  }
-
-  return origin
+  return getSiteUrlFromRequestOrigin(request.nextUrl.origin)
 }
 
 function buildRedirect(request: NextRequest, pathname: string) {

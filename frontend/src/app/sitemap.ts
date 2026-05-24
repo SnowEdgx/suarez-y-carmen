@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { logAppError } from "@/lib/error-logging";
+import { getSiteUrl } from "@/lib/site-url";
 import { createClient } from "@/lib/supabase/server";
 
 const PUBLIC_ROUTES = [
@@ -13,10 +14,6 @@ const PUBLIC_ROUTES = [
   "/legal/privacy",
   "/legal/terms",
 ] as const;
-
-function getSiteUrl() {
-  return (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/+$/, "");
-}
 
 type CourseSitemapRow = {
   slug: string;
