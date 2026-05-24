@@ -151,6 +151,9 @@ exports.getCheckoutSessionStatus = async (req, res) => {
     if (!user) {
       return res.status(401).json({ error: 'No autorizado. Inicia sesión para continuar.' });
     }
+    if (!isEmailVerified(user)) {
+      return res.status(403).json({ error: 'Debes verificar tu correo para consultar esta compra.' });
+    }
 
     const stripeClient = requireStripe();
 

@@ -95,7 +95,7 @@ Success response:
 
 | Method | Path | Auth | Purpose |
 |---|---|---|---|
-| `GET` | `/api/stripe/checkout-session-status?session_id=...` | User token | Confirms payment status and repairs course access if needed. |
+| `GET` | `/api/stripe/checkout-session-status?session_id=...` | User token + verified email | Confirms payment status and repairs course access if needed. |
 
 Rules:
 
