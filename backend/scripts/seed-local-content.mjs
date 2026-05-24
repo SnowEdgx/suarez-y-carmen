@@ -15,7 +15,7 @@ const DEMO_VIDEO_SOURCE_URL =
 
 const PUBLIC_ASSET_BASE_URL = (
   process.env.SUPABASE_PUBLIC_ASSET_BASE_URL ||
-  'https://jlpqlqvrhwdjyspwolro.supabase.co/storage/v1/object/public/assets'
+  'http://127.0.0.1:54321/storage/v1/object/public/assets'
 ).replace(/\/+$/, '');
 
 function publicAssetUrl(objectPath) {
