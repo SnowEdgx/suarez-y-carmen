@@ -64,6 +64,8 @@ export function resolveResourceAccessMessage(errorCode: string | null) {
       return "Este material se desbloquea al comprar el curso.";
     case "service_unavailable":
       return "No pudimos contactar con el servicio de materiales. Int\u00e9ntalo de nuevo en unos segundos.";
+    case "resource_rate_limited":
+      return "Se han realizado demasiadas solicitudes de material. Espera un minuto y vuelve a intentarlo.";
     case "resource_unavailable":
       return "No pudimos preparar el material ahora mismo.";
     default:

@@ -160,7 +160,14 @@ async function assertCourseResourceStreamAccess(payload) {
 
 function getSafeResourceAccessCode(err) {
   const code = typeof err?.code === 'string' ? err.code : '';
-  if (['authentication_required', 'email_not_verified', 'course_not_purchased'].includes(code)) {
+  if (
+    [
+      'authentication_required',
+      'email_not_verified',
+      'course_not_purchased',
+      'resource_rate_limited',
+    ].includes(code)
+  ) {
     return code;
   }
 

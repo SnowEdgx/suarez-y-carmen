@@ -9,6 +9,7 @@ const {
   createCourseResourceToken,
   parseCourseResourceToken,
 } = require('../src/services/course-resource-token.service');
+const { getSafeResourceAccessCode } = require('../src/services/course-resource-access.service');
 
 test('resolveResourceStorageReference accepts private resource paths', () => {
   assert.deepEqual(resolveResourceStorageReference('bachazouk/guia.pdf'), {
@@ -64,4 +65,17 @@ test('course resource tokens reject tampered payloads', () => {
 
   assert.equal(parseCourseResourceToken(`${token.token}tampered`), null);
   assert.equal(parseCourseResourceToken('not-a-token'), null);
+});
+
+test('resource access errors expose only safe client codes', () => {
+  const rateLimitedError = new Error('Too many resource requests.');
+  rateLimitedError.status = 429;
+  rateLimitedError.code = 'resource_rate_limited';
+
+  const internalError = new Error('Database details must stay internal.');
+  internalError.status = 500;
+  internalError.code = 'database_query_failed';
+
+  assert.equal(getSafeResourceAccessCode(rateLimitedError), 'resource_rate_limited');
+  assert.equal(getSafeResourceAccessCode(internalError), 'resource_unavailable');
 });
