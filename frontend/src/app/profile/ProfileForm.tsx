@@ -30,7 +30,7 @@ export default function ProfileForm({ initialName, email }: { initialName: strin
         <div
           role={message.type === 'error' ? 'alert' : 'status'}
           aria-live={message.type === 'error' ? 'assertive' : 'polite'}
-          className={`p-4 rounded-xl text-sm font-medium ${message.type === 'error' ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'bg-green-500/10 text-green-500 border border-green-500/20'}`}
+          className={`border-l px-4 py-3 text-sm font-medium leading-relaxed ${message.type === 'error' ? 'border-red-500 bg-red-500/5 text-red-300' : 'border-green-500 bg-green-500/5 text-green-300'}`}
         >
           {message.text}
         </div>
@@ -47,7 +47,7 @@ export default function ProfileForm({ initialName, email }: { initialName: strin
             type="text"
             required
             defaultValue={initialName}
-            className="w-full bg-neutral-950 border border-neutral-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-600/50 transition-all font-medium"
+            className="w-full border-b border-neutral-800 bg-transparent px-0 py-3 font-medium text-white transition-colors focus:border-red-500 focus:outline-none"
           />
         </div>
         <div>
@@ -59,7 +59,7 @@ export default function ProfileForm({ initialName, email }: { initialName: strin
             type="email"
             disabled
             defaultValue={email}
-            className="w-full bg-neutral-950 border border-neutral-800 text-neutral-500 rounded-xl px-4 py-3 focus:outline-none font-medium cursor-not-allowed opacity-70"
+            className="w-full cursor-not-allowed border-b border-neutral-800 bg-transparent px-0 py-3 font-medium text-neutral-500 opacity-70 focus:outline-none"
           />
           <p className="text-xs text-neutral-500 mt-1.5">El correo no se puede cambiar.</p>
         </div>
@@ -70,7 +70,7 @@ export default function ProfileForm({ initialName, email }: { initialName: strin
           type="submit"
           disabled={isPending}
           aria-busy={isPending}
-          className="px-8 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-xl shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
+          className="rounded-full bg-red-600 px-8 py-2.5 text-sm font-semibold text-white shadow-lg transition-all hover:bg-red-700 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
         >
           {isPending ? 'Guardando...' : 'Guardar cambios'}
         </button>

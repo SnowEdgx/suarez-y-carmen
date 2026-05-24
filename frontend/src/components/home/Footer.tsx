@@ -9,7 +9,7 @@ export default function Footer() {
             S&C
           </Link>
           <p className="text-neutral-400 max-w-sm">
-            {"Formaci\u00f3n profesional de bachata online para estudiar a tu ritmo con acceso por curso."}
+            Cursos online, clases presenciales y agenda de Suárez y Carmen.
           </p>
           <div className="mt-8">
             <a
@@ -40,7 +40,7 @@ export default function Footer() {
         </div>
 
         <div>
-          <h4 className="text-white font-semibold mb-6">Plataforma</h4>
+          <h4 className="text-white font-semibold mb-6">Secciones</h4>
           <ul className="space-y-4 text-sm text-neutral-400">
             <li>
               <Link href="/courses" className="hover:text-white transition-colors">

@@ -12,7 +12,7 @@ export function pickSingleParam(value: string | string[] | undefined) {
 export function resolveCheckoutCodeMessage(code: string | null): CheckoutMessage | null {
   switch (code) {
     case "already_owned":
-      return { type: "info", text: "Ya tienes acceso a este curso. Puedes abrirlo desde el cat\u00e1logo." };
+      return { type: "info", text: "Ya tienes acceso a este curso. Puedes abrirlo desde tus cursos." };
     case "invalid_course":
       return { type: "error", text: "El curso seleccionado no es v\u00e1lido." };
     case "course_not_found":

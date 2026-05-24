@@ -1,3 +1,4 @@
+import { normalizeDisplayText } from "@/lib/display-text";
 import type { CourseDetailResource, CourseResourceAccessState } from "./course-detail.model";
 
 type CourseResourcesPanelProps = {
@@ -7,7 +8,7 @@ type CourseResourcesPanelProps = {
 };
 
 function getResourceLabel(resource: CourseDetailResource) {
-  if (resource.file_name) return resource.file_name;
+  if (resource.file_name) return normalizeDisplayText(resource.file_name, "Material del curso");
   if (resource.mime_type?.includes("pdf")) return "PDF";
   return "Material del curso";
 }
@@ -31,14 +32,16 @@ export default function CourseResourcesPanel({
         <ul className="space-y-3">
           {resources.map((resource) => {
             const access = accessByResourceId[resource.id] || { url: null, errorMessage: null };
+            const title = normalizeDisplayText(resource.title, "Material del curso");
+            const description = normalizeDisplayText(resource.description);
 
             return (
               <li key={resource.id} className="rounded-lg border border-neutral-800 bg-neutral-950/40 p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-sm font-semibold text-white">{resource.title}</p>
-                    {resource.description && (
-                      <p className="mt-1 text-xs leading-relaxed text-neutral-400">{resource.description}</p>
+                    <p className="text-sm font-semibold text-white">{title}</p>
+                    {description && (
+                      <p className="mt-1 text-xs leading-relaxed text-neutral-400">{description}</p>
                     )}
                     <p className="mt-2 text-[11px] uppercase tracking-wide text-neutral-500">
                       {resource.is_free_preview ? "Preview" : getResourceLabel(resource)}
@@ -60,20 +63,11 @@ export default function CourseResourcesPanel({
                   <div className="mt-4 overflow-hidden rounded-xl border border-neutral-800 bg-neutral-950">
                     <iframe
                       src={access.url}
-                      title={`Material del curso: ${resource.title}`}
+                      title={`Material del curso: ${title}`}
                       className="h-[420px] w-full bg-neutral-950"
                       referrerPolicy="no-referrer"
+                      sandbox="allow-scripts allow-same-origin"
                     />
-                    <div className="border-t border-neutral-800 px-4 py-3 text-right">
-                      <a
-                        href={access.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs font-semibold text-neutral-300 underline-offset-4 hover:text-white hover:underline"
-                      >
-                        Abrir en pantalla completa
-                      </a>
-                    </div>
                   </div>
                 )}
 

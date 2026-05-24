@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { STORAGE_ASSETS } from "@/lib/constants";
+import { normalizeDisplayText } from "@/lib/display-text";
 
 export type HomeHeroContent = {
   hero_eyebrow: string | null;
@@ -56,14 +57,22 @@ function HeroCta({
   );
 }
 
+function normalizeHeroCtaLabel(value: string | null | undefined) {
+  const label = normalizeDisplayText(value, "Ver cursos");
+  const comparableLabel = label.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  return comparableLabel.includes("catalogo") ? "Ver cursos" : label;
+}
+
 export default function Hero({ content = null }: HeroProps) {
-  const eyebrow = content?.hero_eyebrow;
-  const title = content?.hero_title || "Master the head movements.";
+  const eyebrow = normalizeDisplayText(content?.hero_eyebrow);
+  const title = normalizeDisplayText(content?.hero_title, "Master the head movements.");
   const subtitle =
-    content?.hero_subtitle ||
-    "Domina la sensualidad, el estilo y la conexi\u00f3n con Su\u00e1rez y Carmen. Aprende desde casa paso a paso con cursos individuales y acceso inmediato.";
+    normalizeDisplayText(
+      content?.hero_subtitle,
+      "Domina la sensualidad, el estilo y la conexión con Suárez y Carmen. Aprende desde casa paso a paso con cursos individuales y acceso inmediato."
+    );
   const videoUrl = content?.hero_video_url || STORAGE_ASSETS.VIDEO_HERO;
-  const primaryLabel = content?.primary_cta_label || "Ver cat\u00e1logo";
+  const primaryLabel = normalizeHeroCtaLabel(content?.primary_cta_label);
   const primaryHref = normalizeHref(content?.primary_cta_href, "/courses");
 
   return (

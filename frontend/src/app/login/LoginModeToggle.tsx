@@ -12,7 +12,7 @@ export default function LoginModeToggle({ isLoginMode, onToggle }: LoginModeTogg
         onClick={onToggle}
         className="text-white hover:text-red-500 font-semibold transition-colors"
       >
-        {isLoginMode ? 'Regístrate' : 'Inicia sesión'}
+        {isLoginMode ? 'Crear cuenta' : 'Inicia sesión'}
       </button>
     </div>
   )

@@ -135,18 +135,29 @@ function LoginPageContent() {
     <div className="min-h-screen bg-neutral-950 text-neutral-100 font-sans selection:bg-red-600 selection:text-white flex flex-col">
       <Navbar />
 
-      <main id="main-content" className="flex-1 flex items-center justify-center p-6 mt-16 relative z-10 w-full">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg h-[400px] bg-red-600/10 blur-[100px] rounded-full pointer-events-none" />
+      <main id="main-content" className="relative z-10 flex-1 px-6 pb-20 pt-32 md:px-12">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-[520px] bg-[radial-gradient(circle_at_18%_18%,rgba(220,38,38,0.18),transparent_34%),linear-gradient(180deg,rgba(10,10,10,0.2),#0a0a0a)]" />
 
-        <div className="relative w-full max-w-md bg-neutral-900/60 backdrop-blur-xl border border-neutral-800 p-8 rounded-3xl shadow-2xl">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-serif font-bold text-white mb-2">
-              {isLoginMode ? 'Bienvenido de nuevo' : 'Crea tu cuenta'}
+        <section className="relative mx-auto grid w-full max-w-6xl grid-cols-1 items-center gap-14 lg:grid-cols-[1fr_420px]">
+          <div className="max-w-2xl">
+            <p className="mb-4 text-sm font-semibold uppercase tracking-[0.32em] text-red-400">Área de alumnos</p>
+            <h1 className="mb-6 font-serif text-5xl font-bold tracking-tight text-white md:text-7xl">
+              Tu espacio para seguir entrenando.
             </h1>
+            <p className="max-w-xl text-lg leading-relaxed text-neutral-400">
+              Accede a tus cursos comprados, guarda tu progreso y continúa las lecciones desde el punto donde lo dejaste.
+            </p>
+          </div>
+
+          <div className="relative w-full border-y border-neutral-800 bg-neutral-950/80 py-8 lg:border lg:p-8">
+          <div className="mb-8">
+            <h2 className="text-3xl font-serif font-bold text-white mb-2">
+              {isLoginMode ? 'Bienvenido de nuevo' : 'Crea tu cuenta'}
+            </h2>
             <p className="text-neutral-400">
               {isLoginMode
-                ? 'Accede a tus cursos y sigue perfeccionando tu baile.'
-                : 'Únete a Suárez y Carmen y domina tu estilo.'}
+                ? 'Entra para ver tus cursos y continuar tu progreso.'
+                : 'Crea tu acceso para comprar cursos y guardar tu progreso.'}
             </p>
           </div>
 
@@ -167,7 +178,8 @@ function LoginPageContent() {
             onPasswordRecovery={handlePasswordRecovery}
           />
           <LoginModeToggle isLoginMode={isLoginMode} onToggle={handleModeToggle} />
-        </div>
+          </div>
+        </section>
       </main>
 
       <Footer />

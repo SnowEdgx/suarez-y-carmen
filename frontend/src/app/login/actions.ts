@@ -12,7 +12,13 @@ import { getSafeInternalPath } from '@/lib/safe-redirect'
 import { createClient } from '@/lib/supabase/server'
 
 const EMAIL_VERIFICATION_ERROR =
-  'Debes verificar tu correo antes de iniciar sesión. Revisa tu bandeja de entrada.'
+  'Debes verificar tu correo antes de iniciar sesión. Si el enlace no llega, solicita un nuevo envío o contacta con soporte.'
+const SIGNUP_VERIFICATION_REQUESTED_MESSAGE =
+  'Cuenta creada. Hemos solicitado la verificación por correo. Si no aparece en unos minutos, revisa spam o solicita un nuevo enlace.'
+const RESEND_VERIFICATION_REQUESTED_MESSAGE =
+  'Solicitud de verificación registrada. Si el correo está operativo, recibirás el enlace en unos minutos.'
+const RECOVERY_REQUESTED_MESSAGE =
+  'Si el correo existe y el servicio de email está operativo, recibirás un enlace para restablecer tu contraseña.'
 
 type AuthUser = {
   email_confirmed_at?: string | null
@@ -140,8 +146,7 @@ export async function signup(formData: FormData) {
   if (!isEmailVerified(authData.user)) {
     await supabase.auth.signOut()
     return {
-      success:
-        'Te enviamos un correo de verificación. Confirma tu cuenta para iniciar sesión y acceder a tus cursos.',
+      success: SIGNUP_VERIFICATION_REQUESTED_MESSAGE,
       requiresEmailVerification: true,
       email,
     }
@@ -156,7 +161,7 @@ export async function resendSignupVerification(formData: FormData) {
   const email = normalizeEmail(formData.get('email'))
 
   if (!email) {
-    return { error: 'Indica tu correo para reenviar la verificación.' }
+    return { error: 'Indica tu correo para solicitar la verificación.' }
   }
   if (!isValidEmail(email)) {
     return { error: 'El correo indicado no es válido.' }
@@ -172,10 +177,10 @@ export async function resendSignupVerification(formData: FormData) {
 
   if (error) {
     console.error('[Login Action] Resend verification failed:', error.message)
-    return { error: 'No pudimos reenviar el correo en este momento. Inténtalo de nuevo.' }
+    return { error: 'No pudimos solicitar la verificación en este momento. Inténtalo de nuevo.' }
   }
 
-  return { success: 'Correo de verificación reenviado. Revisa tu bandeja de entrada.' }
+  return { success: RESEND_VERIFICATION_REQUESTED_MESSAGE }
 }
 
 export async function requestPasswordRecovery(formData: FormData) {
@@ -195,10 +200,7 @@ export async function requestPasswordRecovery(formData: FormData) {
     return { error: 'No pudimos iniciar la recuperación en este momento. Inténtalo de nuevo.' }
   }
 
-  return {
-    success:
-      'Si el correo existe en la plataforma, te hemos enviado un enlace para restablecer tu contraseña.',
-  }
+  return { success: RECOVERY_REQUESTED_MESSAGE }
 }
 
 export async function updatePassword(formData: FormData) {

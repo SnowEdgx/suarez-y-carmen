@@ -37,8 +37,8 @@ export default function LoginAuthForm({
               name="name"
               type="text"
               required
-              className="w-full bg-neutral-950 border border-neutral-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-600/50 transition-all font-medium placeholder-neutral-600"
-              placeholder="Ej. Juan Pérez"
+              className="w-full border-b border-neutral-800 bg-transparent px-0 py-3 font-medium text-white placeholder-neutral-600 transition-colors focus:border-red-500 focus:outline-none"
+              placeholder="Nombre y apellidos"
             />
           </div>
         )}
@@ -52,7 +52,7 @@ export default function LoginAuthForm({
             name="email"
             type="email"
             required
-            className="w-full bg-neutral-950 border border-neutral-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-600/50 transition-all font-medium placeholder-neutral-600"
+            className="w-full border-b border-neutral-800 bg-transparent px-0 py-3 font-medium text-white placeholder-neutral-600 transition-colors focus:border-red-500 focus:outline-none"
             placeholder="tu@email.com"
             defaultValue={defaultEmail}
           />
@@ -75,14 +75,14 @@ export default function LoginAuthForm({
             type="password"
             required
             minLength={isLoginMode ? undefined : 8}
-            className="w-full bg-neutral-950 border border-neutral-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-600/50 transition-all font-medium placeholder-neutral-600"
+            className="w-full border-b border-neutral-800 bg-transparent px-0 py-3 font-medium text-white placeholder-neutral-600 transition-colors focus:border-red-500 focus:outline-none"
             placeholder="********"
           />
           {!isLoginMode && <p className="mt-1.5 text-xs text-neutral-500">Mínimo 8 caracteres.</p>}
         </div>
 
         {isLoginMode && (
-          <label className="flex items-start gap-3 rounded-xl border border-neutral-800 bg-neutral-950/60 px-4 py-3 text-sm text-neutral-400">
+          <label className="flex items-start gap-3 border-l border-neutral-800 pl-4 text-sm text-neutral-400">
             <input
               name="rememberSession"
               type="checkbox"
@@ -100,9 +100,9 @@ export default function LoginAuthForm({
           type="submit"
           disabled={isPending}
           aria-busy={isPending}
-          className="w-full py-3.5 mt-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
+          className="w-full py-3.5 mt-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-full shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
         >
-          {isPending ? 'Cargando...' : isLoginMode ? 'Iniciar sesión' : 'Registrarse'}
+          {isPending ? 'Cargando...' : isLoginMode ? 'Iniciar sesión' : 'Crear cuenta'}
         </button>
       </form>
 
@@ -118,8 +118,8 @@ export default function LoginAuthForm({
           className="mt-3 w-full text-xs text-neutral-500 hover:text-neutral-300 transition-colors disabled:opacity-60"
         >
           {isRecoveryPending
-            ? 'Enviando enlace de recuperación...'
-            : 'Enviar enlace de recuperación al correo introducido'}
+            ? 'Solicitando recuperación...'
+            : 'Solicitar recuperación de contraseña'}
         </button>
       )}
     </>

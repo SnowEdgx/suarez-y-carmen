@@ -11,7 +11,7 @@ export default function LoginAlerts({ errorMessage, topInfoMessage }: LoginAlert
       {errorMessage && (
         <div
           role="alert"
-          className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium text-center"
+          className="mb-6 border-l border-red-500 bg-red-500/5 px-4 py-3 text-sm font-medium leading-relaxed text-red-300"
         >
           {errorMessage}
         </div>
@@ -21,7 +21,7 @@ export default function LoginAlerts({ errorMessage, topInfoMessage }: LoginAlert
         <div
           role="status"
           aria-live="polite"
-          className="mb-6 p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-sm font-medium text-center"
+          className="mb-6 border-l border-green-500 bg-green-500/5 px-4 py-3 text-sm font-medium leading-relaxed text-green-300"
         >
           {topInfoMessage.text}
         </div>

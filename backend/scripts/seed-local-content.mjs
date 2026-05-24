@@ -145,7 +145,7 @@ const HOME_CONTENT_SEED = {
   hero_subtitle:
     'Domina la sensualidad, el estilo y la conexi\u00f3n con Su\u00e1rez y Carmen. Aprende desde casa paso a paso con cursos individuales y acceso inmediato.',
   hero_video_url: DEMO_VIDEO_SOURCE_URL,
-  primary_cta_label: 'Ver cat\u00e1logo',
+  primary_cta_label: 'Ver cursos',
   primary_cta_href: '/courses',
   is_published: true,
 };
@@ -155,7 +155,7 @@ const FAQ_SEEDS = [
     fallbackId: '41111111-1111-4111-8111-111111111111',
     question: 'C\u00f3mo se compra un curso',
     answer:
-      'Cada curso se compra de forma individual desde el cat\u00e1logo. Tras el pago validado, el acceso queda activado en tu cuenta.',
+      'Cada curso se compra de forma individual desde su página de detalle. Tras el pago validado, el acceso queda activado en tu cuenta.',
     position: 10,
   },
   {

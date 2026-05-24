@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { normalizeDisplayText } from "@/lib/display-text";
 
 export type InPersonClassItem = {
   id: string;
@@ -81,46 +82,52 @@ export default function InPersonClasses({ classes }: InPersonClassesProps) {
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {classes.map((classItem) => (
-              <article
-                key={classItem.id}
-                className="flex h-full flex-col overflow-hidden rounded-3xl border border-neutral-800 bg-neutral-900/70 shadow-2xl shadow-black/20"
-              >
-                {classItem.image_url && (
-                  <div className="relative h-[520px] sm:h-[680px] bg-neutral-950">
-                    <Image
-                      src={classItem.image_url}
-                      alt={`Cartel de ${classItem.title}`}
-                      fill
-                      sizes="(max-width: 1024px) 100vw, 50vw"
-                      className="object-contain"
-                      priority={classes.length <= 2}
-                      unoptimized={shouldBypassImageOptimization(classItem.image_url)}
-                    />
-                  </div>
-                )}
+            {classes.map((classItem) => {
+              const title = normalizeDisplayText(classItem.title, "Clase presencial");
+              const city = normalizeDisplayText(classItem.city);
+              const venue = normalizeDisplayText(classItem.venue);
 
-                <div className="flex flex-1 flex-col p-6 md:p-8">
-                  <div>
-                    <h2 className="text-2xl font-bold text-white">{classItem.title}</h2>
-                    {(classItem.city || classItem.venue) && (
-                      <p className="mt-1 text-sm text-neutral-400">
-                        {[classItem.city, classItem.venue].filter(Boolean).join(" \u00b7 ")}
-                      </p>
-                    )}
-                  </div>
+              return (
+                <article
+                  key={classItem.id}
+                  className="flex h-full flex-col overflow-hidden rounded-3xl border border-neutral-800 bg-neutral-900/70 shadow-2xl shadow-black/20"
+                >
+                  {classItem.image_url && (
+                    <div className="relative h-[520px] sm:h-[680px] bg-neutral-950">
+                      <Image
+                        src={classItem.image_url}
+                        alt={`Cartel de ${title}`}
+                        fill
+                        sizes="(max-width: 1024px) 100vw, 50vw"
+                        className="object-contain"
+                        priority={classes.length <= 2}
+                        unoptimized={shouldBypassImageOptimization(classItem.image_url)}
+                      />
+                    </div>
+                  )}
 
-                  <div className="mt-auto flex flex-wrap gap-4 pt-6">
-                    {classItem.contact_url && (
-                      <ActionLink href={classItem.contact_url}>Contactar</ActionLink>
-                    )}
-                    {classItem.map_url && (
-                      <ActionLink href={classItem.map_url}>{"Ver ubicaci\u00f3n"}</ActionLink>
-                    )}
+                  <div className="flex flex-1 flex-col p-6 md:p-8">
+                    <div>
+                      <h2 className="text-2xl font-bold text-white">{title}</h2>
+                      {(city || venue) && (
+                        <p className="mt-1 text-sm text-neutral-400">
+                          {[city, venue].filter(Boolean).join(" \u00b7 ")}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="mt-auto flex flex-wrap gap-4 pt-6">
+                      {classItem.contact_url && (
+                        <ActionLink href={classItem.contact_url}>Contactar</ActionLink>
+                      )}
+                      {classItem.map_url && (
+                        <ActionLink href={classItem.map_url}>{"Ver ubicaci\u00f3n"}</ActionLink>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </article>
-            ))}
+                </article>
+              );
+            })}
           </div>
         )}
       </div>

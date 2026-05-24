@@ -10,7 +10,7 @@ export default function CourseDetailView(props: CourseDetailViewProps) {
   return (
     <main id="main-content" className="pt-28 pb-20 px-6 md:px-12 max-w-7xl mx-auto w-full flex-1">
       <Link href="/courses" className="text-sm text-neutral-400 hover:text-white transition-colors">
-        Volver al catálogo
+        Volver a cursos
       </Link>
 
       <StatusMessages messages={props.statusMessages} />

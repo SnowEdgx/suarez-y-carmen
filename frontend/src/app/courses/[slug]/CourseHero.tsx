@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { getCourseImageUrl, shouldBypassImageOptimization } from "@/lib/course-images";
+import { normalizeDisplayText } from "@/lib/display-text";
 import { startCourseCheckout } from "../actions";
 import type { CourseDetailViewProps } from "./course-detail.model";
 
@@ -29,17 +30,21 @@ export default function CourseHero({
   checkoutReturnPath,
 }: CourseHeroProps) {
   const imageSrc = getCourseImageUrl(course.cover_image_url);
+  const title = normalizeDisplayText(course.title, "Curso");
+  const level = normalizeDisplayText(course.level, "Curso");
+  const description = normalizeDisplayText(
+    course.description,
+    "Entrena técnica, musicalidad y conexión con una progresión clara."
+  );
 
   return (
     <header className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
       <div>
         <span className="inline-block text-xs uppercase tracking-wider text-red-500 font-semibold mb-3">
-          {course.level || "Curso"}
+          {level}
         </span>
-        <h1 className="text-4xl md:text-5xl font-bold font-serif text-white mb-4">{course.title}</h1>
-        <p className="text-neutral-400 text-lg leading-relaxed">
-          {course.description || "Entrena técnica, musicalidad y conexión con metodología profesional."}
-        </p>
+        <h1 className="text-4xl md:text-5xl font-bold font-serif text-white mb-4">{title}</h1>
+        <p className="text-neutral-400 text-lg leading-relaxed">{description}</p>
 
         <div className="mt-8 space-y-3">
           <p className="text-2xl font-bold text-white">{formatPrice(course.price_cents)}</p>
@@ -81,7 +86,7 @@ export default function CourseHero({
       <div className="relative rounded-2xl overflow-hidden border border-neutral-800 bg-neutral-900/50 min-h-[420px]">
         <Image
           src={imageSrc}
-          alt={course.title}
+          alt={title}
           fill
           unoptimized={shouldBypassImageOptimization(imageSrc)}
           sizes="(max-width: 1024px) 100vw, 50vw"

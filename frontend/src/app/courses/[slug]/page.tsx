@@ -10,6 +10,7 @@ import {
   type CheckoutMessage,
 } from "@/lib/checkout-status";
 import { DEVICE_ID_HEADER } from "@/lib/device-session";
+import { normalizeDisplayText } from "@/lib/display-text";
 import { createClient } from "@/lib/supabase/server";
 import CourseDetailView from "./CourseDetailView";
 import {
@@ -55,14 +56,17 @@ export async function generateMetadata({ params }: Pick<CourseDetailPageProps, "
     };
   }
 
-  const description =
-    data.description || "Curso online de bachata de Su\u00e1rez y Carmen con acceso controlado al contenido completo.";
+  const title = normalizeDisplayText(data.title, "Curso");
+  const description = normalizeDisplayText(
+    data.description,
+    "Curso online de bachata de Suárez y Carmen con acceso controlado al contenido completo."
+  );
 
   return {
-    title: data.title,
+    title,
     description,
     openGraph: {
-      title: data.title,
+      title,
       description,
       type: "article",
     },

@@ -70,7 +70,7 @@ export default function VideoDevicesPanel({
         <div>
           <h2 className="text-xl font-semibold text-white flex items-center gap-2">
             <MonitorSmartphone className="text-red-500" />
-            Dispositivos de vídeo
+            Dispositivos autorizados
           </h2>
           <p className="mt-2 text-sm text-neutral-400 max-w-xl">
             Controla desde qué dispositivos se puede reproducir el contenido comprado.

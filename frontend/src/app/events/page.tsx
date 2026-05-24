@@ -5,6 +5,7 @@ import Link from "next/link";
 import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
 import { logAppError } from "@/lib/error-logging";
+import { normalizeDisplayText } from "@/lib/display-text";
 import { createClient } from "@/lib/supabase/server";
 
 type EventRow = {
@@ -155,44 +156,50 @@ export default async function EventsPage() {
           </section>
         ) : (
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-            {events.map((event) => (
-              <article
-                key={event.id}
-                className="flex h-full flex-col overflow-hidden rounded-3xl border border-neutral-800 bg-neutral-900/70 shadow-2xl shadow-black/20"
-              >
-                <div className="relative h-72 bg-neutral-950">
-                  {event.image_url ? (
-                    <Image
-                      src={event.image_url}
-                      alt={`Imagen de ${event.title}`}
-                      fill
-                      sizes="(max-width: 1024px) 100vw, 33vw"
-                      className="object-cover"
-                      unoptimized={shouldBypassImageOptimization(event.image_url)}
-                    />
-                  ) : (
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(220,38,38,0.35),transparent_35%),linear-gradient(135deg,#171717,#050505)]" />
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                  <div className="absolute left-5 top-5 rounded-full border border-white/10 bg-black/50 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white backdrop-blur">
-                    {event.type || "Evento"}
-                  </div>
-                </div>
+            {events.map((event) => {
+              const title = normalizeDisplayText(event.title, "Evento");
+              const city = normalizeDisplayText(event.city, "Ubicación pendiente");
+              const type = normalizeDisplayText(event.type, "Evento");
 
-                <div className="flex flex-1 flex-col p-6">
-                  <p className="mb-3 text-sm font-semibold text-red-300">{formatEventDate(event.event_date)}</p>
-                  <h2 className="mb-2 text-2xl font-bold text-white">{event.title}</h2>
-                  <p className="text-sm text-neutral-400">{event.city}</p>
-
-                  <div className="mt-auto flex flex-wrap gap-3 pt-8">
-                    <EventActionLink href={event.ticket_url}>{"Ver informaci\u00f3n"}</EventActionLink>
-                    <EventActionLink href={event.location_url} variant="secondary">
-                      {"Ver ubicaci\u00f3n"}
-                    </EventActionLink>
+              return (
+                <article
+                  key={event.id}
+                  className="flex h-full flex-col overflow-hidden rounded-3xl border border-neutral-800 bg-neutral-900/70 shadow-2xl shadow-black/20"
+                >
+                  <div className="relative h-72 bg-neutral-950">
+                    {event.image_url ? (
+                      <Image
+                        src={event.image_url}
+                        alt={`Imagen de ${title}`}
+                        fill
+                        sizes="(max-width: 1024px) 100vw, 33vw"
+                        className="object-cover"
+                        unoptimized={shouldBypassImageOptimization(event.image_url)}
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(220,38,38,0.35),transparent_35%),linear-gradient(135deg,#171717,#050505)]" />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                    <div className="absolute left-5 top-5 rounded-full border border-white/10 bg-black/50 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white backdrop-blur">
+                      {type}
+                    </div>
                   </div>
-                </div>
-              </article>
-            ))}
+
+                  <div className="flex flex-1 flex-col p-6">
+                    <p className="mb-3 text-sm font-semibold text-red-300">{formatEventDate(event.event_date)}</p>
+                    <h2 className="mb-2 text-2xl font-bold text-white">{title}</h2>
+                    <p className="text-sm text-neutral-400">{city}</p>
+
+                    <div className="mt-auto flex flex-wrap gap-3 pt-8">
+                      <EventActionLink href={event.ticket_url}>{"Ver informaci\u00f3n"}</EventActionLink>
+                      <EventActionLink href={event.location_url} variant="secondary">
+                        {"Ver ubicaci\u00f3n"}
+                      </EventActionLink>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         )}
       </main>

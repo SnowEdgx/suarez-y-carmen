@@ -1,5 +1,6 @@
 import { CreditCard } from "lucide-react";
 import Link from "next/link";
+import { normalizeDisplayText } from "@/lib/display-text";
 import type { PurchaseCard, PurchaseStatus } from "./profile-data";
 
 function formatCurrency(amountCents: number | null, currency: string | null) {
@@ -60,16 +61,16 @@ export default function PurchaseHistory({ purchases }: { purchases: PurchaseCard
       {purchases.length === 0 ? (
         <div className="border border-neutral-700/50 rounded-2xl p-6 bg-black/40 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h3 className="text-white font-medium mb-1">Catálogo y compras</h3>
+            <h3 className="text-white font-medium mb-1">Cursos y compras</h3>
             <p className="text-neutral-500 text-xs">
-              Aún no tienes cursos comprados. Explora el catálogo y desbloquea el contenido cuando quieras.
+              Aún no tienes cursos comprados. Explora los cursos y desbloquea el contenido cuando quieras.
             </p>
           </div>
           <Link
             href="/courses"
             className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap text-center"
           >
-            Ir al catálogo
+            Ver cursos
           </Link>
         </div>
       ) : (
@@ -79,6 +80,8 @@ export default function PurchaseHistory({ purchases }: { purchases: PurchaseCard
               ? Math.round((purchase.completedLessons / purchase.totalLessons) * 100)
               : 0;
             const canOpenCourse = purchase.status === "paid" && purchase.course?.is_published;
+            const courseTitle = normalizeDisplayText(purchase.course?.title, "Curso no disponible");
+            const courseLevel = normalizeDisplayText(purchase.course?.level);
 
             return (
               <article
@@ -91,14 +94,14 @@ export default function PurchaseHistory({ purchases }: { purchases: PurchaseCard
                       <span className={`text-[11px] uppercase tracking-wide px-2.5 py-1 rounded-full border ${getStatusClass(purchase.status)}`}>
                         {getStatusLabel(purchase.status)}
                       </span>
-                      {purchase.course?.level && (
+                      {courseLevel && (
                         <span className="text-[11px] uppercase tracking-wide px-2.5 py-1 rounded-full border border-neutral-700 text-neutral-400">
-                          {purchase.course.level}
+                          {courseLevel}
                         </span>
                       )}
                     </div>
                     <h3 className="text-lg text-white font-semibold truncate">
-                      {purchase.course?.title || "Curso no disponible"}
+                      {courseTitle}
                     </h3>
                     <p className="mt-1 text-xs text-neutral-500">
                       {formatCurrency(purchase.amountCents, purchase.currency)} · {formatPurchaseDate(purchase.createdAt)}
@@ -117,7 +120,7 @@ export default function PurchaseHistory({ purchases }: { purchases: PurchaseCard
                       href="/courses"
                       className="px-4 py-2 border border-neutral-700 text-neutral-300 hover:text-white hover:border-neutral-500 rounded-lg text-sm font-medium transition-colors whitespace-nowrap text-center"
                     >
-                      Ver catálogo
+                      Ver cursos
                     </Link>
                   )}
                 </div>
@@ -131,7 +134,7 @@ export default function PurchaseHistory({ purchases }: { purchases: PurchaseCard
                     <div
                       className="h-2 bg-neutral-800 rounded-full overflow-hidden"
                       role="progressbar"
-                      aria-label={`Progreso de ${purchase.course?.title || "curso"}`}
+                      aria-label={`Progreso de ${courseTitle}`}
                       aria-valuemin={0}
                       aria-valuemax={100}
                       aria-valuenow={progressPercent}

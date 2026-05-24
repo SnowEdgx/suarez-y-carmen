@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { HelpCircle, ShieldCheck, ShoppingBag } from "lucide-react";
 import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
+import { normalizeDisplayText } from "@/lib/display-text";
 import { logAppError } from "@/lib/error-logging";
 import { createClient } from "@/lib/supabase/server";
 
@@ -22,7 +22,7 @@ const FALLBACK_FAQS: FaqItem[] = [
     id: "purchase",
     question: "C\u00f3mo se compra un curso",
     answer:
-      "Cada curso se compra de forma individual desde el cat\u00e1logo. Tras el pago validado, el acceso queda activado en tu cuenta.",
+      "Cada curso se compra de forma individual desde su página de detalle. Tras el pago validado, el acceso queda activado en tu cuenta.",
   },
   {
     id: "access",
@@ -42,6 +42,12 @@ const FALLBACK_FAQS: FaqItem[] = [
     answer: "No. La plataforma redirige a la ticketera oficial del evento cuando corresponda.",
   },
 ];
+
+function normalizeFaqText(value: string, fallback = "") {
+  return normalizeDisplayText(value, fallback)
+    .replace(/desde el catálogo/gi, "desde su página de detalle")
+    .replace(/\bcatálogo\b/gi, "cursos");
+}
 
 export default async function FaqPage() {
   const supabase = await createClient();
@@ -87,28 +93,9 @@ export default async function FaqPage() {
             </p>
           </div>
 
-          <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
-            <div className="rounded-2xl border border-neutral-800 bg-neutral-900/60 p-5">
-              <ShoppingBag className="mb-3 text-red-300" size={24} aria-hidden="true" />
-              <p className="text-sm font-semibold text-white">Compra individual</p>
-              <p className="mt-2 text-xs leading-relaxed text-neutral-400">
-                {"Pagas solo el curso que quieres ver."}
-              </p>
-            </div>
-            <div className="rounded-2xl border border-neutral-800 bg-neutral-900/60 p-5">
-              <ShieldCheck className="mb-3 text-red-300" size={24} aria-hidden="true" />
-              <p className="text-sm font-semibold text-white">Acceso protegido</p>
-              <p className="mt-2 text-xs leading-relaxed text-neutral-400">
-                {"Las lecciones completas se desbloquean desde tu cuenta."}
-              </p>
-            </div>
-            <div className="rounded-2xl border border-neutral-800 bg-neutral-900/60 p-5">
-              <HelpCircle className="mb-3 text-red-300" size={24} aria-hidden="true" />
-              <p className="text-sm font-semibold text-white">Soporte oficial</p>
-              <p className="mt-2 text-xs leading-relaxed text-neutral-400">
-                {"Si algo falla, usa el canal de contacto de la plataforma."}
-              </p>
-            </div>
+          <div className="mb-8 border-y border-neutral-800 py-5 text-sm leading-relaxed text-neutral-400">
+            Compra cursos de forma individual, accede con una cuenta verificada y usa soporte si necesitas ayuda con
+            pagos, acceso o reproducción.
           </div>
 
           {loadError && (
@@ -118,20 +105,25 @@ export default async function FaqPage() {
           )}
 
           <div className="space-y-4">
-            {faqs.map((faq) => (
-              <details
-                key={faq.id}
-                className="group rounded-2xl border border-neutral-800 bg-neutral-900/50 p-6 open:border-red-500/30 open:bg-neutral-900/80"
-              >
-                <summary className="cursor-pointer list-none text-lg font-semibold text-white marker:hidden">
-                  <span className="flex items-center justify-between gap-6">
-                    {faq.question}
-                    <span className="text-sm text-red-300 transition-transform group-open:rotate-45">+</span>
-                  </span>
-                </summary>
-                <p className="mt-4 text-sm leading-relaxed text-neutral-400 whitespace-pre-line">{faq.answer}</p>
-              </details>
-            ))}
+            {faqs.map((faq) => {
+              const question = normalizeFaqText(faq.question, "Pregunta frecuente");
+              const answer = normalizeFaqText(faq.answer);
+
+              return (
+                <details
+                  key={faq.id}
+                  className="group rounded-2xl border border-neutral-800 bg-neutral-900/50 p-6 open:border-red-500/30 open:bg-neutral-900/80"
+                >
+                  <summary className="cursor-pointer list-none text-lg font-semibold text-white marker:hidden">
+                    <span className="flex items-center justify-between gap-6">
+                      {question}
+                      <span className="text-sm text-red-300 transition-transform group-open:rotate-45">+</span>
+                    </span>
+                  </summary>
+                  <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-neutral-400">{answer}</p>
+                </details>
+              );
+            })}
           </div>
 
           <section className="mt-8 rounded-3xl border border-neutral-800 bg-neutral-900/60 p-7">

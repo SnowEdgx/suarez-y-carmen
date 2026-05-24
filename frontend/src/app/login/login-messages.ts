@@ -3,7 +3,7 @@ import type { TopInfoMessage } from './login.model'
 export function getQueryErrorMessage(code: string | null) {
   switch (code) {
     case 'verify_email_required':
-      return 'Debes verificar tu correo antes de iniciar sesión.'
+      return 'Debes verificar tu correo antes de iniciar sesión. Si no recibiste el enlace, solicita uno nuevo.'
     case 'oauth_failed':
       return 'No pudimos completar el acceso externo. Inténtalo de nuevo.'
     case 'invalid_or_expired_link':

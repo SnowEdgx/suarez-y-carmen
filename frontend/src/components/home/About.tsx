@@ -1,86 +1,76 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, CalendarDays, GraduationCap, Music2, ShieldCheck, Users } from "lucide-react";
+import { ArrowRight, CalendarDays } from "lucide-react";
 import { STORAGE_ASSETS } from "@/lib/constants";
 
 type AboutImageProps = {
   src: string;
   alt: string;
-  heightClassName: string;
+  className: string;
   priority?: boolean;
 };
 
-function AboutImage({ src, alt, heightClassName, priority = false }: AboutImageProps) {
+const trainingPrinciples = [
+  {
+    title: "Base técnica clara",
+    description:
+      "Trabajo de postura, peso, conexión y lectura corporal para que cada movimiento tenga sentido antes de añadir complejidad.",
+  },
+  {
+    title: "Musicalidad aplicada",
+    description:
+      "Recursos para interpretar la música, controlar la energía de la pareja y adaptar el baile al contexto social o escénico.",
+  },
+  {
+    title: "Aprendizaje útil",
+    description:
+      "Ejercicios y combinaciones pensados para que el alumno pueda practicar, repetir y reconocer su progreso de forma ordenada.",
+  },
+];
+
+function AboutImage({ src, alt, className, priority = false }: AboutImageProps) {
   return (
-    <div
-      className={`relative overflow-hidden rounded-3xl border border-white/10 bg-neutral-900 shadow-2xl shadow-black/30 ${heightClassName}`}
-    >
+    <div className={`relative overflow-hidden bg-neutral-900 shadow-2xl shadow-black/35 ${className}`}>
       <Image
         src={src}
         alt={alt}
         fill
-        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 45vw, 25vw"
+        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 36vw"
         className="object-cover"
         priority={priority}
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
     </div>
   );
 }
 
-const pillars = [
-  {
-    icon: GraduationCap,
-    title: "Formación progresiva",
-    description:
-      "Cursos estructurados por niveles para trabajar bases, técnica corporal, musicalidad y combinaciones con criterio.",
-  },
-  {
-    icon: Music2,
-    title: "Estilo y conexión",
-    description:
-      "El objetivo no es memorizar figuras aisladas, sino entender cómo moverse, escuchar la música y bailar con naturalidad.",
-  },
-  {
-    icon: Users,
-    title: "Puente entre online y sala",
-    description:
-      "La academia online complementa las clases presenciales, talleres y eventos, manteniendo una experiencia coherente.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "Aprendizaje ordenado",
-    description:
-      "Cada alumno accede a sus cursos desde una cuenta propia, con lecciones claras y progreso visible.",
-  },
-];
-
 export default function About() {
   return (
-    <div className="relative overflow-hidden">
-      <div className="absolute inset-x-0 top-0 h-[520px] bg-[radial-gradient(circle_at_20%_10%,rgba(220,38,38,0.22),transparent_35%),linear-gradient(180deg,rgba(10,10,10,0.35),#0a0a0a)]" />
+    <div className="relative overflow-hidden bg-neutral-950">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[620px] bg-[radial-gradient(circle_at_18%_12%,rgba(220,38,38,0.22),transparent_34%),linear-gradient(180deg,rgba(10,10,10,0.25),#0a0a0a)]" />
 
-      <section className="relative px-6 pt-36 pb-20 md:px-12">
-        <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-14 lg:grid-cols-[0.95fr_1.05fr]">
+      <section className="relative px-6 pb-16 pt-36 md:px-12">
+        <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-14 lg:grid-cols-[0.92fr_1.08fr]">
           <div>
-            <p className="mb-4 text-sm font-semibold uppercase tracking-[0.32em] text-red-400">
+            <p className="mb-4 text-sm font-semibold uppercase tracking-[0.34em] text-red-400">
               Sobre nosotros
             </p>
-            <h1 className="mb-6 font-serif text-5xl font-bold tracking-tight text-white md:text-7xl">
-              Suárez y Carmen
+            <h1 className="mb-7 font-serif text-5xl font-bold tracking-tight text-white md:text-7xl">
+              Bachata con intención, técnica y conexión.
             </h1>
-            <p className="mb-6 text-lg leading-relaxed text-neutral-300 md:text-xl">
-              {
-                "Somos un dúo de bailarines e instructores de bachata que combina formación presencial, eventos y cursos online para acercar una metodología clara a alumnos de distintos niveles."
-              }
-            </p>
-            <p className="mb-10 max-w-2xl text-base leading-relaxed text-neutral-400 md:text-lg">
-              {
-                "Nuestro enfoque une técnica, musicalidad y estilo para que puedas entrenar desde casa y seguir creciendo también en sala."
-              }
-            </p>
+            <div className="space-y-5 text-base leading-relaxed text-neutral-300 md:text-lg">
+              <p>
+                Suárez y Carmen son bailarines e instructores de bachata. Su trabajo combina técnica corporal,
+                musicalidad y una forma de enseñar directa, pensada para que el alumno entienda qué hace y por qué lo
+                hace.
+              </p>
+              <p className="text-neutral-400">
+                En sus clases y cursos se prioriza una base sólida: conexión en pareja, control del movimiento,
+                interpretación musical y recursos que puedan llevarse de la práctica al baile social.
+              </p>
+            </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row">
+            <div className="mt-10 flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/courses"
                 className="inline-flex items-center justify-center gap-2 rounded-full bg-red-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-700"
@@ -97,121 +87,98 @@ export default function About() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-4">
-              <AboutImage
-                src={STORAGE_ASSETS.IMG_2681}
-                alt="Suárez y Carmen durante una sesión de baile"
-                heightClassName="h-72 md:h-96"
-                priority
-              />
-              <AboutImage
-                src={STORAGE_ASSETS.IMG_2872}
-                alt="Detalle de una clase de bachata de Suárez y Carmen"
-                heightClassName="h-52 md:h-64"
-              />
-            </div>
-            <div className="flex flex-col gap-4 pt-10">
+          <div className="grid grid-cols-12 gap-4">
+            <AboutImage
+              src={STORAGE_ASSETS.IMG_2681}
+              alt="Suárez y Carmen bailando bachata"
+              className="col-span-12 h-[460px] rounded-[2rem] lg:col-span-7"
+              priority
+            />
+            <div className="col-span-12 grid gap-4 lg:col-span-5">
               <AboutImage
                 src={STORAGE_ASSETS.IMG_4784}
-                alt="Suárez y Carmen bailando bachata"
-                heightClassName="h-52 md:h-64"
+                alt="Suárez y Carmen en una sesión de baile"
+                className="h-56 rounded-[2rem]"
                 priority
               />
               <AboutImage
                 src={STORAGE_ASSETS.IMG_4587}
-                alt="Suárez y Carmen en una producción visual"
-                heightClassName="h-72 md:h-96"
+                alt="Detalle visual de Suárez y Carmen"
+                className="h-56 rounded-[2rem]"
               />
             </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="relative px-6 py-16 md:px-12">
-        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 md:grid-cols-3">
-          <div className="rounded-3xl border border-neutral-800 bg-neutral-900/60 p-7">
-            <p className="text-4xl font-bold text-white">+5</p>
-            <p className="mt-2 text-sm uppercase tracking-[0.22em] text-neutral-500">
-              Años de experiencia
-            </p>
-          </div>
-          <div className="rounded-3xl border border-neutral-800 bg-neutral-900/60 p-7">
-            <p className="text-4xl font-bold text-white">+100</p>
-            <p className="mt-2 text-sm uppercase tracking-[0.22em] text-neutral-500">Alumnos formados</p>
-          </div>
-          <div className="rounded-3xl border border-neutral-800 bg-neutral-900/60 p-7">
-            <p className="text-4xl font-bold text-white">Online + sala</p>
-            <p className="mt-2 text-sm uppercase tracking-[0.22em] text-neutral-500">Entrenamiento híbrido</p>
           </div>
         </div>
       </section>
 
       <section className="relative px-6 py-20 md:px-12">
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-12 max-w-3xl">
-            <p className="mb-3 text-sm font-semibold uppercase tracking-[0.28em] text-red-500">Metodología</p>
+        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-12 lg:grid-cols-[0.85fr_1.15fr]">
+          <div>
+            <p className="mb-3 text-sm font-semibold uppercase tracking-[0.28em] text-red-500">
+              Forma de trabajo
+            </p>
             <h2 className="mb-5 font-serif text-4xl font-bold text-white md:text-5xl">
-              {"Una forma de aprender bachata con estructura"}
+              Aprender con estructura, no solo repetir pasos.
             </h2>
-            <p className="text-lg leading-relaxed text-neutral-400">
-              {
-                "El contenido se plantea como una progresión: primero se consolidan fundamentos, después se trabaja la calidad del movimiento y finalmente se integran figuras, musicalidad y estilo."
-              }
+            <p className="leading-relaxed text-neutral-400">
+              El contenido se organiza para que cada alumno pueda avanzar con criterio: primero se entiende la base,
+              después se entrena la calidad del movimiento y finalmente se integran figuras, estilo y musicalidad.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
-            {pillars.map((pillar) => {
-              const Icon = pillar.icon;
-
-              return (
-                <article key={pillar.title} className="rounded-3xl border border-neutral-800 bg-neutral-900/50 p-6">
-                  <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-red-600/10 text-red-300">
-                    <Icon size={24} aria-hidden="true" />
-                  </div>
-                  <h3 className="mb-3 text-xl font-semibold text-white">{pillar.title}</h3>
-                  <p className="text-sm leading-relaxed text-neutral-400">{pillar.description}</p>
-                </article>
-              );
-            })}
+          <div className="divide-y divide-neutral-800 border-y border-neutral-800">
+            {trainingPrinciples.map((principle, index) => (
+              <article key={principle.title} className="grid grid-cols-1 gap-4 py-7 md:grid-cols-[96px_1fr]">
+                <span className="font-serif text-4xl text-red-500/80">{String(index + 1).padStart(2, "0")}</span>
+                <div>
+                  <h3 className="mb-2 text-2xl font-semibold text-white">{principle.title}</h3>
+                  <p className="leading-relaxed text-neutral-400">{principle.description}</p>
+                </div>
+              </article>
+            ))}
           </div>
         </div>
       </section>
 
       <section className="relative px-6 pb-24 md:px-12">
-        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="rounded-3xl border border-neutral-800 bg-neutral-900/60 p-8 md:p-10">
-            <p className="mb-3 text-sm font-semibold uppercase tracking-[0.28em] text-red-500">Aprende con nosotros</p>
+        <div className="mx-auto grid max-w-7xl grid-cols-1 overflow-hidden rounded-[2rem] border border-red-500/15 bg-[linear-gradient(135deg,rgba(127,29,29,0.28),rgba(23,23,23,0.92))] lg:grid-cols-[1fr_0.9fr]">
+          <div className="p-8 md:p-12">
+            <p className="mb-3 text-sm font-semibold uppercase tracking-[0.28em] text-red-200">
+              Online y presencial
+            </p>
             <h2 className="mb-5 font-serif text-3xl font-bold text-white md:text-4xl">
-              Cursos para entrenar a tu ritmo
+              Entrena desde casa y continúa en sala.
             </h2>
-            <p className="mb-5 leading-relaxed text-neutral-400">
-              {
-                "Puedes explorar el catálogo, ver previews y comprar únicamente los cursos que quieras trabajar. Cada curso está pensado para que sepas qué practicar y cómo avanzar."
-              }
+            <p className="max-w-2xl leading-relaxed text-red-50/80">
+              Los cursos permiten trabajar contenidos concretos a tu ritmo. Las clases presenciales y la agenda de
+              eventos completan la experiencia para quienes quieren seguir entrenando en directo.
             </p>
-            <p className="leading-relaxed text-neutral-400">
-              {
-                "Si ya eres alumno, tu área privada reúne tus compras, lecciones disponibles y progreso para retomar la formación sin perder el hilo."
-              }
-            </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Link
+                href="/events"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-neutral-950 transition-colors hover:bg-neutral-200"
+              >
+                Ver agenda
+                <CalendarDays size={16} aria-hidden="true" />
+              </Link>
+              <Link
+                href="/contact"
+                className="inline-flex items-center justify-center rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:border-white/45"
+              >
+                Contactar
+              </Link>
+            </div>
           </div>
 
-          <div className="rounded-3xl border border-red-500/20 bg-red-500/10 p-8 md:p-10">
-            <CalendarDays className="mb-5 text-red-300" size={34} aria-hidden="true" />
-            <h2 className="mb-4 text-2xl font-bold text-white">Actividad presencial</h2>
-            <p className="mb-8 text-sm leading-relaxed text-red-100/80">
-              {
-                "La agenda y las clases presenciales completan el ecosistema: cursos para avanzar desde casa y espacios presenciales para seguir entrenando en comunidad."
-              }
-            </p>
-            <Link
-              href="/events"
-              className="inline-flex items-center justify-center rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-neutral-950 transition-colors hover:bg-neutral-200"
-            >
-              Ver agenda
-            </Link>
+          <div className="relative min-h-[320px]">
+            <Image
+              src={STORAGE_ASSETS.IMG_2872}
+              alt="Suárez y Carmen impartiendo una clase de bachata"
+              fill
+              sizes="(max-width: 1024px) 100vw, 40vw"
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-neutral-950/50 via-transparent to-transparent" />
           </div>
         </div>
       </section>

@@ -3,6 +3,7 @@ import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
 import { createClient } from "@/lib/supabase/server";
 import { DEVICE_ID_HEADER } from "@/lib/device-session";
+import { normalizeDisplayText } from "@/lib/display-text";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import ProfileForm from "./ProfileForm";
@@ -48,7 +49,7 @@ export default async function ProfilePage() {
     currentDeviceId,
   });
 
-  const fullName = profile?.full_name || user.user_metadata?.name || "Usuario";
+  const fullName = normalizeDisplayText(profile?.full_name || user.user_metadata?.name, "Usuario");
 
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 font-sans selection:bg-red-600 selection:text-white flex flex-col pt-24">

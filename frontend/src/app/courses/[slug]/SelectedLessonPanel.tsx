@@ -1,5 +1,6 @@
 import Link from "next/link";
 import SecureVideoPlayer from "@/components/courses/SecureVideoPlayer";
+import { normalizeDisplayText } from "@/lib/display-text";
 import { startCourseCheckout } from "../actions";
 import { setLessonProgress } from "./actions";
 import type { CourseDetailViewProps } from "./course-detail.model";
@@ -119,10 +120,16 @@ export default function SelectedLessonPanel({
 
       {featuredLesson ? (
         <div className="space-y-4">
-          <h3 className="text-xl text-white font-medium">{featuredLesson.title}</h3>
-          {featuredLesson.description && <p className="text-neutral-400 text-sm">{featuredLesson.description}</p>}
+          <h3 className="text-xl text-white font-medium">{normalizeDisplayText(featuredLesson.title, "Lección")}</h3>
+          {featuredLesson.description && (
+            <p className="text-neutral-400 text-sm">{normalizeDisplayText(featuredLesson.description)}</p>
+          )}
           {featuredLessonVideoUrl ? (
-            <SecureVideoPlayer key={featuredLesson.id} src={featuredLessonVideoUrl} title={featuredLesson.title} />
+            <SecureVideoPlayer
+              key={featuredLesson.id}
+              src={featuredLessonVideoUrl}
+              title={normalizeDisplayText(featuredLesson.title, "Lección")}
+            />
           ) : (
             <div className="rounded-xl border border-neutral-700 bg-black/60 p-6 text-sm text-neutral-400">
               <p>

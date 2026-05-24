@@ -11,8 +11,8 @@ export default function CourseDetailError({ reset }: { error: Error; reset: () =
           No pudimos cargar este curso ahora mismo
         </h1>
         <p className="mt-4 text-sm leading-6 text-neutral-400">
-          Puede ser un problema temporal de conexión o carga de datos. Recarga la página y, si continúa, vuelve al
-          catálogo para probar con otro curso.
+          Puede ser un problema temporal de conexión o carga de datos. Recarga la página y, si continúa, vuelve a
+          cursos para probar con otra opción.
         </p>
         <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
           <button
@@ -26,7 +26,7 @@ export default function CourseDetailError({ reset }: { error: Error; reset: () =
             href="/courses"
             className="rounded-lg border border-neutral-700 px-5 py-3 text-sm font-semibold text-neutral-200 transition-colors hover:border-neutral-500 hover:text-white"
           >
-            Volver al catálogo
+            Volver a cursos
           </Link>
         </div>
       </section>

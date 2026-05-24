@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { normalizeDisplayText } from "@/lib/display-text";
 import { setLessonProgress } from "./actions";
 import { getCoursePath, getLessonPath, type CourseDetailViewProps } from "./course-detail.model";
 
@@ -28,6 +29,7 @@ export default function LessonList({
           const isCompleted = completedLessonSet.has(lesson.id);
           const isSelected = featuredLesson?.id === lesson.id;
           const lessonPath = getLessonPath(coursePath, lesson.id);
+          const title = normalizeDisplayText(lesson.title, "Lección");
 
           return (
             <li
@@ -44,10 +46,10 @@ export default function LessonList({
                 <div>
                   {isAccessible ? (
                     <Link href={lessonPath} className="text-sm font-medium hover:text-white transition-colors">
-                      {lesson.position}. {lesson.title}
+                      {lesson.position}. {title}
                     </Link>
                   ) : (
-                    <p className="text-sm font-medium">{lesson.position}. {lesson.title}</p>
+                    <p className="text-sm font-medium">{lesson.position}. {title}</p>
                   )}
                   {isCompleted && <p className="mt-1 text-xs text-green-400">Completada</p>}
                 </div>

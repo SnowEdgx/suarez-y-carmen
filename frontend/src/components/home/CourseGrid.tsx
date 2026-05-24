@@ -2,6 +2,7 @@ import Link from "next/link";
 import { PlayCircle } from "lucide-react";
 import { startCourseCheckout } from "@/app/courses/actions";
 import { getCourseImageUrl } from "@/lib/course-images";
+import { normalizeDisplayText } from "@/lib/display-text";
 
 type CourseItem = {
   id: string;
@@ -46,9 +47,9 @@ export default function CourseGrid({
       <div className="max-w-7xl mx-auto">
         <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
-            <h2 id="courses-heading" className="text-3xl md:text-4xl font-bold font-serif text-white mb-4">Catálogo de Cursos</h2>
+            <h2 id="courses-heading" className="text-3xl md:text-4xl font-bold font-serif text-white mb-4">Cursos</h2>
             <p className="text-neutral-400 text-lg max-w-2xl">
-              Descubre el estilo de Suárez y Carmen con cursos por niveles. Puedes explorar el catálogo antes de comprar.
+              Explora los cursos disponibles, revisa el contenido y compra solo el curso que quieras trabajar.
             </p>
           </div>
         </div>
@@ -64,6 +65,12 @@ export default function CourseGrid({
               const hasPrice = Number.isInteger(course.price_cents) && (course.price_cents as number) > 0;
               const imageSrc = getCourseImageUrl(course.cover_image_url);
               const coursePath = getCoursePath(course.slug);
+              const title = normalizeDisplayText(course.title, "Curso");
+              const level = normalizeDisplayText(course.level, "Curso");
+              const description = normalizeDisplayText(
+                course.description,
+                "Contenido completo para mejorar técnica, musicalidad y conexión."
+              );
 
               return (
                 <article key={course.id} className="group relative rounded-xl overflow-hidden bg-neutral-900 border border-neutral-800 flex flex-col min-h-[420px]">
@@ -80,14 +87,14 @@ export default function CourseGrid({
                     </div>
 
                     <div className="absolute bottom-0 left-0 z-20 w-full p-5">
-                      <span className="text-xs font-bold uppercase tracking-wider text-red-500 mb-2 block">{course.level || "Curso"}</span>
-                      <h3 className="text-xl font-bold text-white leading-tight">{course.title}</h3>
+                      <span className="text-xs font-bold uppercase tracking-wider text-red-500 mb-2 block">{level}</span>
+                      <h3 className="text-xl font-bold text-white leading-tight">{title}</h3>
                     </div>
                   </div>
 
                   <div className="relative z-30 bg-neutral-900 p-5 flex-1 flex flex-col gap-4">
                     <p className="text-sm text-neutral-400 line-clamp-3 min-h-[60px]">
-                      {course.description || "Contenido completo para mejorar técnica, musicalidad y conexión."}
+                      {description}
                     </p>
 
                     <p className="text-white font-semibold">{formatPrice(course.price_cents)}</p>
