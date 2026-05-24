@@ -86,7 +86,7 @@ URLs:
 - Backend health: http://localhost:4000/api/health
 - Strapi CMS: http://localhost:1337/admin
 - Supabase Studio: http://localhost:54323
-- Inbucket/Mailpit local: http://localhost:54324
+- Visor de correo local de Supabase: http://localhost:54324 si no se usa SMTP externo. Con Resend SMTP activo, los correos salen por el proveedor configurado.
 
 Nota: no ejecutes comandos de Supabase con `--workdir supabase`; este proyecto usa `supabase/` como carpeta de configuracion dentro de la raiz del repo.
 

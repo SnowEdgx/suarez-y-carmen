@@ -117,7 +117,7 @@ Docker Compose provides local development defaults. Production must override the
 
 ## Local Validation
 
-With Supabase, backend and Strapi running, create or update a published course from the Strapi admin panel and confirm that it appears in Supabase and on the public course catalogue.
+With Supabase, backend and Strapi running, create or update a published course from the Strapi admin panel and confirm that it appears in Supabase and on the public course list.
 
 For public editorial content, update the home content, FAQ entries or in-person classes and confirm that the frontend keeps rendering with the synced Supabase values. If Supabase tables are unavailable in a local reset, the frontend must degrade to safe fallback content instead of returning a blank page.
 
