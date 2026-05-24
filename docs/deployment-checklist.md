@@ -20,7 +20,7 @@ Before deploying:
 - Run frontend lint, type-check and build.
 - Run backend syntax checks.
 - Run CMS build.
-- Build production backend and CMS container images with `backend/Dockerfile` and `cms/Dockerfile`.
+- Build production frontend, backend and CMS container images with `frontend/Dockerfile`, `backend/Dockerfile` and `cms/Dockerfile`.
 - Apply Supabase migrations in a controlled environment.
 - Verify local checkout and webhook flow in Stripe test mode.
 - Verify private video access, private course resources, HLS rewriting and device revocation.

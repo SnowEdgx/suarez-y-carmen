@@ -29,6 +29,7 @@ suarez-y-carmen/
 |   |   |-- app/
 |   |   |-- components/
 |   |   `-- lib/
+|   |-- Dockerfile
 |   |-- Dockerfile.dev
 |   `-- .env.example
 |-- backend/
@@ -36,11 +37,13 @@ suarez-y-carmen/
 |   |   |-- controllers/
 |   |   |-- routes/
 |   |   `-- index.js
+|   |-- Dockerfile
 |   |-- Dockerfile.dev
 |   `-- .env.example
 |-- cms/
 |   |-- src/
 |   |-- config/
+|   |-- Dockerfile
 |   |-- Dockerfile.dev
 |   `-- .env.example
 |-- supabase/
