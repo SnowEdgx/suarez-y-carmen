@@ -1,3 +1,5 @@
+import { hasUnsafeInternalPathSegments } from "./internal-path";
+
 const MAX_REDIRECT_PATH_LENGTH = 500;
 
 export function getSafeInternalPath(rawValue: unknown, fallback = "/courses") {
@@ -7,12 +9,21 @@ export function getSafeInternalPath(rawValue: unknown, fallback = "/courses") {
   if (!path || path.length > MAX_REDIRECT_PATH_LENGTH) return fallback;
   if (!path.startsWith("/") || path.startsWith("//")) return fallback;
   if (/[\r\n\t]/.test(path)) return fallback;
+  if (hasUnsafeInternalPathSegments(path)) return fallback;
 
   return path;
 }
 
 export function getSafeCoursePath(rawValue: unknown, fallback = "/courses") {
   const path = getSafeInternalPath(rawValue, fallback);
-  if (path === "/courses" || path.startsWith("/courses/")) return path;
+  if (
+    path === "/courses" ||
+    path.startsWith("/courses/") ||
+    path.startsWith("/courses?") ||
+    path.startsWith("/courses#")
+  ) {
+    return path;
+  }
+
   return fallback;
 }

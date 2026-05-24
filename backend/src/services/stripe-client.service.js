@@ -1,6 +1,7 @@
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const stripe = stripeSecretKey ? require('stripe')(stripeSecretKey) : null;
 const CHECKOUT_SESSION_REGEX = /^cs_[A-Za-z0-9_]+$/;
+const DEFAULT_CHECKOUT_RETURN_PATH = '/courses';
 
 function requireStripe() {
   if (!stripe) {
@@ -47,13 +48,35 @@ function sanitizeCheckoutSessionId(rawValue) {
 }
 
 function sanitizeReturnPath(rawValue) {
-  if (typeof rawValue !== 'string') return '/courses';
+  if (typeof rawValue !== 'string') return DEFAULT_CHECKOUT_RETURN_PATH;
 
   const value = rawValue.trim();
-  if (!value || value.length > 500) return '/courses';
-  if (!value.startsWith('/') || value.startsWith('//')) return '/courses';
-  if (/[\r\n\t]/.test(value)) return '/courses';
-  if (value !== '/courses' && !value.startsWith('/courses/')) return '/courses';
+  if (!value || value.length > 500) return DEFAULT_CHECKOUT_RETURN_PATH;
+  if (!value.startsWith('/') || value.startsWith('//')) return DEFAULT_CHECKOUT_RETURN_PATH;
+  if (/[\r\n\t\\]/.test(value)) return DEFAULT_CHECKOUT_RETURN_PATH;
+  if (
+    value !== DEFAULT_CHECKOUT_RETURN_PATH &&
+    !value.startsWith(`${DEFAULT_CHECKOUT_RETURN_PATH}/`) &&
+    !value.startsWith(`${DEFAULT_CHECKOUT_RETURN_PATH}?`) &&
+    !value.startsWith(`${DEFAULT_CHECKOUT_RETURN_PATH}#`)
+  ) {
+    return DEFAULT_CHECKOUT_RETURN_PATH;
+  }
+
+  const pathname = value.split(/[?#]/, 1)[0] || '';
+  if (/%2f|%5c/i.test(pathname)) return DEFAULT_CHECKOUT_RETURN_PATH;
+
+  let decodedPathname;
+  try {
+    decodedPathname = decodeURIComponent(pathname);
+  } catch {
+    return DEFAULT_CHECKOUT_RETURN_PATH;
+  }
+
+  if (/[\r\n\t\\]/.test(decodedPathname)) return DEFAULT_CHECKOUT_RETURN_PATH;
+  if (decodedPathname.split('/').some((segment) => segment === '.' || segment === '..')) {
+    return DEFAULT_CHECKOUT_RETURN_PATH;
+  }
 
   return value;
 }

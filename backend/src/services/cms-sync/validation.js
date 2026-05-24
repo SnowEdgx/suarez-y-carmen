@@ -118,6 +118,21 @@ function normalizeUrl(value, fieldName) {
   return url;
 }
 
+function hasUnsafeInternalPathSegments(href) {
+  const pathname = href.split(/[?#]/, 1)[0] || '';
+  if (/%2f|%5c/i.test(pathname)) return true;
+
+  let decodedPathname;
+  try {
+    decodedPathname = decodeURIComponent(pathname);
+  } catch {
+    return true;
+  }
+
+  if (/[\r\n\t\\]/.test(decodedPathname)) return true;
+  return decodedPathname.split('/').some((segment) => segment === '.' || segment === '..');
+}
+
 function normalizeHref(value, fieldName) {
   const href = optionalString(value, 2000);
   if (!href) return null;
@@ -126,7 +141,12 @@ function normalizeHref(value, fieldName) {
     return href;
   }
 
-  if (href.startsWith('/') && !href.startsWith('//') && !/[\r\n\t]/.test(href)) {
+  if (
+    href.startsWith('/') &&
+    !href.startsWith('//') &&
+    !/[\r\n\t\\]/.test(href) &&
+    !hasUnsafeInternalPathSegments(href)
+  ) {
     return href;
   }
 

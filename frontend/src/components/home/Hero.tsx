@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { STORAGE_ASSETS } from "@/lib/constants";
 import { normalizeDisplayText } from "@/lib/display-text";
+import { hasUnsafeInternalPathSegments } from "@/lib/internal-path";
 
 export type HomeHeroContent = {
   hero_eyebrow: string | null;
@@ -21,7 +22,14 @@ function normalizeHref(value: string | null | undefined, fallback: string) {
   const href = value.trim();
   if (!href) return fallback;
 
-  if (href.startsWith("/") && !href.startsWith("//") && !/[\r\n\t]/.test(href)) return href;
+  if (
+    href.startsWith("/") &&
+    !href.startsWith("//") &&
+    !/[\r\n\t\\]/.test(href) &&
+    !hasUnsafeInternalPathSegments(href)
+  ) {
+    return href;
+  }
 
   try {
     const url = new URL(href);

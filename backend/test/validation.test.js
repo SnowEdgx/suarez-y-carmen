@@ -4,6 +4,9 @@ const {
   isSha256Hash,
   isUuid,
 } = require('../src/utils/validation');
+const {
+  normalizeHref,
+} = require('../src/services/cms-sync/validation');
 
 test('isUuid accepts valid UUIDs', () => {
   assert.equal(isUuid('550e8400-e29b-41d4-a716-446655440000'), true);
@@ -25,4 +28,17 @@ test('isSha256Hash rejects non-hex or wrong length values', () => {
   assert.equal(isSha256Hash('g'.repeat(64)), false);
   assert.equal(isSha256Hash('a'.repeat(63)), false);
   assert.equal(isSha256Hash(undefined), false);
+});
+
+test('normalizeHref accepts safe editorial links', () => {
+  assert.equal(normalizeHref('/courses/bachazouk-vol-1-tilted-turns', 'primaryCtaHref'), '/courses/bachazouk-vol-1-tilted-turns');
+  assert.equal(normalizeHref('#contact', 'primaryCtaHref'), '#contact');
+  assert.equal(normalizeHref('https://suarezycarmenbachata.com/courses', 'primaryCtaHref'), 'https://suarezycarmenbachata.com/courses');
+});
+
+test('normalizeHref rejects ambiguous internal editorial links', () => {
+  assert.throws(() => normalizeHref('/courses/../profile', 'primaryCtaHref'), /valid HTTP URL/);
+  assert.throws(() => normalizeHref('/courses/%2e%2e/profile', 'primaryCtaHref'), /valid HTTP URL/);
+  assert.throws(() => normalizeHref('/courses/%2Fprofile', 'primaryCtaHref'), /valid HTTP URL/);
+  assert.throws(() => normalizeHref('/courses\\profile', 'primaryCtaHref'), /valid HTTP URL/);
 });
