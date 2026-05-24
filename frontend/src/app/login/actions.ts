@@ -100,14 +100,22 @@ export async function login(formData: FormData) {
   if (error) {
     console.warn('[Login Action] Login failed')
     if (error.message.toLowerCase().includes('email not confirmed')) {
-      return { error: EMAIL_VERIFICATION_ERROR }
+      return {
+        error: EMAIL_VERIFICATION_ERROR,
+        requiresEmailVerification: true,
+        email,
+      }
     }
     return { error: 'Credenciales inválidas. Verifica tu correo y contraseña.' }
   }
 
   if (!isEmailVerified(authData.user)) {
     await supabase.auth.signOut()
-    return { error: EMAIL_VERIFICATION_ERROR }
+    return {
+      error: EMAIL_VERIFICATION_ERROR,
+      requiresEmailVerification: true,
+      email,
+    }
   }
 
   const redirectPath = getSafeInternalPath(formData.get('next'), '/courses')

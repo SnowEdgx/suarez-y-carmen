@@ -52,6 +52,11 @@ function LoginPageContent() {
     try {
       const result = (await action(formData)) as ActionResult | undefined
 
+      if (result?.requiresEmailVerification) {
+        setPendingVerificationEmail(result.email ?? (formData.get('email') as string))
+        setIsLoginMode(true)
+      }
+
       if (result?.error) {
         setErrorMessage(result.error)
         return
@@ -61,10 +66,6 @@ function LoginPageContent() {
         setSuccessMessage(result.success)
       }
 
-      if (result?.requiresEmailVerification) {
-        setPendingVerificationEmail(result.email ?? (formData.get('email') as string))
-        setIsLoginMode(true)
-      }
     } catch (error) {
       if (isRedirectError(error)) {
         throw error
