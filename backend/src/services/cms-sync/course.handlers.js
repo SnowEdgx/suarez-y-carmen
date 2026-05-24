@@ -4,6 +4,7 @@ const {
   normalizeLevel,
   normalizeSlug,
   normalizeUrl,
+  optionalInteger,
   optionalString,
   requiredInteger,
   requiredString,
@@ -16,6 +17,7 @@ async function upsertCourse(entry) {
   const slug = normalizeSlug(entry.slug);
   const level = normalizeLevel(entry.level);
   const priceCents = requiredInteger(entry.priceCents, 'priceCents', { min: 1, max: 500000 });
+  const position = optionalInteger(entry.order ?? entry.position, 'order', { min: 0, max: 100000 }) ?? 0;
   const existing = await findCourse({ ...entry, slug });
   const cmsDocumentId = optionalString(entry.cmsDocumentId, 255);
   const cmsEntryId = optionalString(entry.cmsEntryId, 255);
@@ -27,6 +29,7 @@ async function upsertCourse(entry) {
     cover_image_url: normalizeUrl(entry.coverImageUrl, 'coverImageUrl'),
     level,
     price_cents: priceCents,
+    position,
     is_published: resolvePublishedState(entry),
     cms_document_id: cmsDocumentId,
     cms_entry_id: cmsEntryId,

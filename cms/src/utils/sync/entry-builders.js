@@ -11,6 +11,7 @@ function buildCourseEntry(course) {
     description: course.description,
     level: course.level,
     priceCents: course.priceCents,
+    order: course.order,
     coverImageUrl: resolveMediaUrl(course.cover),
     isPublished: Boolean(course.publishedAt),
     publishedAt: course.publishedAt,

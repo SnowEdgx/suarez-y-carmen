@@ -175,6 +175,7 @@ const COURSE_SEEDS = [
     cover_image_url: ASSETS.IMG_4784,
     level: 'Intermedio',
     price_cents: 3900,
+    position: 10,
     is_published: true,
     lessons: BACHAZOUK_LESSONS,
     resources: [
@@ -397,6 +398,7 @@ async function upsertCourse(courseSeed) {
           cover_image_url: courseSeed.cover_image_url,
           level: courseSeed.level,
           price_cents: courseSeed.price_cents,
+          position: courseSeed.position,
           is_published: courseSeed.is_published,
         },
         { onConflict: 'id' }

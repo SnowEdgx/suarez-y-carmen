@@ -19,9 +19,10 @@ type CourseRow = {
   level: string | null
   cover_image_url: string | null
   price_cents: number | null
+  position: number | null
 }
 
-type CourseFallbackRow = Omit<CourseRow, 'price_cents'> & {
+type CourseFallbackRow = Omit<CourseRow, 'price_cents' | 'position'> & {
   is_published: boolean
 }
 
@@ -34,11 +35,11 @@ export const metadata: Metadata = {
   description: 'Explora los cursos online de bachata de Suárez y Carmen y accede a vistas previas antes de comprar.',
 }
 
-function shouldFallbackMissingPriceColumn(error: { code?: string | null; message?: string | null; details?: string | null } | null) {
+function shouldFallbackMissingCourseColumns(error: { code?: string | null; message?: string | null; details?: string | null } | null) {
   if (!error) return false
   if (error.code === '42703') return true
   const combined = `${error.message || ''} ${error.details || ''}`.toLowerCase()
-  return combined.includes('price_cents')
+  return combined.includes('price_cents') || combined.includes('position')
 }
 
 export default async function CoursesPage({ searchParams }: CoursesPageProps) {
@@ -69,14 +70,15 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
 
   const coursesResult = await supabase
     .from('courses')
-    .select('id, title, slug, description, level, cover_image_url, price_cents, is_published')
+    .select('id, title, slug, description, level, cover_image_url, price_cents, position, is_published')
     .eq('is_published', true)
+    .order('position', { ascending: true })
     .order('created_at', { ascending: false })
 
   let courses: CourseRow[] = []
   const pageMessages: CheckoutMessage[] = []
 
-  if (shouldFallbackMissingPriceColumn(coursesResult.error)) {
+  if (shouldFallbackMissingCourseColumns(coursesResult.error)) {
     const fallback = await supabase
       .from('courses')
       .select('id, title, slug, description, level, cover_image_url, is_published')
@@ -98,6 +100,7 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
         level: course.level,
         cover_image_url: course.cover_image_url,
         price_cents: null,
+        position: null,
       }))
     }
   } else if (coursesResult.error) {
