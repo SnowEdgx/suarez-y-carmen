@@ -227,14 +227,14 @@ port = 587
 user = "resend"
 pass = "env(SUPABASE_AUTH_SMTP_PASS)"
 admin_email = "env(SUPABASE_AUTH_SMTP_FROM)"
-sender_name = "S&C Academy"
+sender_name = "Academia Suárez y Carmen"
 
 [auth.email.template.confirmation]
-subject = "Confirma tu cuenta en S&C Academy"
+subject = "Confirma tu cuenta en Academia Suárez y Carmen"
 content_path = "./supabase/templates/confirm-signup.html"
 
 [auth.email.template.recovery]
-subject = "Recupera tu acceso en S&C Academy"
+subject = "Recupera tu acceso en Academia Suárez y Carmen"
 content_path = "./supabase/templates/recover-password.html"
 
 # Uncomment to customize notification email template

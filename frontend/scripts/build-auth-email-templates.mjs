@@ -8,8 +8,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const BRAND = {
-  appName: 'Suárez y Carmen Academy',
-  supportEmail: 'academy@suarezycarmenbachata.com',
+  appName: 'Academia Suárez y Carmen',
+  supportEmail: 'academy@mail.suarezycarmenbachata.com',
   primary: '#dc2626',
   bg: '#09090b',
   card: '#171717',
@@ -93,7 +93,7 @@ function Shell({ preheader, title, intro, ctaText, ctaHref, outro }) {
                       React.createElement(
                         'div',
                         { style: { fontSize: '22px', fontWeight: 800, letterSpacing: '0.02em' } },
-                        'S&C'
+                        'Suárez y Carmen'
                       ),
                       React.createElement(
                         'div',
@@ -211,7 +211,7 @@ const templates = [
       preheader: 'Confirma tu cuenta para empezar en la academia.',
       title: 'Confirma tu cuenta',
       intro:
-        'Gracias por unirte a Suárez y Carmen Academy.\n\nPara activar tu cuenta y acceder a tus cursos, confirma tu correo con el botón de abajo.',
+        'Gracias por unirte a la Academia Suárez y Carmen.\n\nPara activar tu cuenta y acceder a tus cursos, confirma tu correo con el botón de abajo.',
       ctaText: 'Confirmar mi cuenta',
       ctaHref: '{{ .ConfirmationURL }}',
       outro:
