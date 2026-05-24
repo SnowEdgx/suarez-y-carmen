@@ -120,33 +120,35 @@ function Shell({ preheader, title, intro, ctaText, ctaHref, outro }) {
                       }, intro)
                     )
                   ),
-                  React.createElement(
-                    'tr',
-                    null,
-                    React.createElement(
-                      'td',
-                      { style: { padding: '18px 28px 0' } },
-                      React.createElement(
-                        'a',
-                        {
-                          href: ctaHref,
-                          target: '_blank',
-                          rel: 'noopener noreferrer',
-                          style: {
-                            display: 'inline-block',
-                            backgroundColor: BRAND.primary,
-                            color: '#ffffff',
-                            textDecoration: 'none',
-                            fontWeight: 700,
-                            fontSize: '15px',
-                            padding: '12px 22px',
-                            borderRadius: '999px',
-                          },
-                        },
-                        ctaText
+                  ctaHref && ctaText
+                    ? React.createElement(
+                        'tr',
+                        null,
+                        React.createElement(
+                          'td',
+                          { style: { padding: '18px 28px 0' } },
+                          React.createElement(
+                            'a',
+                            {
+                              href: ctaHref,
+                              target: '_blank',
+                              rel: 'noopener noreferrer',
+                              style: {
+                                display: 'inline-block',
+                                backgroundColor: BRAND.primary,
+                                color: '#ffffff',
+                                textDecoration: 'none',
+                                fontWeight: 700,
+                                fontSize: '15px',
+                                padding: '12px 22px',
+                                borderRadius: '999px',
+                              },
+                            },
+                            ctaText
+                          )
+                        )
                       )
-                    )
-                  ),
+                    : null,
                   React.createElement(
                     'tr',
                     null,
@@ -229,6 +231,17 @@ const templates = [
       ctaHref: '{{ .ConfirmationURL }}',
       outro:
         'Si no solicitaste este cambio, no es necesario hacer nada. Tu contraseña actual seguirá siendo válida.',
+    }),
+  },
+  {
+    output: 'password-changed.html',
+    component: React.createElement(Shell, {
+      preheader: 'Tu contraseña se ha actualizado correctamente.',
+      title: 'Contraseña actualizada',
+      intro:
+        'Te confirmamos que la contraseña de tu cuenta se ha cambiado correctamente.',
+      outro:
+        'Si has realizado este cambio, no tienes que hacer nada más.\n\nSi no reconoces esta actividad, solicita una recuperación de contraseña desde la web y contacta con soporte.',
     }),
   },
 ];

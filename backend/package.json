@@ -7,7 +7,7 @@
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
     "seed:local-content": "node scripts/seed-local-content.mjs",
-    "test": "node scripts/check-syntax.mjs && node test/range-header.test.js && node test/request-utils.test.js && node test/rate-limit.test.js && node test/validation.test.js && node test/stripe-client.test.js && node test/video-device.test.js && node test/video-storage.test.js && node test/resource-storage.test.js"
+    "test": "node scripts/check-syntax.mjs && node test/range-header.test.js && node test/request-utils.test.js && node test/rate-limit.test.js && node test/validation.test.js && node test/stripe-client.test.js && node test/stripe-controller.test.js && node test/video-device.test.js && node test/video-storage.test.js && node test/resource-storage.test.js"
   },
   "keywords": [],
   "author": "",

@@ -75,6 +75,7 @@ Esto genera:
 
 - `supabase/templates/confirm-signup.html`
 - `supabase/templates/recover-password.html`
+- `supabase/templates/password-changed.html`
 
 ## Nota sobre enlaces de confirmación
 
