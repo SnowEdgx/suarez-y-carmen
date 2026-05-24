@@ -1,7 +1,7 @@
 import { getPublicImageUrl, shouldBypassImageOptimization } from "./public-images";
+import { STORAGE_ASSETS } from "./constants";
 
-export const COURSE_IMAGE_FALLBACK =
-  "https://images.unsplash.com/photo-1516997121675-4c2d1684aa3e?q=80&w=1200&auto=format&fit=crop";
+export const COURSE_IMAGE_FALLBACK = STORAGE_ASSETS.IMG_4784;
 
 export function getCourseImageUrl(value: string | null | undefined) {
   return getPublicImageUrl(value, COURSE_IMAGE_FALLBACK) ?? COURSE_IMAGE_FALLBACK;

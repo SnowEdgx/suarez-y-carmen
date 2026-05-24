@@ -50,7 +50,7 @@ exports.createCheckoutSession = async (req, res) => {
     }
 
     if (!course.is_published) {
-      return res.status(403).json({ error: 'Este curso no esta disponible para compra.' });
+      return res.status(403).json({ error: 'Este curso no está disponible para compra.' });
     }
 
     const stripeClient = requireStripe();
