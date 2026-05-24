@@ -97,6 +97,8 @@ function LoginPageContent() {
       if (result.success) {
         setSuccessMessage(result.success)
       }
+    } catch {
+      setErrorMessage('No pudimos solicitar un nuevo enlace. Inténtalo de nuevo en unos minutos.')
     } finally {
       setIsResendingVerification(false)
     }
@@ -120,6 +122,8 @@ function LoginPageContent() {
       if (result.success) {
         setSuccessMessage(result.success)
       }
+    } catch {
+      setErrorMessage('No pudimos iniciar la recuperación ahora mismo. Inténtalo de nuevo en unos minutos.')
     } finally {
       setIsRecoveryPending(false)
     }

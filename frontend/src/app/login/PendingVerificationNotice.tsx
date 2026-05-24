@@ -20,7 +20,7 @@ export default function PendingVerificationNotice({
       <p className="font-semibold text-white">Verificación pendiente</p>
       <p className="mt-1 leading-relaxed text-amber-100/80">
         El acceso al área privada queda bloqueado hasta confirmar <span className="font-medium text-amber-50">{email}</span>.
-        Si el enlace no llega, solicita uno nuevo o contacta con soporte.
+        Si no lo ves en unos minutos, revisa spam, solicita otro enlace o contacta con soporte.
       </p>
       <button
         type="button"

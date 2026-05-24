@@ -14,11 +14,11 @@ import { createClient } from '@/lib/supabase/server'
 const EMAIL_VERIFICATION_ERROR =
   'Debes verificar tu correo antes de iniciar sesión. Si el enlace no llega, solicita un nuevo envío o contacta con soporte.'
 const SIGNUP_VERIFICATION_REQUESTED_MESSAGE =
-  'Cuenta creada. Hemos solicitado la verificación por correo. Si no aparece en unos minutos, revisa spam o solicita un nuevo enlace.'
+  'Cuenta creada. Para entrar necesitas confirmar tu correo. Si no ves el mensaje en unos minutos, revisa spam o solicita un nuevo enlace.'
 const RESEND_VERIFICATION_REQUESTED_MESSAGE =
-  'Solicitud de verificación registrada. Si el correo está operativo, recibirás el enlace en unos minutos.'
+  'Solicitud registrada. Si la cuenta existe y puede recibir correo, enviaremos un nuevo enlace en unos minutos.'
 const RECOVERY_REQUESTED_MESSAGE =
-  'Si el correo existe y el servicio de email está operativo, recibirás un enlace para restablecer tu contraseña.'
+  'Si existe una cuenta con ese correo, enviaremos un enlace seguro para restablecer la contraseña.'
 
 type AuthUser = {
   email_confirmed_at?: string | null
