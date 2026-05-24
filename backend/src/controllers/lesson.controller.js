@@ -25,6 +25,8 @@ const {
 } = require('../services/video-response.service');
 
 exports.getLessonVideoUrl = async (req, res) => {
+  let lesson = null;
+
   try {
     const lessonId = typeof req.params.lessonId === 'string' ? req.params.lessonId.trim() : '';
     if (!UUID_REGEX.test(lessonId)) {
@@ -32,7 +34,7 @@ exports.getLessonVideoUrl = async (req, res) => {
     }
 
     const user = await getAuthenticatedUser(req);
-    const lesson = await getPlayableLesson(lessonId);
+    lesson = await getPlayableLesson(lessonId);
     const deviceAccess = await assertLessonAccess({ lesson, user, req, enforceDevice: true });
 
     const storageReference = resolveStorageReference(lesson.video_storage_path, lesson.video_url);
@@ -84,7 +86,7 @@ exports.getLessonVideoUrl = async (req, res) => {
     console.error('[Lesson Controller] Error resolving lesson video:', err.message);
     recordPlaybackEventSafe({
       req,
-      lessonId: UUID_REGEX.test(req.params.lessonId || '') ? req.params.lessonId : null,
+      lesson,
       eventType: status === 401 || status === 403 || status === 429 ? 'token_denied' : 'stream_error',
       statusCode: status,
       errorCode: err.code || 'video_token_failed',
