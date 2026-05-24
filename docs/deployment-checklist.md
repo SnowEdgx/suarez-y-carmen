@@ -44,6 +44,7 @@ NEXT_PUBLIC_CMS_URL=https://cms.suarezycarmenbachata.com
 Deployment notes:
 
 - `NEXT_PUBLIC_SITE_URL` must match the final public domain.
+- Use `https://suarezycarmenbachata.com` as canonical URL and configure `www` to redirect to it, or include `www` consistently across every provider.
 - `NEXT_PUBLIC_BACKEND_URL` must point to the public backend URL.
 - `BACKEND_URL` must point to the backend URL used by server-rendered frontend code.
 - `BACKEND_INTERNAL_URL` can point to a private/internal backend URL when the hosting provider supports it.
@@ -59,7 +60,7 @@ NODE_ENV=production
 PORT=
 TRUST_PROXY=
 FRONTEND_URL=https://suarezycarmenbachata.com
-CORS_ORIGINS=https://suarezycarmenbachata.com
+CORS_ORIGINS=https://suarezycarmenbachata.com,https://www.suarezycarmenbachata.com
 SUPABASE_URL=
 SUPABASE_SERVICE_ROLE_KEY=
 SUPABASE_VIDEO_BUCKET=
@@ -77,6 +78,7 @@ Deployment notes:
 - `NODE_ENV=production` is required.
 - `TRUST_PROXY` must match the hosting provider topology. Use `1` for a single trusted reverse proxy.
 - `CORS_ORIGINS` must include only approved frontend origins.
+- If `www.suarezycarmenbachata.com` remains reachable, include it in `CORS_ORIGINS` and Supabase redirect URLs.
 - `ENABLE_SUPABASE_TEST_ENDPOINT` must stay disabled by default; production code ignores it even if it is accidentally set.
 - `VIDEO_PLAYBACK_TOKEN_SECRET`, `COURSE_RESOURCE_TOKEN_SECRET` and `VIDEO_AUDIT_HASH_SECRET` must be long random secrets.
 - Use different values for video playback tokens and course resource tokens.
@@ -92,6 +94,7 @@ Production setup:
 - Keep Storage buckets for private video non-public.
 - Keep Storage buckets for private course resources non-public.
 - Configure Auth redirect URLs for the final frontend domain.
+- Include both apex and `www` callback URLs if both hosts can reach the frontend.
 - Configure SMTP settings for production email delivery.
 
 ## Stripe
@@ -109,6 +112,7 @@ Production setup:
 
 - Verify the dedicated sending subdomain `mail.suarezycarmenbachata.com`.
 - Configure SPF, DKIM and DMARC.
+- DNS records are managed in Hostinger for this project; Resend verification records must be added there before production signup tests.
 - Use a sender aligned with the verified sending domain, for example `academy@mail.suarezycarmenbachata.com`.
 - Keep Auth confirmation and recovery templates synchronized with Supabase.
 
@@ -148,8 +152,11 @@ Deployment notes:
 Final domain tasks:
 
 - Point `suarezycarmenbachata.com` to the frontend host.
+- Point `www.suarezycarmenbachata.com` to the frontend host or configure it as a redirect to the apex domain.
 - Point `api.suarezycarmenbachata.com` to the backend host.
 - Point `cms.suarezycarmenbachata.com` to the CMS host if it is exposed.
+- Keep `cms.suarezycarmenbachata.com` behind HTTPS and strong admin credentials; do not expose service keys or operational secrets to Strapi.
+- Keep `mail.suarezycarmenbachata.com` reserved for Resend DNS records, not as the public website host.
 - Enable HTTPS for every public host.
 - Update Supabase Auth redirect URLs.
 - Update Stripe webhook URL.
