@@ -13,18 +13,26 @@ export default function HeroBackgroundVideo({ videoUrl, posterUrl }: HeroBackgro
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    if (!window.matchMedia("(min-width: 768px)").matches) return;
 
     const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
     if (connection?.saveData) return;
+    const isMobileViewport = !window.matchMedia("(min-width: 768px)").matches;
+    const fallbackDelayMs = isMobileViewport ? 1400 : 900;
+    const idleTimeoutMs = isMobileViewport ? 2400 : 1600;
+
+    const timeoutId = globalThis.setTimeout(() => setShouldLoadVideo(true), fallbackDelayMs);
+    let idleId: number | null = null;
 
     if ("requestIdleCallback" in window) {
-      const idleId = window.requestIdleCallback(() => setShouldLoadVideo(true), { timeout: 1600 });
-      return () => window.cancelIdleCallback(idleId);
+      idleId = window.requestIdleCallback(() => setShouldLoadVideo(true), { timeout: idleTimeoutMs });
     }
 
-    const timeoutId = globalThis.setTimeout(() => setShouldLoadVideo(true), 900);
-    return () => globalThis.clearTimeout(timeoutId);
+    return () => {
+      globalThis.clearTimeout(timeoutId);
+      if (idleId !== null) {
+        window.cancelIdleCallback(idleId);
+      }
+    };
   }, []);
 
   if (!shouldLoadVideo) return null;

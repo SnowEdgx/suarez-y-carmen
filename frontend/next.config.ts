@@ -25,6 +25,7 @@ const cmsRemotePattern = getCmsRemotePattern();
 
 const nextConfig: NextConfig = {
   distDir,
+  allowedDevOrigins: ["127.0.0.1"],
   async headers() {
     return [
       {
