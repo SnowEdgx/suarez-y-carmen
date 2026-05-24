@@ -125,6 +125,39 @@ async function resolveCourseResourceAccess({ resourceId, user }) {
   throw error;
 }
 
+async function assertCourseResourceStreamAccess(payload) {
+  const resource = await getPublishedCourseResource(payload.resourceId);
+  const currentStorageReference = resolveResourceStorageReference(resource.resource_storage_path);
+
+  if (
+    !currentStorageReference ||
+    currentStorageReference.bucket !== payload.storageReference.bucket ||
+    currentStorageReference.path !== payload.storageReference.path
+  ) {
+    const error = new Error('Course resource token no longer matches the current storage object.');
+    error.status = 404;
+    error.code = 'resource_unavailable';
+    throw error;
+  }
+
+  if (resource.is_free_preview) return;
+
+  if (!payload.userId) {
+    const error = new Error('Authentication is required for this protected resource stream.');
+    error.status = 401;
+    error.code = 'authentication_required';
+    throw error;
+  }
+
+  const hasPaidAccess = await userHasPaidCourse(payload.userId, resource.course_id);
+  if (!hasPaidAccess) {
+    const error = new Error('User no longer has paid access to this course resource.');
+    error.status = 403;
+    error.code = 'course_not_purchased';
+    throw error;
+  }
+}
+
 function getSafeResourceAccessCode(err) {
   const code = typeof err?.code === 'string' ? err.code : '';
   if (['authentication_required', 'email_not_verified', 'course_not_purchased'].includes(code)) {
@@ -137,6 +170,7 @@ function getSafeResourceAccessCode(err) {
 }
 
 module.exports = {
+  assertCourseResourceStreamAccess,
   getSafeResourceAccessCode,
   resolveCourseResourceAccess,
 };

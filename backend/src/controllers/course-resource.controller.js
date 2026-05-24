@@ -1,6 +1,7 @@
 const { getAuthenticatedUser } = require('../utils/auth');
 const { UUID_REGEX } = require('../utils/validation');
 const {
+  assertCourseResourceStreamAccess,
   getSafeResourceAccessCode,
   resolveCourseResourceAccess,
 } = require('../services/course-resource-access.service');
@@ -45,6 +46,7 @@ exports.viewCourseResource = async (req, res) => {
     }
 
     assertCourseResourceTokenRateLimit(payload.nonce);
+    await assertCourseResourceStreamAccess(payload);
 
     return await streamResourceStorageObject({
       req,

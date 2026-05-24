@@ -175,7 +175,7 @@ export default function SelectedLessonPanel({
 
       {!hasPurchased && previewLessons.length > 0 && (
         <p className="mt-4 text-xs text-neutral-500">
-          Estás viendo contenido de preview. Compra el curso para desbloquear todas las lecciones.
+          Estás viendo contenido de vista previa. Compra el curso para desbloquear todas las lecciones.
         </p>
       )}
     </div>

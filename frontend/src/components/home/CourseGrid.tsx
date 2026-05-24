@@ -147,7 +147,7 @@ export default function CourseGrid({
                         href={coursePath}
                         className="w-full text-center py-2.5 border border-neutral-700 text-neutral-200 hover:text-white hover:border-neutral-500 rounded-lg transition-colors block"
                       >
-                        Ver detalle y previews
+                        Ver detalle y vistas previas
                       </Link>
                     </div>
                   </div>

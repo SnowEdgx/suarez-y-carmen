@@ -55,7 +55,7 @@ export default function LessonList({
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   <span className="text-[11px] uppercase tracking-wide">
-                    {lesson.is_free_preview ? "Preview" : isLocked ? "Bloqueada" : "Disponible"}
+                    {lesson.is_free_preview ? "Vista previa" : isLocked ? "Bloqueada" : "Disponible"}
                   </span>
                   {isAccessible && (
                     <>

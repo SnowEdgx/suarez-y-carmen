@@ -42,7 +42,7 @@ const COURSE_SEEDS = [
       {
         fallbackId: '21111111-1111-4111-8111-111111111111',
         title: 'Base, postura y conexion',
-        description: 'Preview del curso con los puntos clave de postura y conexion inicial.',
+        description: 'Vista previa del curso con los puntos clave de postura y conexión inicial.',
         position: 1,
         duration_seconds: 420,
         is_free_preview: true,
@@ -50,8 +50,8 @@ const COURSE_SEEDS = [
       },
       {
         fallbackId: '21111111-1111-4111-8111-111111111112',
-        title: 'Ondas basicas y control corporal',
-        description: 'Trabajo progresivo de ondas con foco en control, respiracion y timing.',
+        title: 'Ondas básicas y control corporal',
+        description: 'Trabajo progresivo de ondas con foco en control, respiración y timing.',
         position: 2,
         duration_seconds: 840,
         is_free_preview: false,
@@ -59,7 +59,7 @@ const COURSE_SEEDS = [
       },
       {
         fallbackId: '21111111-1111-4111-8111-111111111113',
-        title: 'Combinacion guiada de fundamentos',
+        title: 'Combinación guiada de fundamentos',
         description: 'Secuencia completa para integrar base, ondas y cambios de peso.',
         position: 3,
         duration_seconds: 960,
@@ -72,7 +72,7 @@ const COURSE_SEEDS = [
     fallbackId: '11111111-1111-4111-8111-111111111112',
     title: 'Figuras Avanzadas y Musicalidad',
     slug: 'figuras-avanzadas',
-    description: 'Recursos para interpretar la musica y construir figuras con cambios de energia.',
+    description: 'Recursos para interpretar la música y construir figuras con cambios de energía.',
     cover_image_url: ASSETS.IMG_4784,
     level: 'Avanzado',
     price_cents: 3900,
@@ -81,7 +81,7 @@ const COURSE_SEEDS = [
       {
         fallbackId: '21111111-1111-4111-8111-111111111121',
         title: 'Musicalidad y cortes',
-        description: 'Preview sobre lectura musical y preparacion de cortes.',
+        description: 'Vista previa sobre lectura musical y preparación de cortes.',
         position: 1,
         duration_seconds: 480,
         is_free_preview: true,
@@ -89,8 +89,8 @@ const COURSE_SEEDS = [
       },
       {
         fallbackId: '21111111-1111-4111-8111-111111111122',
-        title: 'Cambios de energia',
-        description: 'Como modular energia, velocidad e intencion dentro de una figura.',
+        title: 'Cambios de energía',
+        description: 'Cómo modular energía, velocidad e intención dentro de una figura.',
         position: 2,
         duration_seconds: 900,
         is_free_preview: false,
@@ -99,7 +99,7 @@ const COURSE_SEEDS = [
       {
         fallbackId: '21111111-1111-4111-8111-111111111123',
         title: 'Figura avanzada guiada',
-        description: 'Construccion paso a paso de una figura con enfasis musical.',
+        description: 'Construcción paso a paso de una figura con énfasis musical.',
         position: 3,
         duration_seconds: 1020,
         is_free_preview: false,

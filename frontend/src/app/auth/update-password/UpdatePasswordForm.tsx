@@ -36,16 +36,20 @@ export default function UpdatePasswordForm() {
   }
 
   return (
-    <div className="relative w-full max-w-md bg-neutral-900/60 backdrop-blur-xl border border-neutral-800 p-8 rounded-3xl shadow-2xl">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-serif font-bold text-white mb-2">{'Nueva contrase\u00f1a'}</h1>
-        <p className="text-neutral-400">{'Define una contrase\u00f1a segura para volver a entrar en tu cuenta.'}</p>
+    <div>
+      <div className="mb-8">
+        <p className="mb-4 text-sm font-semibold uppercase tracking-[0.28em] text-red-400">Acceso seguro</p>
+        <h1 className="mb-3 font-serif text-4xl font-bold tracking-tight text-white">{'Nueva contrase\u00f1a'}</h1>
+        <p className="leading-relaxed text-neutral-400">
+          {'Define una contrase\u00f1a segura para recuperar el acceso a tu cuenta.'}
+        </p>
       </div>
 
       {errorMessage && (
         <div
           role="alert"
-          className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium text-center"
+          aria-live="assertive"
+          className="mb-6 border-l border-red-500 bg-red-500/5 px-4 py-3 text-sm font-medium leading-relaxed text-red-300"
         >
           {errorMessage}
         </div>
@@ -62,7 +66,7 @@ export default function UpdatePasswordForm() {
             type="password"
             minLength={8}
             required
-            className="w-full bg-neutral-950 border border-neutral-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-600/50 transition-all font-medium placeholder-neutral-600"
+            className="w-full border-b border-neutral-800 bg-transparent px-0 py-3 font-medium text-white placeholder-neutral-600 transition-colors focus:border-red-500 focus:outline-none"
             placeholder="Mínimo 8 caracteres"
           />
         </div>
@@ -77,7 +81,7 @@ export default function UpdatePasswordForm() {
             type="password"
             minLength={8}
             required
-            className="w-full bg-neutral-950 border border-neutral-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-600/50 transition-all font-medium placeholder-neutral-600"
+            className="w-full border-b border-neutral-800 bg-transparent px-0 py-3 font-medium text-white placeholder-neutral-600 transition-colors focus:border-red-500 focus:outline-none"
             placeholder="Repite tu contrase\u00f1a"
           />
         </div>
@@ -86,7 +90,7 @@ export default function UpdatePasswordForm() {
           type="submit"
           disabled={isPending}
           aria-busy={isPending}
-          className="w-full py-3.5 mt-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
+          className="w-full py-3.5 mt-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-full shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
         >
           {isPending ? 'Guardando...' : 'Actualizar contrase\u00f1a'}
         </button>

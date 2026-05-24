@@ -13,6 +13,14 @@ function getResourceLabel(resource: CourseDetailResource) {
   return "Material del curso";
 }
 
+function getEmbeddedResourceUrl(resource: CourseDetailResource, url: string) {
+  const fileName = resource.file_name?.toLowerCase() || "";
+  const isPdf = resource.mime_type?.includes("pdf") || fileName.endsWith(".pdf");
+  if (!isPdf) return url;
+
+  return url.includes("#") ? `${url}&toolbar=0&navpanes=0` : `${url}#toolbar=0&navpanes=0`;
+}
+
 export default function CourseResourcesPanel({
   resources,
   accessByResourceId,
@@ -44,7 +52,7 @@ export default function CourseResourcesPanel({
                       <p className="mt-1 text-xs leading-relaxed text-neutral-400">{description}</p>
                     )}
                     <p className="mt-2 text-[11px] uppercase tracking-wide text-neutral-500">
-                      {resource.is_free_preview ? "Preview" : getResourceLabel(resource)}
+                      {resource.is_free_preview ? "Vista previa" : getResourceLabel(resource)}
                     </p>
                   </div>
 
@@ -62,9 +70,10 @@ export default function CourseResourcesPanel({
                 {access.url && (
                   <div className="mt-4 overflow-hidden rounded-xl border border-neutral-800 bg-neutral-950">
                     <iframe
-                      src={access.url}
+                      src={getEmbeddedResourceUrl(resource, access.url)}
                       title={`Material del curso: ${title}`}
                       className="h-[420px] w-full bg-neutral-950"
+                      loading="lazy"
                       referrerPolicy="no-referrer"
                       sandbox="allow-scripts allow-same-origin"
                     />
