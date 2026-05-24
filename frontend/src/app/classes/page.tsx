@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Navbar from "@/components/home/Navbar";
 import InPersonClasses, { type InPersonClassItem } from "@/components/home/InPersonClasses";
 import Footer from "@/components/home/Footer";
+import { hasUnrecoverableDisplayText } from "@/lib/display-text";
 import { logAppError } from "@/lib/error-logging";
 import { createClient } from "@/lib/supabase/server";
 
@@ -9,6 +10,15 @@ export const metadata: Metadata = {
   title: "Clases presenciales",
   description: "Sedes y horarios de clases presenciales de bachata con Su\u00e1rez y Carmen.",
 };
+
+function isRenderableClassItem(classItem: InPersonClassItem) {
+  return ![
+    classItem.title,
+    classItem.city,
+    classItem.venue,
+    classItem.schedule,
+  ].some(hasUnrecoverableDisplayText);
+}
 
 export default async function ClassesPage() {
   const supabase = await createClient();
@@ -29,7 +39,7 @@ export default async function ClassesPage() {
   if (classesResponse.error) {
     logAppError("Classes Page", "Could not load in-person classes", classesResponse.error);
   } else {
-    classes = (classesResponse.data || []) as InPersonClassItem[];
+    classes = ((classesResponse.data || []) as InPersonClassItem[]).filter(isRenderableClassItem);
   }
 
   return (

@@ -16,9 +16,9 @@ const EMAIL_VERIFICATION_ERROR =
 const SIGNUP_VERIFICATION_REQUESTED_MESSAGE =
   'Cuenta creada. Para entrar necesitas confirmar tu correo. Si no ves el mensaje en unos minutos, revisa spam o solicita un nuevo enlace.'
 const RESEND_VERIFICATION_REQUESTED_MESSAGE =
-  'Solicitud registrada. Si la cuenta existe y puede recibir correo, enviaremos un nuevo enlace en unos minutos.'
+  'Solicitud registrada. Si la cuenta existe y el correo puede recibir mensajes, llegará un nuevo enlace en unos minutos.'
 const RECOVERY_REQUESTED_MESSAGE =
-  'Si existe una cuenta con ese correo, enviaremos un enlace seguro para restablecer la contraseña.'
+  'Si existe una cuenta con ese correo, recibirás un enlace seguro para restablecer la contraseña.'
 const MAX_EMAIL_LENGTH = 254
 const MAX_NAME_LENGTH = 120
 const MAX_PASSWORD_LENGTH = 128

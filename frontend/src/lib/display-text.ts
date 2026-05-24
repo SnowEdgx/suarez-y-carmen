@@ -1,4 +1,5 @@
 const MOJIBAKE_MARKERS = /[\u00c2\u00c3]/;
+const UNRECOVERABLE_TEXT_MARKERS = /[\ufffd]/;
 
 function repairUtf8ReadAsLatin1(value: string) {
   if (!MOJIBAKE_MARKERS.test(value)) return value;
@@ -18,6 +19,14 @@ function repairUtf8ReadAsLatin1(value: string) {
 
 export function normalizeDisplayText(value: string | null | undefined, fallback = "") {
   const rawValue = typeof value === "string" ? value.trim() : "";
+  if (UNRECOVERABLE_TEXT_MARKERS.test(rawValue)) return fallback.trim();
+
   const normalized = repairUtf8ReadAsLatin1(rawValue || fallback).normalize("NFC");
-  return normalized.replace(/\ufffd/g, "").trim() || fallback;
+  if (UNRECOVERABLE_TEXT_MARKERS.test(normalized)) return fallback.trim();
+
+  return normalized.trim() || fallback;
+}
+
+export function hasUnrecoverableDisplayText(value: unknown) {
+  return typeof value === "string" && UNRECOVERABLE_TEXT_MARKERS.test(value);
 }

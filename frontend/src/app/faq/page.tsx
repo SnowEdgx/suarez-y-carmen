@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
-import { normalizeDisplayText } from "@/lib/display-text";
+import { hasUnrecoverableDisplayText, normalizeDisplayText } from "@/lib/display-text";
 import { logAppError } from "@/lib/error-logging";
 import { createClient } from "@/lib/supabase/server";
 
@@ -49,6 +49,10 @@ function normalizeFaqText(value: string, fallback = "") {
     .replace(/\bcatálogo\b/gi, "cursos");
 }
 
+function isRenderableFaq(faq: FaqItem) {
+  return !hasUnrecoverableDisplayText(faq.question) && !hasUnrecoverableDisplayText(faq.answer);
+}
+
 export default async function FaqPage() {
   const supabase = await createClient();
   const [
@@ -71,7 +75,10 @@ export default async function FaqPage() {
     loadError = true;
     logAppError("FAQ Page", "Could not load FAQs", faqsResponse.error);
   } else if (faqsResponse.data && faqsResponse.data.length > 0) {
-    faqs = faqsResponse.data as FaqItem[];
+    const renderableFaqs = (faqsResponse.data as FaqItem[]).filter(isRenderableFaq);
+    if (renderableFaqs.length > 0) {
+      faqs = renderableFaqs;
+    }
   }
 
   return (

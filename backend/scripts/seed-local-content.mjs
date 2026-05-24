@@ -159,10 +159,10 @@ const COURSE_SEEDS = [
         fallbackId: '23111111-1111-4111-8111-111111111111',
         title: 'Gu\u00eda del curso Bachazouk Vol. 1',
         description: 'Documento de apoyo para repasar estructura, conceptos y orden de trabajo del curso.',
-        resource_storage_path: 'demo/bachazouk-vol-1/bachazouk-vol-1.pdf',
-        file_name: 'bachazouk-vol-1.pdf',
+        resource_storage_path: 'bachazouk-vol-1/bachazouk-vol-1.pdf',
+        file_name: 'Bachazouk Vol. 1.pdf',
         mime_type: 'application/pdf',
-        position: 10,
+        position: 1,
         is_free_preview: false,
         is_published: true,
       },
@@ -490,6 +490,8 @@ async function upsertHomeContent() {
         {
           id: 'home',
           ...HOME_CONTENT_SEED,
+          secondary_cta_label: null,
+          secondary_cta_href: null,
           updated_at: new Date().toISOString(),
         },
         { onConflict: 'id' }
@@ -561,6 +563,22 @@ async function deactivateLegacyInPersonClassSeeds() {
 
     assertNoError(result, `Could not deactivate legacy in-person class ${title}`);
   }
+
+  const localSyncCheck = await supabase
+    .from('in_person_classes')
+    .delete()
+    .eq('cms_document_id', 'local-editorial-class-check');
+
+  assertNoError(localSyncCheck, 'Could not remove local CMS sync class check');
+}
+
+async function deactivateLegacyFaqSeeds() {
+  const localSyncCheck = await supabase
+    .from('faqs')
+    .delete()
+    .eq('cms_document_id', 'local-editorial-faq-check');
+
+  assertNoError(localSyncCheck, 'Could not remove local CMS sync FAQ check');
 }
 
 async function deactivateLegacyCourseSeeds() {
@@ -577,6 +595,15 @@ async function deactivateLegacyCourseSeeds() {
 
     assertNoError(result, `Could not deactivate legacy course ${slug}`);
   }
+}
+
+async function deleteLegacyCourseResourceSeeds() {
+  const result = await supabase
+    .from('course_resources')
+    .delete()
+    .eq('resource_storage_path', 'demo/bachazouk-vol-1/bachazouk-vol-1.pdf');
+
+  assertNoError(result, 'Could not delete legacy demo course resource');
 }
 
 async function deactivateLegacyEventSeeds() {
@@ -748,6 +775,7 @@ for (const courseSeed of COURSE_SEEDS) {
   }
 }
 await deactivateLegacyCourseSeeds();
+await deleteLegacyCourseResourceSeeds();
 
 for (const eventSeed of EVENT_SEEDS) {
   await upsertEvent(eventSeed);
@@ -759,6 +787,7 @@ await upsertHomeContent();
 for (const faqSeed of FAQ_SEEDS) {
   await upsertFaq(faqSeed);
 }
+await deactivateLegacyFaqSeeds();
 
 for (const classSeed of IN_PERSON_CLASS_SEEDS) {
   await upsertInPersonClass(classSeed);
