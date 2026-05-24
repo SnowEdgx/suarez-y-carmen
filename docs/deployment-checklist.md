@@ -36,6 +36,7 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 NEXT_PUBLIC_SITE_URL=https://suarezycarmenbachata.com
 NEXT_PUBLIC_BACKEND_URL=https://api.suarezycarmenbachata.com
+BACKEND_URL=https://api.suarezycarmenbachata.com
 BACKEND_INTERNAL_URL=
 NEXT_PUBLIC_CMS_URL=https://cms.suarezycarmenbachata.com
 ```
@@ -44,6 +45,7 @@ Deployment notes:
 
 - `NEXT_PUBLIC_SITE_URL` must match the final public domain.
 - `NEXT_PUBLIC_BACKEND_URL` must point to the public backend URL.
+- `BACKEND_URL` must point to the backend URL used by server-rendered frontend code.
 - `BACKEND_INTERNAL_URL` can point to a private/internal backend URL when the hosting provider supports it.
 - `NEXT_PUBLIC_CMS_URL` documents the public CMS asset origin used for uploaded images.
 - The frontend exposes sitemap, robots, metadata and security headers.

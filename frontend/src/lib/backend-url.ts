@@ -1,19 +1,22 @@
-export function getBackendUrl() {
-  const backendUrl = (
-    process.env.BACKEND_INTERNAL_URL ??
-    process.env.BACKEND_URL ??
-    "http://localhost:4000"
-  );
+function resolveBackendUrl(...candidates: Array<string | undefined>) {
+  for (const candidate of candidates) {
+    const value = candidate?.trim();
+    if (value) return value.replace(/\/+$/, "");
+  }
 
-  return backendUrl.replace(/\/+$/, "");
+  return "http://localhost:4000";
+}
+
+export function getBackendUrl() {
+  return resolveBackendUrl(
+    process.env.BACKEND_INTERNAL_URL,
+    process.env.BACKEND_URL
+  );
 }
 
 export function getPublicBackendUrl() {
-  const backendUrl = (
-    process.env.NEXT_PUBLIC_BACKEND_URL ??
-    process.env.BACKEND_URL ??
-    "http://localhost:4000"
+  return resolveBackendUrl(
+    process.env.NEXT_PUBLIC_BACKEND_URL,
+    process.env.BACKEND_URL
   );
-
-  return backendUrl.replace(/\/+$/, "");
 }
