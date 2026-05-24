@@ -39,6 +39,7 @@ NEXT_PUBLIC_BACKEND_URL=https://api.suarezycarmenbachata.com
 BACKEND_URL=https://api.suarezycarmenbachata.com
 BACKEND_INTERNAL_URL=
 NEXT_PUBLIC_CMS_URL=https://cms.suarezycarmenbachata.com
+REQUIRE_PRODUCTION_URLS=true
 ```
 
 Deployment notes:
@@ -49,6 +50,7 @@ Deployment notes:
 - `BACKEND_URL` must point to the backend URL used by server-rendered frontend code.
 - `BACKEND_INTERNAL_URL` can point to a private/internal backend URL when the hosting provider supports it.
 - `NEXT_PUBLIC_CMS_URL` documents the public CMS asset origin used for uploaded images.
+- `REQUIRE_PRODUCTION_URLS=true` makes frontend builds/runs fail if canonical production URLs are missing.
 - The frontend exposes sitemap, robots, metadata and security headers.
 
 ## Backend
@@ -167,7 +169,7 @@ Final domain tasks:
 After deployment:
 
 - Public home loads.
-- Course catalogue loads.
+- Course list loads.
 - Login and logout work.
 - Signup sends verification email.
 - Verified user can log in.
