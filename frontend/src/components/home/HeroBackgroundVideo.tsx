@@ -14,21 +14,33 @@ export default function HeroBackgroundVideo({ videoUrl, posterUrl }: HeroBackgro
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
+    const connection = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
     if (connection?.saveData) return;
-    const isMobileViewport = !window.matchMedia("(min-width: 768px)").matches;
-    const fallbackDelayMs = isMobileViewport ? 1400 : 900;
-    const idleTimeoutMs = isMobileViewport ? 2400 : 1600;
+    if (connection?.effectiveType === "slow-2g" || connection?.effectiveType === "2g") return;
 
-    const timeoutId = globalThis.setTimeout(() => setShouldLoadVideo(true), fallbackDelayMs);
+    const isMobileViewport = !window.matchMedia("(min-width: 768px)").matches;
+    const fallbackDelayMs = isMobileViewport ? 2200 : 1000;
+    const idleTimeoutMs = isMobileViewport ? 3600 : 1800;
+    let timeoutId: ReturnType<typeof globalThis.setTimeout> | null = null;
     let idleId: number | null = null;
 
-    if ("requestIdleCallback" in window) {
-      idleId = window.requestIdleCallback(() => setShouldLoadVideo(true), { timeout: idleTimeoutMs });
+    function scheduleVideoLoad() {
+      timeoutId = globalThis.setTimeout(() => setShouldLoadVideo(true), fallbackDelayMs);
+
+      if ("requestIdleCallback" in window) {
+        idleId = window.requestIdleCallback(() => setShouldLoadVideo(true), { timeout: idleTimeoutMs });
+      }
+    }
+
+    if (document.readyState === "complete") {
+      scheduleVideoLoad();
+    } else {
+      window.addEventListener("load", scheduleVideoLoad, { once: true });
     }
 
     return () => {
-      globalThis.clearTimeout(timeoutId);
+      window.removeEventListener("load", scheduleVideoLoad);
+      if (timeoutId) globalThis.clearTimeout(timeoutId);
       if (idleId !== null) {
         window.cancelIdleCallback(idleId);
       }
@@ -45,7 +57,7 @@ export default function HeroBackgroundVideo({ videoUrl, posterUrl }: HeroBackgro
       muted
       playsInline
       poster={posterUrl}
-      preload="metadata"
+      preload="none"
       onCanPlay={() => setIsReady(true)}
       className={`absolute inset-0 h-full w-full object-cover object-[center_30%] transition-opacity duration-700 ${
         isReady ? "opacity-100" : "opacity-0"

@@ -71,7 +71,7 @@ export default function InPersonClasses({ classes }: InPersonClassesProps) {
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {classes.map((classItem) => {
+            {classes.map((classItem, index) => {
               const title = normalizeDisplayText(classItem.title, "Clase presencial");
               const city = normalizeDisplayText(classItem.city);
               const venue = normalizeDisplayText(classItem.venue);
@@ -90,7 +90,7 @@ export default function InPersonClasses({ classes }: InPersonClassesProps) {
                         fill
                         sizes="(max-width: 1024px) 100vw, 50vw"
                         className="object-contain"
-                        priority={classes.length <= 2}
+                        priority={index === 0}
                         unoptimized={shouldBypassImageOptimization(imageUrl)}
                       />
                     </div>
