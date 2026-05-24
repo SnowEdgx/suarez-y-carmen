@@ -22,6 +22,11 @@ function Shell({ preheader, title, intro, ctaText, ctaHref, outro }) {
     'html',
     { lang: 'es' },
     React.createElement(
+      'head',
+      null,
+      React.createElement('meta', { charSet: 'UTF-8' })
+    ),
+    React.createElement(
       'body',
       {
         style: {
@@ -188,7 +193,11 @@ function Shell({ preheader, title, intro, ctaText, ctaHref, outro }) {
 }
 
 function renderDocument(component) {
-  return `<!doctype html>${renderToStaticMarkup(component)}`;
+  return encodeNonAsciiHtml(`<!doctype html>${renderToStaticMarkup(component)}`);
+}
+
+function encodeNonAsciiHtml(content) {
+  return content.replace(/[^\x00-\x7F]/g, (character) => `&#${character.codePointAt(0)};`);
 }
 
 function normalizeTemplateContent(content) {

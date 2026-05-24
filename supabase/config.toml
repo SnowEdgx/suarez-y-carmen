@@ -221,20 +221,20 @@ otp_length = 6
 otp_expiry = 3600
 
 [auth.email.smtp]
-enabled = true
+enabled = false
 host = "smtp.resend.com"
 port = 587
 user = "resend"
 pass = "env(SUPABASE_AUTH_SMTP_PASS)"
 admin_email = "env(SUPABASE_AUTH_SMTP_FROM)"
-sender_name = "Suárez y Carmen Academy"
+sender_name = "S&C Academy"
 
 [auth.email.template.confirmation]
-subject = "Confirma tu cuenta en Suárez y Carmen Academy"
+subject = "Confirma tu cuenta en S&C Academy"
 content_path = "./supabase/templates/confirm-signup.html"
 
 [auth.email.template.recovery]
-subject = "Recupera tu contraseña en Suárez y Carmen Academy"
+subject = "Recupera tu acceso en S&C Academy"
 content_path = "./supabase/templates/recover-password.html"
 
 # Uncomment to customize notification email template

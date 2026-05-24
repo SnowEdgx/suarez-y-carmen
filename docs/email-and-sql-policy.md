@@ -11,7 +11,8 @@ Regla: cualquier cambio de esquema o permisos va siempre como migración formal.
 
 - Proveedor: **Supabase Auth + SMTP de Resend**
 - Producción: SMTP custom configurado en Supabase Cloud (dashboard)
-- Local: `supabase/config.toml` mantiene SMTP habilitado (`auth.email.smtp.enabled=true`) para reproducir el flujo real de confirmación
+- Local: Supabase usa el servidor de correo de desarrollo visible en `http://localhost:54324`, evitando depender de Resend para pruebas locales
+- Producción: Resend se configura en Supabase Cloud como SMTP custom antes de abrir registros reales
 - Plantillas versionadas en `supabase/templates/*.html`
 - Fuente de plantillas: componentes React renderizados a HTML mediante `frontend/scripts/build-auth-email-templates.mjs`
 
