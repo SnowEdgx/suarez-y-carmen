@@ -5,6 +5,7 @@ process.env.SUPABASE_VIDEO_BUCKET ||= 'course-videos';
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
+  getHlsContentType,
   resolveHlsStorageReference,
   resolveStorageReference,
   rewriteHlsManifest,
@@ -72,4 +73,11 @@ test('rewriteHlsManifest rewrites safe HLS URIs and blocks external attributes',
   );
   assert.match(rewritten, /# blocked external HLS URI/);
   assert.doesNotMatch(rewritten, /https:\/\/cdn\.example\.com/);
+});
+
+test('getHlsContentType infers common video containers', () => {
+  assert.equal(getHlsContentType('course/lesson.mp4'), 'video/mp4');
+  assert.equal(getHlsContentType('course/lesson.mov'), 'video/quicktime');
+  assert.equal(getHlsContentType('course/lesson.webm'), 'video/webm');
+  assert.equal(getHlsContentType('course/hls/master.m3u8'), 'application/vnd.apple.mpegurl');
 });

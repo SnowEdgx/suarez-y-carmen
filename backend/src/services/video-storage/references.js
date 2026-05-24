@@ -148,6 +148,8 @@ function getHlsContentType(objectPath) {
   if (extension === '.ts') return 'video/mp2t';
   if (extension === '.m4s') return 'video/iso.segment';
   if (extension === '.mp4' || extension === '.m4v') return 'video/mp4';
+  if (extension === '.mov' || extension === '.qt') return 'video/quicktime';
+  if (extension === '.webm') return 'video/webm';
   if (extension === '.vtt') return 'text/vtt; charset=utf-8';
   if (extension === '.key') return 'application/octet-stream';
   return 'application/octet-stream';
