@@ -16,6 +16,7 @@ export default async function Home() {
       .from("home_content")
       .select("hero_eyebrow, hero_title, hero_subtitle, hero_video_url, primary_cta_label, primary_cta_href")
       .eq("id", "home")
+      .eq("is_published", true)
       .maybeSingle(),
   ]);
 

@@ -65,6 +65,7 @@ export default async function FaqPage() {
     supabase
       .from("faqs")
       .select("id, question, answer")
+      .eq("is_published", true)
       .order("position", { ascending: true })
       .order("created_at", { ascending: true }),
   ]);
