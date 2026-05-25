@@ -145,7 +145,7 @@ CMS_SYNC_TOKEN=
 Deployment notes:
 
 - Strapi must not receive Supabase service-role keys, Stripe keys or student tokens.
-- CMS uploads should use persistent storage in production.
+- CMS uploads should use persistent storage in production. The project includes optional `aws-s3` provider configuration for AWS S3 or S3-compatible storage such as Cloudflare R2 through the `UPLOAD_*` variables in `cms/.env.example`.
 - Publishing content in Strapi must sync through the Express backend.
 - Production CMS images use `cms/Dockerfile`; local hot-reload remains in `cms/Dockerfile.dev`.
 
