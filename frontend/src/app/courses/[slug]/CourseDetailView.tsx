@@ -24,7 +24,7 @@ export default function CourseDetailView(props: CourseDetailViewProps) {
         checkoutReturnPath={props.checkoutReturnPath}
       />
 
-      <section className="mt-14 grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <section className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
         <SelectedLessonPanel {...props} />
         <div className="space-y-6">
           <LessonList

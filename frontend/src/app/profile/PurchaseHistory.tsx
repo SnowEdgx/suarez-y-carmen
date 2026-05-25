@@ -1,7 +1,11 @@
-import { CreditCard } from "lucide-react";
+import { BookOpen } from "lucide-react";
 import Link from "next/link";
 import { normalizeDisplayText } from "@/lib/display-text";
 import type { PurchaseCard, PurchaseStatus } from "./profile-data";
+
+type ActiveCoursePurchase = PurchaseCard & {
+  course: NonNullable<PurchaseCard["course"]>;
+};
 
 function formatCurrency(amountCents: number | null, currency: string | null) {
   if (!Number.isInteger(amountCents ?? null) || (amountCents as number) <= 0) return "Importe no disponible";
@@ -26,8 +30,8 @@ function formatPurchaseDate(value: string | null) {
 }
 
 function getStatusLabel(status: PurchaseStatus) {
-  if (status === "paid") return "Acceso activo";
-  if (status === "pending") return "Pago pendiente";
+  if (status === "paid") return "Confirmado";
+  if (status === "pending") return "En proceso";
   if (status === "refunded") return "Reembolsado";
   return "Cancelado";
 }
@@ -38,121 +42,136 @@ function getStatusClass(status: PurchaseStatus) {
   return "border-neutral-700 bg-neutral-800 text-neutral-400";
 }
 
+function CourseProgress({ purchase, courseTitle }: { purchase: PurchaseCard; courseTitle: string }) {
+  const progressPercent = purchase.totalLessons > 0
+    ? Math.round((purchase.completedLessons / purchase.totalLessons) * 100)
+    : 0;
+
+  return (
+    <div className="mt-5">
+      <div className="mb-2 flex items-center justify-between text-xs text-neutral-500">
+        <span>{purchase.completedLessons} de {purchase.totalLessons} lecciones completadas</span>
+        <span>{progressPercent}%</span>
+      </div>
+      <div
+        className="h-2 overflow-hidden rounded-full bg-neutral-800"
+        role="progressbar"
+        aria-label={`Progreso de ${courseTitle}`}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={progressPercent}
+      >
+        <div className="h-full bg-red-600" style={{ width: `${progressPercent}%` }} />
+      </div>
+    </div>
+  );
+}
+
 export default function PurchaseHistory({ purchases }: { purchases: PurchaseCard[] }) {
+  const activePurchases = purchases.filter(
+    (purchase): purchase is ActiveCoursePurchase => purchase.status === "paid" && Boolean(purchase.course?.is_published)
+  );
+  const activePurchaseIds = new Set(activePurchases.map((purchase) => purchase.id));
+  const otherPurchases = purchases.filter((purchase) => !activePurchaseIds.has(purchase.id));
+
   return (
     <section
-      id="payments"
-      className="bg-neutral-900/50 border border-neutral-800 rounded-3xl p-6 sm:p-8 backdrop-blur-sm"
+      id="my-courses"
+      className="rounded-3xl border border-neutral-800 bg-neutral-900/40 p-6 backdrop-blur-sm sm:p-8"
     >
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
-        <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-          <CreditCard className="text-[#635BFF]" />
-          Pagos y acceso
-        </h2>
-        <span className="text-xs bg-[#635BFF]/10 text-[#635BFF] px-3 py-1.5 rounded-full font-medium w-fit border border-[#635BFF]/20">
-          Pago singular por curso
-        </span>
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="flex items-center gap-2 text-xl font-semibold text-white">
+            <BookOpen className="text-red-500" aria-hidden="true" />
+            Mis cursos
+          </h2>
+          <p className="mt-2 max-w-xl text-sm leading-relaxed text-neutral-400">
+            Continúa tu formación y revisa el progreso de los cursos que ya tienes activos.
+          </p>
+        </div>
       </div>
-      <p className="text-neutral-400 text-sm mb-6 max-w-xl">
-        La pasarela de pago se procesa de forma segura con Stripe. La plataforma no guarda datos de tarjeta y el acceso al
-        curso se activa automáticamente tras confirmarse el pago.
-      </p>
 
-      {purchases.length === 0 ? (
-        <div className="border border-neutral-700/50 rounded-2xl p-6 bg-black/40 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {activePurchases.length === 0 ? (
+        <div className="flex flex-col gap-4 rounded-2xl border border-neutral-800 bg-black/30 p-6 md:flex-row md:items-center md:justify-between">
           <div>
-            <h3 className="text-white font-medium mb-1">Cursos y compras</h3>
-            <p className="text-neutral-500 text-xs">
-              Aún no tienes cursos comprados. Explora los cursos y desbloquea el contenido cuando quieras.
+            <h3 className="mb-1 font-medium text-white">Todavía no tienes cursos activos</h3>
+            <p className="text-xs text-neutral-500">
+              Explora la academia y empieza con el contenido que quieras entrenar primero.
             </p>
           </div>
           <Link
             href="/courses"
-            className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap text-center"
+            className="whitespace-nowrap rounded-full bg-red-600 px-5 py-2.5 text-center text-sm font-medium text-white transition-colors hover:bg-red-700"
           >
             Ver cursos
           </Link>
         </div>
       ) : (
         <div className="space-y-4">
-          {purchases.map((purchase) => {
-            const progressPercent = purchase.totalLessons > 0
-              ? Math.round((purchase.completedLessons / purchase.totalLessons) * 100)
-              : 0;
-            const canOpenCourse = purchase.status === "paid" && purchase.course?.is_published;
-            const courseTitle = normalizeDisplayText(purchase.course?.title, "Curso no disponible");
-            const courseLevel = normalizeDisplayText(purchase.course?.level);
+          {activePurchases.map((purchase) => {
+            const courseTitle = normalizeDisplayText(purchase.course.title, "Curso");
+            const courseLevel = normalizeDisplayText(purchase.course.level);
 
             return (
               <article
                 key={purchase.id}
-                className="rounded-2xl border border-neutral-800 bg-black/35 p-5"
+                className="rounded-2xl border border-neutral-800 bg-black/30 p-5"
               >
-                <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-5">
+                <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
                   <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2 mb-2">
-                      <span className={`text-[11px] uppercase tracking-wide px-2.5 py-1 rounded-full border ${getStatusClass(purchase.status)}`}>
-                        {getStatusLabel(purchase.status)}
+                    {courseLevel && (
+                      <span className="mb-2 inline-flex rounded-full border border-neutral-700 px-2.5 py-1 text-[11px] uppercase tracking-wide text-neutral-400">
+                        {courseLevel}
                       </span>
-                      {courseLevel && (
-                        <span className="text-[11px] uppercase tracking-wide px-2.5 py-1 rounded-full border border-neutral-700 text-neutral-400">
-                          {courseLevel}
-                        </span>
-                      )}
-                    </div>
-                    <h3 className="text-lg text-white font-semibold truncate">
+                    )}
+                    <h3 className="truncate text-lg font-semibold text-white">
                       {courseTitle}
                     </h3>
                     <p className="mt-1 text-xs text-neutral-500">
-                      {formatCurrency(purchase.amountCents, purchase.currency)} · {formatPurchaseDate(purchase.createdAt)}
+                      Activado el {formatPurchaseDate(purchase.createdAt)}
                     </p>
                   </div>
 
-                  {canOpenCourse ? (
-                    <Link
-                      href={`/courses/${purchase.course?.slug}`}
-                      className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap text-center"
-                    >
-                      Continuar curso
-                    </Link>
-                  ) : (
-                    <Link
-                      href="/courses"
-                      className="px-4 py-2 border border-neutral-700 text-neutral-300 hover:text-white hover:border-neutral-500 rounded-lg text-sm font-medium transition-colors whitespace-nowrap text-center"
-                    >
-                      Ver cursos
-                    </Link>
-                  )}
+                  <Link
+                    href={`/courses/${purchase.course.slug}`}
+                    className="rounded-full bg-red-600 px-4 py-2 text-center text-sm font-medium text-white transition-colors hover:bg-red-700"
+                  >
+                    Continuar curso
+                  </Link>
                 </div>
 
-                {purchase.status === "paid" && (
-                  <div className="mt-5">
-                    <div className="flex items-center justify-between text-xs text-neutral-500 mb-2">
-                      <span>{purchase.completedLessons} de {purchase.totalLessons} lecciones completadas</span>
-                      <span>{progressPercent}%</span>
-                    </div>
-                    <div
-                      className="h-2 bg-neutral-800 rounded-full overflow-hidden"
-                      role="progressbar"
-                      aria-label={`Progreso de ${courseTitle}`}
-                      aria-valuemin={0}
-                      aria-valuemax={100}
-                      aria-valuenow={progressPercent}
-                    >
-                      <div className="h-full bg-red-600" style={{ width: `${progressPercent}%` }} />
-                    </div>
-                  </div>
-                )}
-
-                {purchase.status === "pending" && (
-                  <p className="mt-4 text-xs text-blue-200/80">
-                    El pago está pendiente de confirmación. Si ya lo completaste, vuelve a cargar la página en unos segundos.
-                  </p>
-                )}
+                <CourseProgress purchase={purchase} courseTitle={courseTitle} />
               </article>
             );
           })}
         </div>
+      )}
+
+      {otherPurchases.length > 0 && (
+        <details className="mt-6 rounded-2xl border border-neutral-800 bg-black/20 p-4">
+          <summary className="cursor-pointer text-sm font-medium text-neutral-300">
+            Ver historial adicional
+          </summary>
+          <div className="mt-4 space-y-3">
+            {otherPurchases.map((purchase) => {
+              const courseTitle = normalizeDisplayText(purchase.course?.title, "Curso no disponible");
+
+              return (
+                <div key={purchase.id} className="flex flex-col gap-2 border-t border-neutral-800 pt-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-sm text-neutral-300">{courseTitle}</p>
+                    <p className="mt-1 text-xs text-neutral-600">
+                      {formatCurrency(purchase.amountCents, purchase.currency)} · {formatPurchaseDate(purchase.createdAt)}
+                    </p>
+                  </div>
+                  <span className={`w-fit rounded-full border px-2.5 py-1 text-[11px] uppercase tracking-wide ${getStatusClass(purchase.status)}`}>
+                    {getStatusLabel(purchase.status)}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </details>
       )}
     </section>
   );

@@ -247,7 +247,9 @@ export async function loadProfilePageData(options: {
   return {
     profile: profileResponse.data ?? null,
     purchases,
-    activeCourseCount: purchases.filter((purchase) => purchase.status === "paid" && purchase.course).length,
+    activeCourseCount: purchases.filter(
+      (purchase) => purchase.status === "paid" && purchase.course?.is_published
+    ).length,
     videoDevices,
     alerts,
   };

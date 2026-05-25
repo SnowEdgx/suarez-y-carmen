@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { User as UserIcon, LogOut, CreditCard, ChevronDown } from "lucide-react";
+import { User as UserIcon, LogOut, BookOpen, ChevronDown } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { signOutAction } from "@/app/auth/actions";
 
@@ -81,12 +81,12 @@ export default function UserMenu({ user }: UserMenuProps) {
               <UserIcon size={16} aria-hidden="true" /> Mi perfil
             </Link>
             <Link
-              href="/profile#payments"
+              href="/profile#my-courses"
               onClick={() => setIsOpen(false)}
               className="flex items-center gap-3 px-4 py-2.5 text-sm text-neutral-300 hover:text-white hover:bg-neutral-800 transition-colors"
               role="menuitem"
             >
-              <CreditCard size={16} aria-hidden="true" /> Pagos y acceso
+              <BookOpen size={16} aria-hidden="true" /> Mis cursos
             </Link>
           </div>
           <div className="py-2">

@@ -73,9 +73,13 @@ function normalizeHeroCtaLabel(value: string | null | undefined) {
   return comparableLabel.includes("catalogo") ? "Ver cursos" : label;
 }
 
+function normalizeHeroTitle(value: string | null | undefined) {
+  return normalizeDisplayText(value, "Master the head movements").replace(/[.。]+$/u, "");
+}
+
 export default function Hero({ content = null }: HeroProps) {
   const eyebrow = normalizeDisplayText(content?.hero_eyebrow);
-  const title = normalizeDisplayText(content?.hero_title, "Master the head movements.");
+  const title = normalizeHeroTitle(content?.hero_title);
   const subtitle =
     normalizeDisplayText(
       content?.hero_subtitle,

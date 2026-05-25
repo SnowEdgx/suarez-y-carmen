@@ -50,7 +50,7 @@ export default function CourseGrid({
           <div>
             <h2 id="courses-heading" className="text-3xl md:text-4xl font-bold font-serif text-white mb-4">Cursos</h2>
             <p className="text-neutral-400 text-lg max-w-3xl text-pretty">
-              Revisa el contenido, mira las vistas previas y empieza por el curso que mejor encaje con tu momento.
+              Revisa el contenido, mira las vistas previas y avanza con una ruta clara de entrenamiento.
             </p>
           </div>
         </div>

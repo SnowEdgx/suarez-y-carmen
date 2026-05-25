@@ -203,7 +203,8 @@ const EVENT_SEEDS = [
     end_date: '2026-05-25T12:00:00.000Z',
     type: 'Congreso',
     is_active: true,
-    ticket_url: 'https://www.instagram.com/suarezycarmenoficial/',
+    ticket_url: null,
+    location_url: null,
   },
   {
     fallbackId: '31111111-1111-4111-8111-111111111112',
@@ -213,7 +214,8 @@ const EVENT_SEEDS = [
     end_date: '2026-05-30T12:00:00.000Z',
     type: 'Taller',
     is_active: true,
-    ticket_url: 'https://www.instagram.com/suarezycarmenoficial/',
+    ticket_url: null,
+    location_url: 'https://www.instagram.com/aldonyadanceacademy/',
   },
   {
     fallbackId: '31111111-1111-4111-8111-111111111113',
@@ -223,7 +225,8 @@ const EVENT_SEEDS = [
     end_date: '2026-07-06T12:00:00.000Z',
     type: 'Congreso',
     is_active: true,
-    ticket_url: 'https://www.instagram.com/suarezycarmenoficial/',
+    ticket_url: null,
+    location_url: 'https://www.instagram.com/sunny_waves_dance_festival/',
   },
   {
     fallbackId: '31111111-1111-4111-8111-111111111114',
@@ -233,13 +236,14 @@ const EVENT_SEEDS = [
     end_date: '2026-09-27T12:00:00.000Z',
     type: 'Congreso',
     is_active: true,
-    ticket_url: 'https://www.instagram.com/suarezycarmenoficial/',
+    ticket_url: 'https://www.goandance.com/en/event/8259/malmoe-bachata-festival-sweden-september-2026',
+    location_url: 'https://www.instagram.com/aldonyadanceacademy/',
   },
 ];
 
 const HOME_CONTENT_SEED = {
   hero_eyebrow: 'Academia online de bachata',
-  hero_title: 'Master the head movements.',
+  hero_title: 'Master the head movements',
   hero_subtitle:
     'Domina la sensualidad, el estilo y la conexi\u00f3n con Su\u00e1rez y Carmen. Aprende desde casa paso a paso con cursos individuales y acceso inmediato.',
   hero_video_url: SEED_VIDEO_SOURCE_URL,
@@ -500,6 +504,7 @@ async function upsertEvent(eventSeed) {
           type: eventSeed.type,
           is_active: eventSeed.is_active,
           ticket_url: eventSeed.ticket_url,
+          location_url: eventSeed.location_url,
         },
         { onConflict: 'id' }
       ),

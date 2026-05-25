@@ -57,7 +57,7 @@ export default function About() {
               Sobre nosotros
             </p>
             <h1 className="mb-7 font-serif text-5xl font-bold tracking-tight text-white md:text-7xl">
-              Bachata con intención, técnica y conexión.
+              Bachata con intención, técnica y conexión
             </h1>
             <div className="space-y-5 text-base leading-relaxed text-neutral-300 md:text-lg">
               <p>
@@ -117,7 +117,7 @@ export default function About() {
               Forma de trabajo
             </p>
             <h2 className="mb-5 font-serif text-4xl font-bold text-white md:text-5xl">
-              Aprender con estructura, no solo repetir pasos.
+              Aprender con estructura, no solo repetir pasos
             </h2>
             <p className="leading-relaxed text-neutral-400">
               Ordenamos el contenido para que avances con criterio: primero asentamos la base, después mejoramos la
@@ -146,7 +146,7 @@ export default function About() {
               Online y presencial
             </p>
             <h2 className="mb-5 font-serif text-3xl font-bold text-white md:text-4xl">
-              Entrena desde casa y continúa en sala.
+              Entrena desde casa y continúa en sala
             </h2>
             <p className="max-w-2xl leading-relaxed text-red-50/80">
               Puedes trabajar contenidos concretos a tu ritmo desde la academia online y reforzarlos después en clases

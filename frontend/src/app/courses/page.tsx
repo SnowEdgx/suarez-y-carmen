@@ -156,7 +156,7 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
           <p className="text-red-500 font-semibold tracking-wider uppercase mb-3">Cursos</p>
           <h1 className="text-4xl md:text-5xl font-bold font-serif text-white mb-6">Academia Online</h1>
           <p className="text-neutral-400 text-lg max-w-3xl mx-auto text-pretty">
-            Descubre el contenido, mira las vistas previas y empieza a entrenar con el curso que mejor encaje contigo.
+            Descubre el contenido, mira las vistas previas y elige tu siguiente paso de entrenamiento.
           </p>
         </div>
 

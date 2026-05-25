@@ -100,6 +100,22 @@ function EventActionLink({
   );
 }
 
+function getSecondaryEventActionLabel(href: string | null) {
+  if (!isSafeExternalUrl(href)) return "Información";
+
+  try {
+    const hostname = new URL(href as string).hostname.replace(/^www\./, "");
+    if (hostname === "instagram.com") return "Información";
+    if (hostname.includes("google.") || hostname.includes("maps.") || hostname === "openstreetmap.org") {
+      return "Ver ubicación";
+    }
+  } catch {
+    return "Información";
+  }
+
+  return "Información";
+}
+
 export default async function EventsPage() {
   const supabase = await createClient();
   const now = new Date().toISOString();
@@ -213,9 +229,9 @@ export default async function EventsPage() {
                     <p className="text-sm text-neutral-400">{city}</p>
 
                     <div className="mt-auto flex flex-wrap gap-3 pt-8">
-                      <EventActionLink href={event.ticket_url}>{"Ver informaci\u00f3n"}</EventActionLink>
+                      <EventActionLink href={event.ticket_url}>{"Entradas"}</EventActionLink>
                       <EventActionLink href={event.location_url} variant="secondary">
-                        {"Ver ubicaci\u00f3n"}
+                        {getSecondaryEventActionLabel(event.location_url)}
                       </EventActionLink>
                     </div>
                   </div>

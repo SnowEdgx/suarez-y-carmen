@@ -93,7 +93,7 @@ export default function CourseHero({
             quality={76}
             unoptimized={shouldBypassImageOptimization(imageSrc)}
             sizes="(max-width: 1024px) 100vw, 50vw"
-            className="w-full h-full object-cover object-[center_24%]"
+            className="w-full h-full object-cover object-[center_18%]"
           />
         ) : (
           <div className="absolute inset-0 flex items-end bg-[radial-gradient(circle_at_30%_18%,rgba(220,38,38,0.34),transparent_34%),linear-gradient(145deg,#171717,#050505)] p-8">

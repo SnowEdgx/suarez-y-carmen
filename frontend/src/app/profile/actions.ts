@@ -6,9 +6,21 @@ import { createClient } from '@/lib/supabase/server'
 import { isEmailVerified } from '@/lib/auth-user'
 import { getBackendUrl } from '@/lib/backend-url'
 import { DEVICE_ID_HEADER, isValidDeviceId } from '@/lib/device-session'
+import { getSiteUrl } from '@/lib/site-url'
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{12}$/i
 const MAX_PROFILE_NAME_LENGTH = 120
+
+function isEmailRateLimitError(error: { status?: number; code?: string; message?: string }) {
+  const code = error.code?.toLowerCase() ?? ''
+  const message = error.message?.toLowerCase() ?? ''
+
+  return error.status === 429 || code.includes('rate') || message.includes('rate limit')
+}
+
+function getRecoveryRedirectUrl() {
+  return `${getSiteUrl()}/auth/callback?next=${encodeURIComponent('/auth/update-password')}`
+}
 
 export async function updateProfileName(formData: FormData) {
   const supabase = await createClient()
@@ -49,13 +61,42 @@ export async function updateProfileName(formData: FormData) {
 
   if (authUpdateError) {
     console.error('[Profile Update] Could not sync auth metadata:', authUpdateError.message)
-    return { error: 'Perfil guardado parcialmente. No se pudo sincronizar tu cuenta. Intenta de nuevo.' }
   }
 
   revalidatePath('/profile')
   revalidatePath('/', 'layout')
 
   return { success: 'Perfil actualizado correctamente.' }
+}
+
+export async function requestOwnPasswordChange() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user?.email) {
+    return { error: 'Tu sesión ha expirado. Vuelve a iniciar sesión.' }
+  }
+
+  if (!isEmailVerified(user)) {
+    return { error: 'Verifica tu correo antes de cambiar la contraseña.' }
+  }
+
+  const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
+    redirectTo: getRecoveryRedirectUrl(),
+  })
+
+  if (error) {
+    console.error('[Profile Password Change] Could not request password change:', error.message)
+    if (isEmailRateLimitError(error)) {
+      return { error: 'Has solicitado un correo hace poco. Espera unos minutos antes de intentarlo de nuevo.' }
+    }
+
+    return { error: 'No pudimos enviar el enlace ahora mismo. Inténtalo de nuevo en unos minutos.' }
+  }
+
+  return { success: 'Te hemos enviado un enlace seguro para cambiar la contraseña.' }
 }
 
 async function readJsonSafely(response: Response) {

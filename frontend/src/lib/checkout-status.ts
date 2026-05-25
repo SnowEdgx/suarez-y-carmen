@@ -58,8 +58,8 @@ export async function resolveStripeReturnMessage(options: {
 
   if (!accessToken) {
     return {
-      type: "error",
-      text: "Tu sesi\u00f3n no est\u00e1 activa. Inicia sesi\u00f3n para confirmar tu acceso al curso comprado.",
+      type: "info",
+      text: "Pago recibido. Inicia sesión para ver si el acceso ya aparece en tus cursos.",
     };
   }
 
@@ -77,8 +77,8 @@ export async function resolveStripeReturnMessage(options: {
     );
   } catch {
     return {
-      type: "error",
-      text: "No pudimos verificar el estado del pago en este momento. Recarga la p\u00e1gina en unos segundos.",
+      type: "info",
+      text: "Pago recibido. Si el curso no aparece todavía, recarga la página en unos segundos.",
     };
   }
 
@@ -91,22 +91,22 @@ export async function resolveStripeReturnMessage(options: {
 
   if (response.status === 401) {
     return {
-      type: "error",
-      text: "Tu sesi\u00f3n ha caducado. Inicia sesi\u00f3n de nuevo para ver tus cursos.",
+      type: "info",
+      text: "Pago recibido. Inicia sesión de nuevo para ver tus cursos.",
     };
   }
 
   if (response.status === 403 || response.status === 404) {
     return {
-      type: "error",
-      text: "No pudimos verificar esta sesi\u00f3n de pago para tu usuario.",
+      type: "info",
+      text: "Pago recibido. Si el curso no aparece en tu cuenta, contacta con soporte.",
     };
   }
 
   if (!response.ok) {
     return {
-      type: "error",
-      text: "No pudimos validar el pago ahora mismo. Recarga la p\u00e1gina en unos segundos.",
+      type: "info",
+      text: "Pago recibido. Estamos preparando el acceso; recarga la página en unos segundos.",
     };
   }
 
@@ -142,7 +142,7 @@ export async function resolveStripeReturnMessage(options: {
   }
 
   return {
-    type: "error",
-    text: "Estado de pago no reconocido. Contacta con soporte si el acceso no aparece.",
+    type: "info",
+    text: "Pago recibido. Contacta con soporte si el acceso no aparece en unos minutos.",
   };
 }

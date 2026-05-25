@@ -43,7 +43,7 @@ export default async function TermsPage() {
           <section className="border border-neutral-800 rounded-2xl p-6 bg-neutral-900/40">
             <h2 className="text-white font-semibold mb-2">3. Compra y acceso a cursos</h2>
             <p>
-              El servicio actual funciona con pago singular por curso. Tras la confirmación del cobro, el acceso se activa en la
+              El servicio actual funciona con compra individual por curso. Tras la confirmación del cobro, el acceso se activa en la
               cuenta del usuario para el curso adquirido.
             </p>
           </section>

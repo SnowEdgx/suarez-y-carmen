@@ -32,7 +32,7 @@ export default async function VerifiedEmailPage() {
             Cuenta confirmada
           </p>
           <h1 className="mb-5 font-serif text-4xl font-bold tracking-tight text-white md:text-6xl">
-            Correo verificado correctamente.
+            Correo verificado correctamente
           </h1>
           <p className="max-w-xl text-base leading-relaxed text-neutral-400 md:text-lg">
             Tu cuenta ya está activa. Puedes iniciar sesión y acceder a tus cursos, compras y progreso desde el área de alumnos.

@@ -52,8 +52,10 @@ function ActionLink({
 }
 
 export default function InPersonClasses({ classes }: InPersonClassesProps) {
+  const contactHref = classes.find((classItem) => classItem.contact_url)?.contact_url || "https://www.instagram.com/suarezycarmenoficial/";
+
   return (
-    <section id="classes" className="py-24 px-6 md:px-12 bg-neutral-950">
+    <section id="classes" className="px-6 pb-20 pt-0 md:px-12 bg-neutral-950">
       <div className="max-w-7xl mx-auto">
         <div className="mb-12 max-w-3xl">
           <p className="text-red-500 font-semibold tracking-wider uppercase mb-3">Clases presenciales</p>
@@ -70,55 +72,64 @@ export default function InPersonClasses({ classes }: InPersonClassesProps) {
             {"Todav\u00eda no hay clases presenciales publicadas."}
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {classes.map((classItem, index) => {
-              const title = normalizeDisplayText(classItem.title, "Clase presencial");
-              const city = normalizeDisplayText(classItem.city);
-              const venue = normalizeDisplayText(classItem.venue);
-              const imageUrl = getPublicImageUrl(classItem.image_url);
+          <>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {classes.map((classItem, index) => {
+                const title = normalizeDisplayText(classItem.title, "Clase presencial");
+                const city = normalizeDisplayText(classItem.city);
+                const venue = normalizeDisplayText(classItem.venue);
+                const imageUrl = getPublicImageUrl(classItem.image_url);
 
-              return (
-                <article
-                  key={classItem.id}
-                  className="flex h-full flex-col overflow-hidden rounded-3xl border border-neutral-800 bg-neutral-900/70 shadow-2xl shadow-black/20"
-                >
-                  {imageUrl && (
-                    <div className="relative h-[520px] sm:h-[680px] bg-neutral-950">
-                      <Image
-                        src={imageUrl}
-                        alt={`Cartel de ${title}`}
-                        fill
-                        sizes="(max-width: 1024px) 100vw, 50vw"
-                        className="object-contain"
-                        priority={index === 0}
-                        unoptimized={shouldBypassImageOptimization(imageUrl)}
-                      />
-                    </div>
-                  )}
+                return (
+                  <article
+                    key={classItem.id}
+                    className="flex h-full flex-col overflow-hidden rounded-3xl border border-neutral-800 bg-neutral-900/60 shadow-2xl shadow-black/20"
+                  >
+                    {imageUrl && (
+                      <div className="relative h-[390px] bg-neutral-950 sm:h-[500px] lg:h-[540px]">
+                        <Image
+                          src={imageUrl}
+                          alt={`Cartel de ${title}`}
+                          fill
+                          sizes="(max-width: 1024px) 100vw, 50vw"
+                          className="object-contain object-top"
+                          priority={index === 0}
+                          unoptimized={shouldBypassImageOptimization(imageUrl)}
+                        />
+                      </div>
+                    )}
 
-                  <div className="flex flex-1 flex-col p-6 md:p-8">
-                    <div>
-                      <h2 className="text-2xl font-bold text-white">{title}</h2>
-                      {(city || venue) && (
-                        <p className="mt-1 text-sm text-neutral-400">
-                          {[city, venue].filter(Boolean).join(" \u00b7 ")}
-                        </p>
-                      )}
-                    </div>
+                    <div className="flex flex-1 flex-col p-6 md:p-7">
+                      <div>
+                        <h2 className="text-2xl font-bold text-white">{title}</h2>
+                        {(city || venue) && (
+                          <p className="mt-1 text-sm text-neutral-400">
+                            {[city, venue].filter(Boolean).join(" \u00b7 ")}
+                          </p>
+                        )}
+                      </div>
 
-                    <div className="mt-auto flex flex-wrap gap-4 pt-6">
-                      {classItem.contact_url && (
-                        <ActionLink href={classItem.contact_url}>Contactar</ActionLink>
-                      )}
                       {classItem.map_url && (
-                        <ActionLink href={classItem.map_url}>{"Ver ubicaci\u00f3n"}</ActionLink>
+                        <div className="mt-auto pt-6">
+                          <ActionLink href={classItem.map_url}>{"Ver ubicación"}</ActionLink>
+                        </div>
                       )}
                     </div>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
+                  </article>
+                );
+              })}
+            </div>
+
+            <div className="mt-10 flex flex-col gap-4 rounded-3xl border border-neutral-800 bg-neutral-900/40 p-6 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-white">Información y reservas</h2>
+                <p className="mt-1 text-sm text-neutral-400">
+                  Para confirmar plazas, horarios o nivel recomendado, contacta por el canal oficial.
+                </p>
+              </div>
+              <ActionLink href={contactHref}>Contactar por Instagram</ActionLink>
+            </div>
+          </>
         )}
       </div>
     </section>

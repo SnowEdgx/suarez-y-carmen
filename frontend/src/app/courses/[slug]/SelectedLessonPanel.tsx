@@ -19,7 +19,7 @@ function LessonProgressSummary({
   return (
     <div className="w-full sm:w-44">
       <div
-        className="h-2 rounded-full bg-neutral-800 overflow-hidden"
+        className="h-2 overflow-hidden rounded-full bg-neutral-800"
         role="progressbar"
         aria-label="Progreso del curso"
         aria-valuemin={0}
@@ -28,7 +28,7 @@ function LessonProgressSummary({
       >
         <div className="h-full bg-red-600" style={{ width: `${progressPercent}%` }} />
       </div>
-      <p className="mt-2 text-xs text-neutral-500 text-right">{progressPercent}% completado</p>
+      <p className="mt-2 text-right text-xs text-neutral-500">{progressPercent}% completado</p>
     </div>
   );
 }
@@ -46,7 +46,7 @@ function EmptyLessonState({
   "lessons" | "course" | "hasPurchased" | "hasValidPrice" | "purchaseCheckUnavailable" | "isAuthenticated" | "checkoutReturnPath"
 >) {
   return (
-    <div className="rounded-xl border border-neutral-800 bg-neutral-950/40 p-6">
+    <div className="rounded-2xl border border-neutral-800 bg-neutral-900/35 p-6">
       {lessons.length > 0 ? (
         <div className="space-y-4">
           <p className="text-neutral-300">Las lecciones completas se desbloquean al comprar el curso.</p>
@@ -57,7 +57,7 @@ function EmptyLessonState({
                 <input type="hidden" name="returnTo" value={checkoutReturnPath} />
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-lg bg-red-600 text-sm font-semibold text-white hover:bg-red-700 transition-colors"
+                  className="rounded-full bg-red-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-700"
                 >
                   Comprar curso
                 </button>
@@ -65,7 +65,7 @@ function EmptyLessonState({
             ) : (
               <Link
                 href={`/login?next=${encodeURIComponent(checkoutReturnPath)}`}
-                className="inline-block px-4 py-2 rounded-lg bg-red-600 text-sm font-semibold text-white hover:bg-red-700 transition-colors"
+                className="inline-block rounded-full bg-red-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-700"
               >
                 Inicia sesión para comprar
               </Link>
@@ -100,12 +100,12 @@ export default function SelectedLessonPanel({
   const accessibleLessonCount = accessibleLessonIds.size;
 
   return (
-    <div className="lg:col-span-2 rounded-2xl border border-neutral-800 bg-neutral-900/40 p-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+    <section className="space-y-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-2xl font-semibold text-white">Lección seleccionada</h2>
           {isAuthenticated && accessibleLessonCount > 0 && (
-            <p className="text-sm text-neutral-500 mt-1">
+            <p className="mt-1 text-sm text-neutral-500">
               {completedAccessibleLessons} de {accessibleLessonCount} lecciones completadas
             </p>
           )}
@@ -119,11 +119,7 @@ export default function SelectedLessonPanel({
       </div>
 
       {featuredLesson ? (
-        <div className="space-y-4">
-          <h3 className="text-xl text-white font-medium">{normalizeDisplayText(featuredLesson.title, "Lección")}</h3>
-          {featuredLesson.description && (
-            <p className="text-neutral-400 text-sm">{normalizeDisplayText(featuredLesson.description)}</p>
-          )}
+        <div className="grid items-start gap-6 md:grid-cols-[minmax(260px,440px)_minmax(0,1fr)]">
           {featuredLessonVideoUrl ? (
             <SecureVideoPlayer
               key={featuredLesson.id}
@@ -131,35 +127,49 @@ export default function SelectedLessonPanel({
               title={normalizeDisplayText(featuredLesson.title, "Lección")}
             />
           ) : (
-            <div className="rounded-xl border border-neutral-700 bg-black/60 p-6 text-sm text-neutral-400">
+            <div className="rounded-2xl border border-neutral-700 bg-black/60 p-6 text-sm text-neutral-400">
               <p>
                 {featuredLessonVideoMessage ||
                   "No pudimos cargar el vídeo ahora mismo. Recarga la página en unos segundos."}
               </p>
               {featuredLessonVideoErrorCode === "device_limit_exceeded" && (
-                <Link href="/profile" className="mt-4 inline-flex text-red-300 hover:text-red-200 transition-colors">
+                <Link href="/profile" className="mt-4 inline-flex text-red-300 transition-colors hover:text-red-200">
                   Gestionar dispositivos
                 </Link>
               )}
             </div>
           )}
-          {isAuthenticated && accessibleLessonIds.has(featuredLesson.id) && (
-            <form action={setLessonProgress}>
-              <input type="hidden" name="lessonId" value={featuredLesson.id} />
-              <input type="hidden" name="courseSlug" value={course.slug} />
-              <input
-                type="hidden"
-                name="completed"
-                value={completedLessonSet.has(featuredLesson.id) ? "false" : "true"}
-              />
-              <button
-                type="submit"
-                className="px-4 py-2 rounded-lg border border-neutral-700 text-sm text-neutral-200 hover:border-neutral-500 hover:text-white transition-colors"
-              >
-                {completedLessonSet.has(featuredLesson.id) ? "Marcar como pendiente" : "Marcar como completada"}
-              </button>
-            </form>
-          )}
+
+          <div className="rounded-2xl border border-neutral-800 bg-neutral-900/35 p-6">
+            <h3 className="text-xl font-medium text-white">{normalizeDisplayText(featuredLesson.title, "Lección")}</h3>
+            {featuredLesson.description && (
+              <p className="mt-3 text-sm leading-relaxed text-neutral-400">{normalizeDisplayText(featuredLesson.description)}</p>
+            )}
+
+            {isAuthenticated && accessibleLessonIds.has(featuredLesson.id) && (
+              <form action={setLessonProgress} className="mt-6">
+                <input type="hidden" name="lessonId" value={featuredLesson.id} />
+                <input type="hidden" name="courseSlug" value={course.slug} />
+                <input
+                  type="hidden"
+                  name="completed"
+                  value={completedLessonSet.has(featuredLesson.id) ? "false" : "true"}
+                />
+                <button
+                  type="submit"
+                  className="rounded-full border border-neutral-700 px-4 py-2 text-sm text-neutral-200 transition-colors hover:border-neutral-500 hover:text-white"
+                >
+                  {completedLessonSet.has(featuredLesson.id) ? "Marcar como pendiente" : "Marcar como completada"}
+                </button>
+              </form>
+            )}
+
+            {!hasPurchased && previewLessons.length > 0 && (
+              <p className="mt-6 text-xs leading-relaxed text-neutral-500">
+                Estás viendo una vista previa. Compra el curso para desbloquear todas las lecciones.
+              </p>
+            )}
+          </div>
         </div>
       ) : (
         <EmptyLessonState
@@ -172,12 +182,6 @@ export default function SelectedLessonPanel({
           checkoutReturnPath={checkoutReturnPath}
         />
       )}
-
-      {!hasPurchased && previewLessons.length > 0 && (
-        <p className="mt-4 text-xs text-neutral-500">
-          Estás viendo contenido de vista previa. Compra el curso para desbloquear todas las lecciones.
-        </p>
-      )}
-    </div>
+    </section>
   );
 }
