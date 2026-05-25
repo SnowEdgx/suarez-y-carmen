@@ -7,6 +7,7 @@ type AboutImageProps = {
   src: string;
   alt: string;
   className: string;
+  imageClassName?: string;
   priority?: boolean;
 };
 
@@ -28,7 +29,13 @@ const trainingPrinciples = [
   },
 ];
 
-function AboutImage({ src, alt, className, priority = false }: AboutImageProps) {
+function AboutImage({
+  src,
+  alt,
+  className,
+  imageClassName = "object-cover",
+  priority = false,
+}: AboutImageProps) {
   return (
     <div className={`relative overflow-hidden bg-neutral-900 shadow-2xl shadow-black/35 ${className}`}>
       <Image
@@ -37,7 +44,7 @@ function AboutImage({ src, alt, className, priority = false }: AboutImageProps) 
         fill
         sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 36vw"
         quality={76}
-        className="object-cover"
+        className={imageClassName}
         priority={priority}
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
@@ -99,11 +106,13 @@ export default function About() {
                 src={STORAGE_ASSETS.IMG_4784}
                 alt="Suárez y Carmen en una sesión de bachata"
                 className="h-56 rounded-[2rem]"
+                imageClassName="object-cover object-[center_18%]"
               />
               <AboutImage
                 src={STORAGE_ASSETS.IMG_4587}
                 alt="Detalle visual de Suárez y Carmen"
                 className="h-56 rounded-[2rem]"
+                imageClassName="object-cover object-[center_18%]"
               />
             </div>
           </div>
@@ -176,7 +185,7 @@ export default function About() {
               fill
               sizes="(max-width: 1024px) 100vw, 40vw"
               quality={74}
-              className="object-cover"
+              className="object-cover object-[center_18%]"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-neutral-950/50 via-transparent to-transparent" />
           </div>
