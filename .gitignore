@@ -45,3 +45,4 @@ Thumbs.db
 
 # ACL troubleshooting leftovers (local only)
 .git_acl*.txt
+.vercel
