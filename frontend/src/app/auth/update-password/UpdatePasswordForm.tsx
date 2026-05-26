@@ -85,7 +85,7 @@ export default function UpdatePasswordForm() {
             minLength={8}
             required
             className="w-full border-b border-neutral-800 bg-transparent px-0 py-3 font-medium text-white placeholder-neutral-600 transition-colors focus:border-red-500 focus:outline-none"
-            placeholder="Repite tu contrase\u00f1a"
+            placeholder="Repite la nueva clave"
           />
         </div>
 
