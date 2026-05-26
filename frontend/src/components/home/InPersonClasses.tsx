@@ -54,17 +54,6 @@ function ActionLink({
 export default function InPersonClasses({ classes }: InPersonClassesProps) {
   const contactHref = classes.find((classItem) => classItem.contact_url)?.contact_url || "https://www.instagram.com/suarezycarmenoficial/";
 
-  function getClassHeading(title: string, city: string) {
-    const normalizedTitle = title.toLowerCase();
-    const normalizedCity = city.toLowerCase();
-
-    if (city && normalizedTitle.includes(normalizedCity)) {
-      return `Bachata en ${city}`;
-    }
-
-    return title;
-  }
-
   return (
     <section id="classes" className="px-6 pb-20 pt-0 md:px-12 bg-neutral-950">
       <div className="max-w-7xl mx-auto">
@@ -87,9 +76,7 @@ export default function InPersonClasses({ classes }: InPersonClassesProps) {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {classes.map((classItem, index) => {
                 const title = normalizeDisplayText(classItem.title, "Clase presencial");
-                const city = normalizeDisplayText(classItem.city);
                 const venue = normalizeDisplayText(classItem.venue);
-                const heading = getClassHeading(title, city);
                 const imageUrl = getPublicImageUrl(classItem.image_url);
 
                 return (
@@ -113,7 +100,7 @@ export default function InPersonClasses({ classes }: InPersonClassesProps) {
 
                     <div className="flex flex-1 flex-col p-6 md:p-7">
                       <div>
-                        <h2 className="text-2xl font-bold text-white">{heading}</h2>
+                        <h2 className="text-2xl font-bold text-white">{title}</h2>
                         {venue && (
                           <p className="mt-1 text-sm text-neutral-400">{venue}</p>
                         )}
