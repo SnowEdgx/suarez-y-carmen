@@ -18,7 +18,8 @@ ENV NODE_ENV=production
 ENV STRAPI_TELEMETRY_DISABLED=true
 
 COPY --chown=node:node --from=build /app ./
-RUN mkdir -p public/uploads && chown node:node public/uploads
+RUN mkdir -p database/migrations public/uploads .tmp \
+  && chown node:node /app database database/migrations public public/uploads .tmp
 
 EXPOSE 1337
 
