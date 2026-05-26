@@ -24,9 +24,16 @@ export default function CourseDetailView(props: CourseDetailViewProps) {
         checkoutReturnPath={props.checkoutReturnPath}
       />
 
-      <section className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
-        <SelectedLessonPanel {...props} />
-        <div className="space-y-6">
+      <section className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_360px] items-start">
+        <div className="space-y-8">
+          <SelectedLessonPanel {...props} />
+          <CourseResourcesPanel
+            resources={props.resources}
+            accessByResourceId={props.resourceAccessById}
+            hasPurchased={props.hasPurchased}
+          />
+        </div>
+        <div className="lg:sticky lg:top-28">
           <LessonList
             course={props.course}
             lessons={props.lessons}
@@ -35,11 +42,6 @@ export default function CourseDetailView(props: CourseDetailViewProps) {
             completedLessonSet={props.completedLessonSet}
             featuredLesson={props.featuredLesson}
             isAuthenticated={props.isAuthenticated}
-          />
-          <CourseResourcesPanel
-            resources={props.resources}
-            accessByResourceId={props.resourceAccessById}
-            hasPurchased={props.hasPurchased}
           />
         </div>
       </section>
