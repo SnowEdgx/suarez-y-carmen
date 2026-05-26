@@ -19,7 +19,7 @@ function requiresAuth(pathname: string) {
   return PROTECTED_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`))
 }
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const existingDeviceId = request.cookies.get(DEVICE_ID_COOKIE)?.value
   const deviceId = isValidDeviceId(existingDeviceId) ? existingDeviceId : crypto.randomUUID()
   const requestHeaders = new Headers(request.headers)

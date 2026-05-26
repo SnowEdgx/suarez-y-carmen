@@ -75,7 +75,6 @@ export default function CourseResourcesPanel({
                       className="h-[420px] w-full bg-neutral-950"
                       loading="lazy"
                       referrerPolicy="no-referrer"
-                      sandbox="allow-scripts allow-same-origin"
                     />
                   </div>
                 )}
