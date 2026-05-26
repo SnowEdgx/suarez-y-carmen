@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 
-const distDir = process.env.NEXT_DIST_DIR || ".next-build";
+const distDir = process.env.NEXT_DIST_DIR || ".next";
 
 function getCmsRemotePattern() {
   const rawUrl = process.env.NEXT_PUBLIC_CMS_URL || process.env.CMS_PUBLIC_URL;

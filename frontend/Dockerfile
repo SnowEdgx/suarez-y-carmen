@@ -25,7 +25,7 @@ ENV HOSTNAME=0.0.0.0
 
 COPY --chown=node:node --from=build /app/package.json /app/package-lock.json ./
 COPY --chown=node:node --from=build /app/node_modules ./node_modules
-COPY --chown=node:node --from=build /app/.next-build ./.next-build
+COPY --chown=node:node --from=build /app/.next ./.next
 COPY --chown=node:node --from=build /app/next.config.ts ./next.config.ts
 
 EXPOSE 3000
