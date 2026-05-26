@@ -81,16 +81,28 @@ export default function LoginAuthForm({
       </div>
 
       {isLoginMode && (
-        <label className="flex items-start gap-3 border-l border-neutral-800 pl-4 text-sm text-neutral-400">
-          <input
-            name="rememberSession"
-            type="checkbox"
-            value="true"
-            className="mt-1 h-4 w-4 rounded border-neutral-700 bg-neutral-950 text-red-600 focus:ring-red-600/40"
-          />
-          <span>
-            <span className="block font-medium text-neutral-200">Mantener sesión iniciada</span>
-            <span className="block text-xs text-neutral-500">No recomendado en ordenadores compartidos.</span>
+        <label className="flex cursor-pointer items-center gap-3 border-l border-neutral-800 pl-4 text-sm text-neutral-300">
+          <span className="relative inline-flex h-5 w-5 shrink-0 items-center justify-center">
+            <input
+              name="rememberSession"
+              type="checkbox"
+              value="true"
+              className="peer sr-only"
+            />
+            <span className="absolute inset-0 rounded-md border border-neutral-700 bg-neutral-950 transition-colors peer-checked:border-red-500 peer-checked:bg-red-600 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-red-500" />
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 20 20"
+              className="relative h-3.5 w-3.5 text-white opacity-0 transition-opacity peer-checked:opacity-100"
+            >
+              <path
+                d="M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0L3.3 9.7a1 1 0 0 1 1.4-1.4l3.8 3.8 6.8-6.8a1 1 0 0 1 1.4 0Z"
+                fill="currentColor"
+              />
+            </svg>
+          </span>
+          <span className="font-medium text-neutral-200">
+            <span className="block">Mantener sesión iniciada</span>
           </span>
         </label>
       )}
