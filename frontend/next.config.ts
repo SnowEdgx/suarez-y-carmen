@@ -22,7 +22,28 @@ function getCmsRemotePattern() {
   }
 }
 
+function getSupabasePublicStorageRemotePattern() {
+  const rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!rawUrl) return null;
+
+  try {
+    const url = new URL(rawUrl);
+    if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+    if (url.username || url.password) return null;
+
+    return {
+      protocol: url.protocol.replace(":", "") as "http" | "https",
+      hostname: url.hostname,
+      port: url.port || undefined,
+      pathname: "/storage/v1/object/public/**",
+    };
+  } catch {
+    return null;
+  }
+}
+
 const cmsRemotePattern = getCmsRemotePattern();
+const supabasePublicStorageRemotePattern = getSupabasePublicStorageRemotePattern();
 
 const nextConfig: NextConfig = {
   distDir,
@@ -116,6 +137,7 @@ const nextConfig: NextConfig = {
         pathname: "/uploads/**",
       },
       ...(cmsRemotePattern ? [cmsRemotePattern] : []),
+      ...(supabasePublicStorageRemotePattern ? [supabasePublicStorageRemotePattern] : []),
     ],
   },
 };
