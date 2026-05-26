@@ -18,7 +18,9 @@ function getEmbeddedResourceUrl(resource: CourseDetailResource, url: string) {
   const isPdf = resource.mime_type?.includes("pdf") || fileName.endsWith(".pdf");
   if (!isPdf) return url;
 
-  return url.includes("#") ? `${url}&toolbar=0&navpanes=0` : `${url}#toolbar=0&navpanes=0`;
+  return url.includes("#") 
+    ? `${url}&toolbar=0&navpanes=0&view=Fit` 
+    : `${url}#toolbar=0&navpanes=0&view=Fit`;
 }
 
 export default function CourseResourcesPanel({

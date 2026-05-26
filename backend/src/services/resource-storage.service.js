@@ -74,6 +74,13 @@ function getAllowedFrameAncestors() {
       const url = new URL(value);
       if (url.protocol === 'http:' || url.protocol === 'https:') {
         origins.add(url.origin);
+        // Robustness: automatically allow both apex and www subdomains for CSP frame-ancestors
+        if (url.hostname.startsWith('www.')) {
+          const apex = url.hostname.slice(4);
+          origins.add(`${url.protocol}//${apex}`);
+        } else if (!url.hostname.startsWith('localhost') && !/^\d+\.\d+\.\d+\.\d+$/.test(url.hostname)) {
+          origins.add(`${url.protocol}//www.${url.hostname}`);
+        }
       }
     } catch {
       // Ignore malformed deployment values; CORS validation handles them elsewhere.
