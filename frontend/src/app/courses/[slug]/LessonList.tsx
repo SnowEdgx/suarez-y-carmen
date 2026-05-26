@@ -22,7 +22,7 @@ export default function LessonList({
   return (
     <aside className="rounded-2xl border border-neutral-800 bg-neutral-900/40 p-6">
       <h2 className="text-xl font-semibold text-white mb-4">Lecciones</h2>
-      <ul className="space-y-3 max-h-[550px] overflow-y-auto pr-1">
+      <ul className="space-y-3">
         {lessons.map((lesson) => {
           const isLocked = !hasPurchased && !lesson.is_free_preview;
           const isAccessible = accessibleLessonIds.has(lesson.id);

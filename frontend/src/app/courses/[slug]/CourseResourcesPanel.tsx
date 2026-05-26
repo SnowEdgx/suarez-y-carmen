@@ -13,6 +13,8 @@ function getResourceLabel(resource: CourseDetailResource) {
   return "Material del curso";
 }
 
+
+
 export default function CourseResourcesPanel({
   resources,
   accessByResourceId,
