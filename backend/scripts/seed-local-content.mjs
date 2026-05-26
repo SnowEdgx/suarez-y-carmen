@@ -174,7 +174,7 @@ const COURSE_SEEDS = [
       'Programa progresivo para trabajar bases de bachazouk, tilted turns, leading, following y recuperaciones con control.',
     cover_image_url: ASSETS.IMG_4784,
     level: 'Intermedio',
-    price_cents: 3900,
+    price_cents: 1999,
     position: 10,
     is_published: true,
     lessons: BACHAZOUK_LESSONS,

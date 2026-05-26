@@ -56,20 +56,12 @@ export default function Navbar({ user = null }: NavbarProps) {
           {user ? (
             <UserMenu user={user} />
           ) : (
-            <>
-              <Link
-                href="/login"
-                className="text-sm font-medium text-white hover:text-neutral-300 transition-colors drop-shadow-md"
-              >
-                {"Iniciar sesi\u00f3n"}
-              </Link>
-              <Link
-                href="/courses"
-                className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-full shadow-lg transition-all hover:scale-105"
-              >
-                Ver cursos
-              </Link>
-            </>
+            <Link
+              href="/login"
+              className="text-sm font-medium text-white hover:text-neutral-300 transition-colors drop-shadow-md"
+            >
+              {"Iniciar sesi\u00f3n"}
+            </Link>
           )}
         </div>
 
@@ -120,18 +112,9 @@ export default function Navbar({ user = null }: NavbarProps) {
               </form>
             </>
           ) : (
-            <>
-              <Link href="/login" className="text-white font-medium" onClick={() => setIsMobileMenuOpen(false)}>
-                {"Iniciar sesi\u00f3n"}
-              </Link>
-              <Link
-                href="/courses"
-                className="mt-2 text-center py-3 bg-red-600 text-white font-semibold rounded-full"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Ver cursos
-              </Link>
-            </>
+            <Link href="/login" className="text-white font-medium" onClick={() => setIsMobileMenuOpen(false)}>
+              {"Iniciar sesi\u00f3n"}
+            </Link>
           )}
         </nav>
       )}

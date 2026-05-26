@@ -56,7 +56,7 @@ export default function CourseGrid({
         </div>
 
         {courses.length === 0 ? (
-          <div className="rounded-2xl border border-neutral-800 bg-neutral-900/40 p-8 text-center text-neutral-400">
+          <div className="rounded-2xl border border-neutral-800 bg-neutral-900/40 p-8 text-left text-neutral-400">
             No hay cursos publicados por ahora. Vuelve pronto.
           </div>
         ) : (

@@ -149,14 +149,14 @@ export default async function EventsPage() {
       <Navbar user={user} />
 
       <main id="main-content" className="pt-28 pb-20 px-6 md:px-12 max-w-7xl mx-auto w-full flex-1">
-        <div className="mb-12 max-w-3xl">
+        <div className="mb-12 max-w-5xl">
           <p className="mb-3 text-sm font-semibold uppercase tracking-[0.28em] text-red-500">Agenda</p>
           <h1 className="mb-5 font-serif text-4xl font-bold text-white md:text-5xl">
             {"Pr\u00f3ximas fechas"}
           </h1>
-          <p className="text-lg text-neutral-400">
-            Consulta talleres, congresos y encuentros presenciales. La compra de entradas se realiza siempre en la
-            plataforma oficial indicada por cada organizador.
+          <p className="max-w-4xl text-lg leading-relaxed text-neutral-400 text-pretty">
+            Consulta talleres, congresos y encuentros presenciales. Las entradas se gestionan desde la plataforma
+            oficial indicada por cada organizador.
           </p>
         </div>
 
@@ -169,7 +169,7 @@ export default async function EventsPage() {
         {events.length === 0 ? (
           <section className="rounded-3xl border border-neutral-800 bg-neutral-900/50 p-8 text-neutral-400">
             <h2 className="mb-3 text-2xl font-semibold text-white">No hay eventos publicados</h2>
-            <p className="mb-6 max-w-2xl text-sm leading-relaxed">
+            <p className="mb-6 max-w-4xl text-sm leading-relaxed text-pretty">
               {"Todav\u00eda no hay nuevas fechas activas en la agenda. Puedes consultar las clases presenciales o seguir el perfil oficial de Instagram para novedades."}
             </p>
             <div className="flex flex-wrap gap-3">
