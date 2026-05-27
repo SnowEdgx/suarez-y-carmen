@@ -2,9 +2,32 @@ const LOCAL_IMAGE_HOSTS = new Set(["localhost", "127.0.0.1"]);
 const LOCAL_IMAGE_PORTS = new Set(["1337", "54321"]);
 const DOCKER_HOST_GATEWAY = "host.docker.internal";
 
+/**
+ * CMS Supabase project (k) → Production Supabase project (j).
+ * The CMS stores uploads in bucket "public-assets" but in production
+ * they are served from bucket "assets" on the production project.
+ */
+const CMS_SUPABASE_HOST = "kguoyuakfwwbvetzqtao.supabase.co";
+const PROD_SUPABASE_HOST = "jlpqlqvrhwdjyspwolro.supabase.co";
+const CMS_BUCKET_PREFIX = "/storage/v1/object/public/public-assets/";
+const PROD_BUCKET_PREFIX = "/storage/v1/object/public/assets/";
+
 function isFrontendRunningInDocker() {
   const internalBackendUrl = process.env.BACKEND_INTERNAL_URL ?? "";
   return process.env.RUNNING_IN_DOCKER === "true" || internalBackendUrl.includes("://backend:");
+}
+
+/**
+ * Rewrites CMS Supabase storage URLs to production Supabase storage URLs.
+ * Converts: https://kguoyuakfwwbvetzqtao.supabase.co/storage/v1/object/public/public-assets/...
+ *       To: https://jlpqlqvrhwdjyspwolro.supabase.co/storage/v1/object/public/assets/...
+ */
+function rewriteCmsStorageUrl(url: URL): string | null {
+  if (url.hostname !== CMS_SUPABASE_HOST) return null;
+  if (!url.pathname.startsWith(CMS_BUCKET_PREFIX)) return null;
+
+  const objectPath = url.pathname.slice(CMS_BUCKET_PREFIX.length);
+  return `https://${PROD_SUPABASE_HOST}${PROD_BUCKET_PREFIX}${objectPath}`;
 }
 
 function rewriteLocalImageUrlForOptimizer(url: URL) {
@@ -80,6 +103,10 @@ export function getPublicImageUrl(value: string | null | undefined, fallback: st
     const url = new URL(candidate);
     if (url.protocol !== "http:" && url.protocol !== "https:") return fallback;
     if (url.username || url.password) return fallback;
+
+    // Rewrite CMS Supabase storage URLs to production bucket
+    const cmsRewrite = rewriteCmsStorageUrl(url);
+    if (cmsRewrite) return cmsRewrite;
 
     return rewriteLocalImageUrlForOptimizer(url);
   } catch {
