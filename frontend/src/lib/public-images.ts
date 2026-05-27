@@ -31,6 +31,15 @@ function rewriteLocalImageUrlForOptimizer(url: URL) {
         const rewritten = new URL(url.toString());
         rewritten.protocol = envUrl.protocol;
         rewritten.host = envUrl.host;
+        
+        // Scalable bucket mapping: If the local seed uses the 'assets' bucket,
+        // but production uses the 'public-assets' bucket, map it generically in the pathname.
+        const localBucketPrefix = "/storage/v1/object/public/assets/";
+        const prodBucketPrefix = "/storage/v1/object/public/public-assets/";
+        if (rewritten.pathname.startsWith(localBucketPrefix)) {
+          rewritten.pathname = rewritten.pathname.replace(localBucketPrefix, prodBucketPrefix);
+        }
+        
         return rewritten.toString();
       }
     } catch (e) {
