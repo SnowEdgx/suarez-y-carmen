@@ -44,23 +44,17 @@ export default function CourseResourcesPanel({
                   {description && (
                     <p className="mt-1 text-xs leading-relaxed text-neutral-400">{description}</p>
                   )}
-                  {resource.file_name && (
-                    <p className="mt-1.5 text-xs text-neutral-500 font-mono break-all">{resource.file_name}</p>
-                  )}
                   <p className="mt-2 text-[11px] uppercase tracking-wide text-neutral-500">
                     {label}
                   </p>
                 </div>
 
-                {access.url ? (
-                  <span className="shrink-0 rounded-full border border-green-500/40 bg-green-500/10 px-3 py-1 text-xs font-semibold text-green-200">
-                    Disponible
-                  </span>
-                ) : (
+                {!access.url && (
                   <span className="shrink-0 rounded-full border border-neutral-700 px-3 py-1 text-xs font-semibold text-neutral-500">
                     Bloqueado
                   </span>
                 )}
+
               </div>
 
               {access.url && (

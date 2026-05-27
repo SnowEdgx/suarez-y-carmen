@@ -8,6 +8,36 @@ function isFrontendRunningInDocker() {
 }
 
 function rewriteLocalImageUrlForOptimizer(url: URL) {
+  const supabaseUrlEnv = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+  
+  // Check if the URL points to local Supabase storage (port 54321)
+  const isLocalSupabaseUrl = (
+    (url.hostname === "localhost" || url.hostname === "127.0.0.1" || url.hostname === DOCKER_HOST_GATEWAY) &&
+    url.port === "54321"
+  );
+
+  if (isLocalSupabaseUrl && supabaseUrlEnv) {
+    try {
+      const envUrl = new URL(supabaseUrlEnv);
+      const isEnvUrlLocal = (
+        envUrl.hostname === "localhost" ||
+        envUrl.hostname === "127.0.0.1" ||
+        envUrl.hostname === DOCKER_HOST_GATEWAY
+      );
+
+      // If the database gives us a local URL but we are connected to a remote Supabase Cloud instance,
+      // rewrite it dynamically to fetch from the cloud storage bucket instead of failing locally.
+      if (!isEnvUrlLocal) {
+        const rewritten = new URL(url.toString());
+        rewritten.protocol = envUrl.protocol;
+        rewritten.host = envUrl.host;
+        return rewritten.toString();
+      }
+    } catch (e) {
+      console.error("[public-images] Invalid NEXT_PUBLIC_SUPABASE_URL parsing:", e);
+    }
+  }
+
   if (!isFrontendRunningInDocker()) {
     if (url.hostname === DOCKER_HOST_GATEWAY) {
       const rewrittenUrl = new URL(url.toString());
@@ -23,6 +53,7 @@ function rewriteLocalImageUrlForOptimizer(url: URL) {
   rewrittenUrl.hostname = DOCKER_HOST_GATEWAY;
   return rewrittenUrl.toString();
 }
+
 
 export function getPublicImageUrl(value: string | null | undefined, fallback: string | null = null) {
   const candidate = typeof value === "string" ? value.trim() : "";
