@@ -92,7 +92,6 @@ export default async function ProfilePage() {
             />
 
             <section className="rounded-3xl border border-red-950/40 bg-red-950/5 p-6 backdrop-blur-sm sm:p-8">
-              <h2 className="mb-6 text-xl font-semibold text-red-500">Zona de peligro</h2>
               <DeleteAccountSection />
             </section>
           </div>
