@@ -20,8 +20,9 @@ export default async function TermsPage() {
       <main id="main-content" className="pt-28 pb-20 px-6 md:px-12 max-w-4xl mx-auto w-full flex-1">
         <h1 className="text-4xl font-bold font-serif text-white mb-4">Términos y condiciones</h1>
         <p className="text-neutral-400 mb-10">
-          Condiciones de uso y contratación aplicables a la academia online de Suárez y Carmen. Última actualización: 17/04/2026.
+          Condiciones de uso y contratación aplicables a la academia online de Suárez y Carmen.
         </p>
+
 
         <div className="space-y-6 text-sm text-neutral-300">
           <section className="border border-neutral-800 rounded-2xl p-6 bg-neutral-900/40">
@@ -87,7 +88,12 @@ export default async function TermsPage() {
             </p>
           </section>
         </div>
+
+        <div className="mt-12 text-xs text-neutral-500 text-right">
+          Última actualización: 17/04/2026.
+        </div>
       </main>
+
       <Footer />
     </div>
   );

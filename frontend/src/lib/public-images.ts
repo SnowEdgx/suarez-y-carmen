@@ -61,13 +61,14 @@ export function getPublicImageUrl(value: string | null | undefined, fallback: st
 
   if (candidate.startsWith("/")) return candidate;
 
-  // Intercept local seed class URLs and route them to Next.js public static assets
+  // Intercept local seed class URLs and route them to Supabase Cloud remote storage
   if (candidate.includes("classes/estacion-cartama-danzarti.png")) {
-    return "/classes/estacion-cartama-danzarti.png";
+    return "https://jlpqlqvrhwdjyspwolro.supabase.co/storage/v1/object/public/assets/classes/estacion-cartama-danzarti.png";
   }
   if (candidate.includes("classes/coin-fusion-studio.png")) {
-    return "/classes/coin-fusion-studio.png";
+    return "https://jlpqlqvrhwdjyspwolro.supabase.co/storage/v1/object/public/assets/classes/coin-fusion-studio.png";
   }
+
 
   try {
     const url = new URL(candidate);
