@@ -59,6 +59,16 @@ export function getPublicImageUrl(value: string | null | undefined, fallback: st
   const candidate = typeof value === "string" ? value.trim() : "";
   if (!candidate) return fallback;
 
+  if (candidate.startsWith("/")) return candidate;
+
+  // Intercept local seed class URLs and route them to Next.js public static assets
+  if (candidate.includes("classes/estacion-cartama-danzarti.png")) {
+    return "/classes/estacion-cartama-danzarti.png";
+  }
+  if (candidate.includes("classes/coin-fusion-studio.png")) {
+    return "/classes/coin-fusion-studio.png";
+  }
+
   try {
     const url = new URL(candidate);
     if (url.protocol !== "http:" && url.protocol !== "https:") return fallback;
@@ -69,6 +79,7 @@ export function getPublicImageUrl(value: string | null | undefined, fallback: st
     return fallback;
   }
 }
+
 
 export function shouldBypassImageOptimization(src: string) {
   try {
