@@ -19,8 +19,9 @@ export function resolveTopInfoMessage(options: {
   successMessage: string | null
   isVerifiedRedirect: boolean
   isPasswordUpdated: boolean
+  isAccountDeleted?: boolean
 }): TopInfoMessage | null {
-  const { successMessage, isVerifiedRedirect, isPasswordUpdated } = options
+  const { successMessage, isVerifiedRedirect, isPasswordUpdated, isAccountDeleted } = options
 
   if (successMessage) return { type: 'success', text: successMessage }
   if (isVerifiedRedirect) {
@@ -29,6 +30,10 @@ export function resolveTopInfoMessage(options: {
   if (isPasswordUpdated) {
     return { type: 'success', text: 'Contraseña actualizada. Ya puedes iniciar sesión.' }
   }
+  if (isAccountDeleted) {
+    return { type: 'success', text: 'Tu cuenta ha sido eliminada correctamente. Lamentamos verte marchar.' }
+  }
 
   return null
 }
+

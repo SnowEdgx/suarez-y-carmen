@@ -1,12 +1,16 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { headers } from 'next/headers'
+import { headers, cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { isEmailVerified } from '@/lib/auth-user'
 import { getBackendUrl } from '@/lib/backend-url'
 import { DEVICE_ID_HEADER, isValidDeviceId } from '@/lib/device-session'
 import { getSiteUrl } from '@/lib/site-url'
+import {
+  AUTH_SESSION_PREFERENCE_COOKIE,
+  getExpiredSessionPreferenceCookieOptions,
+} from '@/lib/auth-session'
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{12}$/i
 const MAX_PROFILE_NAME_LENGTH = 120
@@ -162,4 +166,92 @@ export async function revokeVideoDevice(formData: FormData) {
 
   revalidatePath('/profile')
   return { success: 'Dispositivo revocado correctamente.' }
+}
+
+/**
+ * Solicita el borrado de cuenta al backend Express.
+ */
+export async function requestAccountDeletionAction() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  if (!user || !session?.access_token) {
+    return { error: 'Tu sesión ha expirado. Vuelve a iniciar sesión.' }
+  }
+
+  if (!isEmailVerified(user)) {
+    return { error: 'Verifica tu correo antes de solicitar el borrado de tu cuenta.' }
+  }
+
+  let response: Response
+  try {
+    response = await fetch(`${getBackendUrl()}/api/users/request-delete-account`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      cache: 'no-store',
+    })
+  } catch {
+    return { error: 'No pudimos conectar con el servidor para procesar la solicitud.' }
+  }
+
+  const payload = await readJsonSafely(response)
+  if (!response.ok) {
+    return {
+      error: typeof payload?.error === 'string' ? payload.error : 'No pudimos solicitar el borrado de la cuenta.',
+    }
+  }
+
+  return { success: typeof payload?.message === 'string' ? payload.message : 'Correo enviado correctamente.' }
+}
+
+/**
+ * Confirma el borrado definitivo de cuenta en el backend Express
+ * y cierra la sesión en el cliente Next.js.
+ */
+export async function confirmAccountDeletionAction(token: string) {
+  if (!token) {
+    return { error: 'Token de confirmación no proporcionado.' }
+  }
+
+  let response: Response
+  try {
+    response = await fetch(`${getBackendUrl()}/api/users/confirm-delete-account`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ token }),
+      cache: 'no-store',
+    })
+  } catch {
+    return { error: 'No pudimos conectar con el servidor para confirmar el borrado.' }
+  }
+
+  const payload = await readJsonSafely(response)
+  if (!response.ok) {
+    return {
+      error: typeof payload?.error === 'string' ? payload.error : 'No pudimos eliminar tu cuenta.',
+    }
+  }
+
+  // Cerrar la sesión del usuario del lado del cliente si el borrado fue exitoso
+  const supabase = await createClient()
+  await supabase.auth.signOut()
+
+  const cookieStore = await cookies()
+  cookieStore.set(
+    AUTH_SESSION_PREFERENCE_COOKIE,
+    '',
+    getExpiredSessionPreferenceCookieOptions()
+  )
+
+  revalidatePath('/', 'layout')
+  return { success: true }
 }

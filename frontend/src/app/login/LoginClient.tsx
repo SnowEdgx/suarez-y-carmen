@@ -23,6 +23,7 @@ function LoginPageContent() {
   const callbackError = getQueryErrorMessage(searchParams.get('error'))
   const isVerifiedRedirect = searchParams.get('verified') === '1'
   const isPasswordUpdated = searchParams.get('password_updated') === '1'
+  const isAccountDeleted = searchParams.get('account_deleted') === '1'
 
   const [isLoginMode, setIsLoginMode] = useState(true)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -38,7 +39,9 @@ function LoginPageContent() {
     successMessage,
     isVerifiedRedirect,
     isPasswordUpdated,
+    isAccountDeleted,
   })
+
   const shouldShowPendingVerificationNotice = Boolean(pendingVerificationEmail && !successMessage)
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {

@@ -10,6 +10,7 @@ import ProfileForm from "./ProfileForm";
 import VideoDevicesPanel from "./VideoDevicesPanel";
 import PurchaseHistory from "./PurchaseHistory";
 import ProfileSummaryCard from "./ProfileSummaryCard";
+import DeleteAccountSection from "./DeleteAccountSection";
 import { loadProfilePageData } from "./profile-data";
 
 export const metadata: Metadata = {
@@ -89,6 +90,11 @@ export default async function ProfilePage() {
               maxActiveDevices={videoDevices.maxActiveDevices}
               loadError={videoDevices.loadError}
             />
+
+            <section className="rounded-3xl border border-red-950/40 bg-red-950/5 p-6 backdrop-blur-sm sm:p-8">
+              <h2 className="mb-6 text-xl font-semibold text-red-500">Zona de peligro</h2>
+              <DeleteAccountSection />
+            </section>
           </div>
 
           <div className="space-y-6">
