@@ -90,6 +90,10 @@ const nextConfig: NextConfig = {
         hostname: "jlpqlqvrhwdjyspwolro.supabase.co",
       },
       {
+        protocol: "https",
+        hostname: "kguoyuakfwwbvetzqtao.supabase.co",
+      },
+      {
         protocol: "http",
         hostname: "localhost",
         port: "1337",
