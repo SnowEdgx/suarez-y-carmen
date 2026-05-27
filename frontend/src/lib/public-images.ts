@@ -26,7 +26,7 @@ function rewriteLocalImageUrlForOptimizer(url: URL) {
       );
 
       // If the database gives us a local URL but we are connected to a remote Supabase Cloud instance,
-      // rewrite it dynamically to fetch from the cloud storage bucket instead of failing locally.
+      // rewrite it dynamically to fetch from the remote storage bucket.
       if (!isEnvUrlLocal) {
         const rewritten = new URL(url.toString());
         rewritten.protocol = envUrl.protocol;
@@ -36,6 +36,19 @@ function rewriteLocalImageUrlForOptimizer(url: URL) {
     } catch (e) {
       console.error("[public-images] Invalid NEXT_PUBLIC_SUPABASE_URL parsing:", e);
     }
+  }
+
+  // Check if the URL points to local Strapi CMS (port 1337)
+  const isLocalStrapiUrl = (
+    (url.hostname === "localhost" || url.hostname === "127.0.0.1" || url.hostname === DOCKER_HOST_GATEWAY) &&
+    url.port === "1337"
+  );
+
+  if (isLocalStrapiUrl) {
+    const rewritten = new URL(url.toString());
+    rewritten.protocol = "https";
+    rewritten.host = "cms.suarezycarmenbachata.com";
+    return rewritten.toString();
   }
 
   if (!isFrontendRunningInDocker()) {
@@ -54,22 +67,11 @@ function rewriteLocalImageUrlForOptimizer(url: URL) {
   return rewrittenUrl.toString();
 }
 
-
 export function getPublicImageUrl(value: string | null | undefined, fallback: string | null = null) {
   const candidate = typeof value === "string" ? value.trim() : "";
   if (!candidate) return fallback;
 
   if (candidate.startsWith("/")) return candidate;
-
-  // Intercept local seed class URLs and route them to Supabase Cloud remote storage (using 'public-assets' bucket)
-  if (candidate.includes("classes/estacion-cartama-danzarti.png")) {
-    return "https://jlpqlqvrhwdjyspwolro.supabase.co/storage/v1/object/public/public-assets/classes/estacion-cartama-danzarti.png";
-  }
-  if (candidate.includes("classes/coin-fusion-studio.png")) {
-    return "https://jlpqlqvrhwdjyspwolro.supabase.co/storage/v1/object/public/public-assets/classes/coin-fusion-studio.png";
-  }
-
-
 
   try {
     const url = new URL(candidate);
@@ -81,7 +83,6 @@ export function getPublicImageUrl(value: string | null | undefined, fallback: st
     return fallback;
   }
 }
-
 
 export function shouldBypassImageOptimization(src: string) {
   try {
