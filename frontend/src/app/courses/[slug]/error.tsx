@@ -1,8 +1,13 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 
-export default function CourseDetailError({ reset }: { error: Error; reset: () => void }) {
+export default function CourseDetailError({ error, reset }: { error: Error; reset: () => void }) {
+  useEffect(() => {
+    console.error("Error en vista detallada de curso:", error);
+  }, [error]);
+
   return (
     <main id="main-content" className="min-h-screen bg-neutral-950 px-6 py-24 text-neutral-100">
       <section className="mx-auto max-w-2xl rounded-3xl border border-neutral-800 bg-neutral-900/60 p-8 text-center">

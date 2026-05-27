@@ -75,7 +75,7 @@ export async function loadCourseResources(supabase: SupabaseClient, courseId: st
   message: CheckoutMessage | null;
 }> {
   const resourcesResponse = await supabase
-    .from("course_resources")
+    .from("public_course_resources")
     .select("id, title, description, file_name, mime_type, position, is_free_preview")
     .eq("course_id", courseId)
     .order("position", { ascending: true })

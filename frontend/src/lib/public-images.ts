@@ -8,7 +8,15 @@ function isFrontendRunningInDocker() {
 }
 
 function rewriteLocalImageUrlForOptimizer(url: URL) {
-  if (!isFrontendRunningInDocker()) return url.toString();
+  if (!isFrontendRunningInDocker()) {
+    if (url.hostname === DOCKER_HOST_GATEWAY) {
+      const rewrittenUrl = new URL(url.toString());
+      rewrittenUrl.hostname = "localhost";
+      return rewrittenUrl.toString();
+    }
+    return url.toString();
+  }
+
   if (!LOCAL_IMAGE_HOSTS.has(url.hostname) || !LOCAL_IMAGE_PORTS.has(url.port)) return url.toString();
 
   const rewrittenUrl = new URL(url.toString());
@@ -34,7 +42,11 @@ export function getPublicImageUrl(value: string | null | undefined, fallback: st
 export function shouldBypassImageOptimization(src: string) {
   try {
     const url = new URL(src);
-    return LOCAL_IMAGE_HOSTS.has(url.hostname) && LOCAL_IMAGE_PORTS.has(url.port) && isFrontendRunningInDocker();
+    return (
+      (LOCAL_IMAGE_HOSTS.has(url.hostname) || url.hostname === DOCKER_HOST_GATEWAY) &&
+      LOCAL_IMAGE_PORTS.has(url.port) &&
+      isFrontendRunningInDocker()
+    );
   } catch {
     return false;
   }

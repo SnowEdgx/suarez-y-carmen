@@ -20,7 +20,7 @@ export default function LessonList({
   featuredLesson,
   isAuthenticated,
 }: LessonListProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
   const coursePath = getCoursePath(course.slug);
   const completedCount = lessons.filter((l) => completedLessonSet.has(l.id)).length;
   const totalCount = lessons.length;
@@ -70,7 +70,7 @@ export default function LessonList({
         }`}
       >
         <div className="overflow-hidden">
-          <ul className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
+          <ul className="space-y-3 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
             {lessons.map((lesson) => {
               const isLocked = !hasPurchased && !lesson.is_free_preview;
               const isAccessible = accessibleLessonIds.has(lesson.id);

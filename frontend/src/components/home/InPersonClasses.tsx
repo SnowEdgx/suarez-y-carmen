@@ -124,7 +124,13 @@ export default function InPersonClasses({ classes }: InPersonClassesProps) {
                   Para confirmar plazas, horarios o nivel recomendado, contacta por el canal oficial.
                 </p>
               </div>
-              <ActionLink href={contactHref}>Contactar por Instagram</ActionLink>
+              <ActionLink href={contactHref}>
+                {contactHref.startsWith("mailto:")
+                  ? "Contactar por Correo"
+                  : contactHref.includes("instagram.com")
+                    ? "Contactar por Instagram"
+                    : "Contactar con soporte"}
+              </ActionLink>
             </div>
           </>
         )}
