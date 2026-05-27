@@ -31,6 +31,7 @@ function rewriteLocalImageUrlForOptimizer(url: URL) {
         const rewritten = new URL(url.toString());
         rewritten.protocol = envUrl.protocol;
         rewritten.host = envUrl.host;
+        rewritten.port = envUrl.port;
         
         return rewritten.toString();
       }
@@ -49,6 +50,7 @@ function rewriteLocalImageUrlForOptimizer(url: URL) {
     const rewritten = new URL(url.toString());
     rewritten.protocol = "https";
     rewritten.host = "cms.suarezycarmenbachata.com";
+    rewritten.port = "";
     return rewritten.toString();
   }
 
