@@ -1,3 +1,4 @@
+const { logger } = require('../utils/logger');
 const { timingSafeEqual } = require('crypto');
 const {
   VALID_ACTIONS,
@@ -70,9 +71,9 @@ exports.syncContent = async (req, res) => {
   } catch (err) {
     const status = err.status || 500;
     if (status >= 500) {
-      console.error('[CMS Sync] Processing error:', err.message);
+      logger.error('[CMS Sync] Processing error:', err.message);
     } else {
-      console.warn('[CMS Sync] Rejected request:', err.message);
+      logger.warn('[CMS Sync] Rejected request:', err.message);
     }
 
     const message = status >= 500 ? 'CMS sync failed.' : err.message;

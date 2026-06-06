@@ -40,7 +40,10 @@ async function upsertInPersonClass(entry) {
 }
 
 async function unpublishInPersonClass(entry) {
-  const existing = await findInPersonClass(entry, { allowFallback: !entry.cmsDocumentId });
+  const cmsDocumentId = optionalString(entry.cmsDocumentId, 255);
+  if (!cmsDocumentId) return { id: null, skipped: true };
+
+  const existing = await findInPersonClass({ cmsDocumentId }, { allowFallback: false });
   if (!existing?.id) return { id: null, skipped: true };
 
   const result = await supabase

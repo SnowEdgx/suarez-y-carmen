@@ -1,3 +1,4 @@
+const { logger } = require('../utils/logger');
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const stripe = stripeSecretKey ? require('stripe')(stripeSecretKey) : null;
 const CHECKOUT_SESSION_REGEX = /^cs_[A-Za-z0-9_]+$/;
@@ -66,7 +67,7 @@ async function getReusableCheckoutSession(stripeClient, checkoutSessionId) {
       return existingSession;
     }
   } catch (error) {
-    console.warn('[Stripe Controller] Could not retrieve prior checkout session:', error.message);
+    logger.warn('[Stripe Controller] Could not retrieve prior checkout session:', error.message);
   }
 
   return null;

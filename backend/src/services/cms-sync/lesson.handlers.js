@@ -67,27 +67,9 @@ async function upsertLesson(entry) {
 
 async function unpublishLesson(entry) {
   const cmsDocumentId = optionalString(entry.cmsDocumentId, 255);
-  if (cmsDocumentId) {
-    const existingByDocumentId = await findLesson(entry, null, null, { allowFallback: false });
-    if (!existingByDocumentId?.id) return { id: null, skipped: true };
+  if (!cmsDocumentId) return { id: null, skipped: true };
 
-    const result = await supabase
-      .from('lessons')
-      .update({ is_published: false, updated_at: new Date().toISOString() })
-      .eq('id', existingByDocumentId.id)
-      .select('id')
-      .single();
-
-    return assertSupabase(result, 'Could not unpublish lesson');
-  }
-
-  const course = await findCourseByReference(entry);
-  if (!course?.id) return { id: null, skipped: true };
-
-  const position = optionalInteger(entry.position, 'position', { min: 1, max: 1000 });
-  if (!position) return { id: null, skipped: true };
-
-  const existing = await findLesson(entry, course.id, position);
+  const existing = await findLesson({ cmsDocumentId }, null, null, { allowFallback: false });
   if (!existing?.id) return { id: null, skipped: true };
 
   const result = await supabase

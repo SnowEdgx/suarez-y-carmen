@@ -1,3 +1,4 @@
+const { logger } = require('../utils/logger');
 const { Readable } = require('stream');
 const { getForwardableRangeHeader } = require('../utils/range-header');
 const { isSafeStorageObjectPath } = require('./video-storage/path-validation');
@@ -119,7 +120,7 @@ async function streamResourceStorageObject({ req, res, storageReference }) {
   const upstreamResponse = await fetchStorageObject(storageReference, { rangeHeader });
 
   if (!upstreamResponse.ok && upstreamResponse.status !== 206) {
-    console.error('[Resource Storage Service] Storage stream failed:', upstreamResponse.status);
+    logger.error('[Resource Storage Service] Storage stream failed:', upstreamResponse.status);
     const error = new Error('Could not stream course resource.');
     error.status = 502;
     throw error;

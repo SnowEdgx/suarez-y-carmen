@@ -1,3 +1,4 @@
+const { logger } = require('./utils/logger');
 require('dotenv').config({ path: '.env.local', quiet: true });
 const express = require('express');
 const cors = require('cors');
@@ -87,7 +88,7 @@ if (!isProduction && process.env.ENABLE_SUPABASE_TEST_ENDPOINT === 'true') {
       if (error) throw error;
       res.json({ supabase: 'connected' });
     } catch (err) {
-      console.error('[Supabase Test] Connection check failed:', err.message);
+      logger.error('[Supabase Test] Connection check failed:', err.message);
       res.status(500).json({ supabase: 'error', message: 'Supabase connection test failed.' });
     }
   });
@@ -112,7 +113,7 @@ app.use((err, _req, res, next) => {
 
   const status = Number.isInteger(err?.status) && err.status >= 400 && err.status < 500 ? err.status : 500;
   if (status >= 500) {
-    console.error('[Express] Unhandled error:', err?.message || 'Unknown error');
+    logger.error('[Express] Unhandled error:', err?.message || 'Unknown error');
   }
 
   return res.status(status).json({
@@ -122,5 +123,5 @@ app.use((err, _req, res, next) => {
 
 // Start server.
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Backend listening on http://localhost:${PORT}`);
+  logger.info(`Backend listening on http://localhost:${PORT}`);
 });

@@ -1,3 +1,4 @@
+const { logger } = require('../utils/logger');
 const { getAuthenticatedUser } = require('../utils/auth');
 const { UUID_REGEX } = require('../utils/validation');
 const {
@@ -79,11 +80,11 @@ exports.getLessonVideoUrl = async (req, res) => {
       });
     }
 
-    console.error('[Lesson Controller] Lesson storage reference is missing:', lesson.id);
+    logger.error('[Lesson Controller] Lesson storage reference is missing:', lesson.id);
     return sendVideoUnavailable(res, 500);
   } catch (err) {
     const status = err.status || 500;
-    console.error('[Lesson Controller] Error resolving lesson video:', err.message);
+    logger.error('[Lesson Controller] Error resolving lesson video:', err.message);
     recordPlaybackEventSafe({
       req,
       lesson,
@@ -125,7 +126,7 @@ exports.serveHlsManifest = async (req, res) => {
     });
   } catch (err) {
     const status = err.status || 500;
-    console.error('[Lesson Controller] Error serving HLS manifest:', err.message);
+    logger.error('[Lesson Controller] Error serving HLS manifest:', err.message);
     recordPlaybackEventSafe({
       req,
       lesson: context?.lesson || null,
@@ -173,7 +174,7 @@ exports.serveHlsResource = async (req, res) => {
     });
   } catch (err) {
     const status = err.status || 500;
-    console.error('[Lesson Controller] Error serving HLS resource:', err.message);
+    logger.error('[Lesson Controller] Error serving HLS resource:', err.message);
     recordPlaybackEventSafe({
       req,
       lesson: context?.lesson || null,
@@ -207,7 +208,7 @@ exports.streamLessonVideo = async (req, res) => {
     });
   } catch (err) {
     const status = err.status || 500;
-    console.error('[Lesson Controller] Error streaming lesson video:', err.message);
+    logger.error('[Lesson Controller] Error streaming lesson video:', err.message);
     recordPlaybackEventSafe({
       req,
       lesson: context?.lesson || null,

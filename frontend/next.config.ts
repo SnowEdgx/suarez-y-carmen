@@ -42,8 +42,32 @@ function getSupabasePublicStorageRemotePattern() {
   }
 }
 
+function getSupabaseStorageHostRemotePattern(rawHost: string | undefined) {
+  const value = rawHost?.trim();
+  if (!value) return null;
+
+  try {
+    const url = new URL(value.includes("://") ? value : `https://${value}`);
+    if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+    if (url.username || url.password) return null;
+
+    return {
+      protocol: url.protocol.replace(":", "") as "http" | "https",
+      hostname: url.hostname,
+      port: url.port || undefined,
+      pathname: "/storage/v1/object/public/**",
+    };
+  } catch {
+    return null;
+  }
+}
+
 const cmsRemotePattern = getCmsRemotePattern();
 const supabasePublicStorageRemotePattern = getSupabasePublicStorageRemotePattern();
+const storageRewriteRemotePatterns = [
+  getSupabaseStorageHostRemotePattern(process.env.NEXT_PUBLIC_CMS_STORAGE_REWRITE_FROM_HOST),
+  getSupabaseStorageHostRemotePattern(process.env.NEXT_PUBLIC_CMS_STORAGE_REWRITE_TO_HOST),
+].filter((pattern): pattern is NonNullable<ReturnType<typeof getSupabaseStorageHostRemotePattern>> => Boolean(pattern));
 
 const nextConfig: NextConfig = {
   distDir,
@@ -145,6 +169,7 @@ const nextConfig: NextConfig = {
       },
       ...(cmsRemotePattern ? [cmsRemotePattern] : []),
       ...(supabasePublicStorageRemotePattern ? [supabasePublicStorageRemotePattern] : []),
+      ...storageRewriteRemotePatterns,
     ],
   },
 };

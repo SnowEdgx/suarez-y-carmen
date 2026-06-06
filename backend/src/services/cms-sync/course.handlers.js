@@ -44,7 +44,10 @@ async function upsertCourse(entry) {
 }
 
 async function unpublishCourse(entry) {
-  const existing = await findCourse(entry, { allowFallback: !entry.cmsDocumentId });
+  const cmsDocumentId = optionalString(entry.cmsDocumentId, 255);
+  if (!cmsDocumentId) return { id: null, skipped: true };
+
+  const existing = await findCourse({ cmsDocumentId }, { allowFallback: false });
   if (!existing?.id) return { id: null, skipped: true };
 
   const result = await supabase

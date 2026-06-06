@@ -1,3 +1,4 @@
+const { logger } = require('../utils/logger');
 const {
   PURCHASE_STATUS,
   updatePurchaseStatusByPaymentIntent,
@@ -34,29 +35,29 @@ async function handleCheckoutSessionCompleted(session) {
 async function processStripeEvent(event) {
   if (event.type === 'checkout.session.completed') {
     await handleCheckoutSessionCompleted(event.data.object);
-    console.log('[Stripe Webhook] Checkout session completed and access processed.');
+    logger.info('[Stripe Webhook] Checkout session completed and access processed.');
   }
 
   if (event.type === 'checkout.session.expired') {
     await updatePurchaseStatusBySessionId(event.data.object.id, PURCHASE_STATUS.CANCELED);
-    console.log('[Stripe Webhook] Checkout session expiration processed.');
+    logger.info('[Stripe Webhook] Checkout session expiration processed.');
   }
 
   if (event.type === 'checkout.session.async_payment_failed') {
     await updatePurchaseStatusBySessionId(event.data.object.id, PURCHASE_STATUS.CANCELED);
-    console.log('[Stripe Webhook] Async payment failure processed.');
+    logger.info('[Stripe Webhook] Async payment failure processed.');
   }
 
   if (event.type === 'charge.refunded') {
     const paymentIntentId = extractPaymentIntentId(event.data.object.payment_intent);
     await updatePurchaseStatusByPaymentIntent(paymentIntentId, PURCHASE_STATUS.REFUNDED);
-    console.log('[Stripe Webhook] Refund event processed.');
+    logger.info('[Stripe Webhook] Refund event processed.');
   }
 
   if (event.type === 'charge.dispute.created') {
     const paymentIntentId = extractPaymentIntentId(event.data.object.payment_intent);
     await updatePurchaseStatusByPaymentIntent(paymentIntentId, PURCHASE_STATUS.CANCELED);
-    console.log('[Stripe Webhook] Dispute event processed.');
+    logger.info('[Stripe Webhook] Dispute event processed.');
   }
 }
 

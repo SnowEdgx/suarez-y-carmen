@@ -1,7 +1,8 @@
 import type { CheckoutMessage } from "@/lib/checkout-status";
+import { isUuid, UUID_REGEX } from "@/lib/uuid";
 import type { CourseDetailLesson } from "./course-detail.model";
 
-export const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+export { UUID_REGEX };
 
 export function resolveProgressMessage(code: string | null) {
   switch (code) {
@@ -29,7 +30,7 @@ export function resolveLessonMessage(options: {
 
   if (!requestedLessonId) return null;
 
-  if (!UUID_REGEX.test(requestedLessonId)) {
+  if (!isUuid(requestedLessonId)) {
     return { type: "error", text: "No pudimos abrir la lecci\u00f3n seleccionada." };
   }
 

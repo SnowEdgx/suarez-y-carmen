@@ -1,8 +1,9 @@
+import { isUuid } from '@/lib/uuid'
+
 export const DEVICE_ID_COOKIE = 'syc_device_id'
 export const DEVICE_ID_HEADER = 'x-syc-device-id'
 
 const DEVICE_COOKIE_MAX_AGE_SECONDS = 365 * 24 * 60 * 60
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 type CookieOptions = {
   maxAge?: number
@@ -13,7 +14,7 @@ type CookieOptions = {
 }
 
 export function isValidDeviceId(value: unknown): value is string {
-  return typeof value === 'string' && UUID_REGEX.test(value)
+  return isUuid(value)
 }
 
 export function getDeviceCookieOptions(): CookieOptions {

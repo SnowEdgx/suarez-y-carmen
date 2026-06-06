@@ -4,8 +4,8 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { isEmailVerified } from '@/lib/auth-user'
 import { createClient } from '@/lib/supabase/server'
+import { isUuid } from '@/lib/uuid'
 
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 const SLUG_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/i
 
 type LessonAccessRow = {
@@ -26,7 +26,7 @@ function getCoursePath(courseSlug: string | null) {
 
 function buildProgressPath(coursePath: string, code: string, lessonId?: string) {
   const separator = coursePath.includes('?') ? '&' : '?'
-  const lessonParam = lessonId && UUID_REGEX.test(lessonId) ? `lesson=${encodeURIComponent(lessonId)}&` : ''
+  const lessonParam = lessonId && isUuid(lessonId) ? `lesson=${encodeURIComponent(lessonId)}&` : ''
   return `${coursePath}${separator}${lessonParam}progress=${encodeURIComponent(code)}`
 }
 
@@ -36,7 +36,7 @@ export async function setLessonProgress(formData: FormData) {
   const coursePath = getCoursePath(courseSlug)
   const shouldComplete = formData.get('completed') === 'true'
 
-  if (!courseSlug || !UUID_REGEX.test(lessonId)) {
+  if (!courseSlug || !isUuid(lessonId)) {
     redirect(buildProgressPath(coursePath, 'invalid_lesson'))
   }
 

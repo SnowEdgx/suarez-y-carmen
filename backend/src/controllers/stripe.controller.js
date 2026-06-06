@@ -1,3 +1,4 @@
+const { logger } = require('../utils/logger');
 const { supabase } = require('../config/supabase');
 const { getAuthenticatedUser, isEmailVerified } = require('../utils/auth');
 const { UUID_REGEX } = require('../utils/validation');
@@ -88,7 +89,7 @@ exports.createCheckoutSession = async (req, res) => {
     }
 
     if (!Number.isInteger(course.price_cents) || course.price_cents <= 0) {
-      console.error('[Stripe Controller] Course has invalid price configuration:', course.id);
+      logger.error('[Stripe Controller] Course has invalid price configuration:', course.id);
       return sendClientError(res, 503, 'checkout_unavailable', 'La compra no está disponible temporalmente.');
     }
 
@@ -142,7 +143,7 @@ exports.createCheckoutSession = async (req, res) => {
     return res.json({ id: session.id, url: session.url });
   } catch (err) {
     const status = err.status || 500;
-    console.error('[Stripe Controller] Error creating Checkout Session:', err.message);
+    logger.error('[Stripe Controller] Error creating Checkout Session:', err.message);
     return sendClientError(
       res,
       status,
@@ -195,7 +196,7 @@ exports.getCheckoutSessionStatus = async (req, res) => {
     return res.json(await resolveCheckoutSessionStatus({ session, user }));
   } catch (err) {
     const status = err.status || 500;
-    console.error('[Stripe Controller] Error checking checkout session status:', err.message);
+    logger.error('[Stripe Controller] Error checking checkout session status:', err.message);
     return sendClientError(
       res,
       status,
@@ -214,7 +215,7 @@ exports.webhook = async (req, res) => {
     const signature = req.headers['stripe-signature'];
 
     if (!process.env.STRIPE_WEBHOOK_SECRET) {
-      console.error('[Stripe Webhook] Webhook secret is not configured.');
+      logger.error('[Stripe Webhook] Webhook secret is not configured.');
       return res.status(503).json({ error: 'Webhook processing unavailable.' });
     }
 
@@ -224,7 +225,7 @@ exports.webhook = async (req, res) => {
       process.env.STRIPE_WEBHOOK_SECRET
     );
   } catch (err) {
-    console.warn('[Stripe Webhook] Signature verification error:', err.message);
+    logger.warn('[Stripe Webhook] Signature verification error:', err.message);
     return res.status(400).json({ error: 'Webhook request rejected.' });
   }
 
@@ -234,14 +235,14 @@ exports.webhook = async (req, res) => {
       return res.json({ received: true, duplicate: true });
     }
   } catch (err) {
-    console.error('[Stripe Webhook] Error storing event:', err.message);
+    logger.error('[Stripe Webhook] Error storing event:', err.message);
     return res.status(500).json({ error: 'Webhook processing failed.' });
   }
 
   try {
     await processStripeEvent(event);
   } catch (err) {
-    console.error('[Stripe Webhook] Processing error:', err.message);
+    logger.error('[Stripe Webhook] Processing error:', err.message);
     await rollbackStripeEvent(event.id);
     return res.status(500).json({ error: 'Webhook processing failed.' });
   }

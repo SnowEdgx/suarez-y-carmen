@@ -2,72 +2,103 @@ const LOCAL_IMAGE_HOSTS = new Set(["localhost", "127.0.0.1"]);
 const LOCAL_IMAGE_PORTS = new Set(["1337", "54321"]);
 const DOCKER_HOST_GATEWAY = "host.docker.internal";
 
-/**
- * CMS Supabase project (k) → Production Supabase project (j).
- * The CMS stores uploads in bucket "public-assets" but in production
- * they are served from bucket "assets" on the production project.
- */
-const CMS_SUPABASE_HOST = "kguoyuakfwwbvetzqtao.supabase.co";
-const PROD_SUPABASE_HOST = "jlpqlqvrhwdjyspwolro.supabase.co";
-const CMS_BUCKET_PREFIX = "/storage/v1/object/public/public-assets/";
-const PROD_BUCKET_PREFIX = "/storage/v1/object/public/assets/";
+const DEFAULT_STORAGE_REWRITE_FROM_HOST = "kguoyuakfwwbvetzqtao.supabase.co";
+const DEFAULT_STORAGE_REWRITE_TO_HOST = "jlpqlqvrhwdjyspwolro.supabase.co";
+const DEFAULT_STORAGE_REWRITE_FROM_BUCKET = "public-assets";
+const DEFAULT_STORAGE_REWRITE_TO_BUCKET = "assets";
+
+function getEnvValue(name: string, fallback: string) {
+  return process.env[name]?.trim() || fallback;
+}
+
+function normalizeStorageHost(value: string) {
+  const candidate = value.trim();
+  if (!candidate) return null;
+
+  try {
+    const url = new URL(candidate.includes("://") ? candidate : `https://${candidate}`);
+    if (url.username || url.password) return null;
+    if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+    return url.hostname;
+  } catch {
+    return null;
+  }
+}
+
+function normalizeBucketName(value: string) {
+  const candidate = value.trim().replace(/^\/+|\/+$/g, "");
+  if (!/^[A-Za-z0-9._-]+$/.test(candidate)) return null;
+  return candidate;
+}
+
+function getStorageRewriteConfig() {
+  const fromHost = normalizeStorageHost(
+    getEnvValue("NEXT_PUBLIC_CMS_STORAGE_REWRITE_FROM_HOST", DEFAULT_STORAGE_REWRITE_FROM_HOST)
+  );
+  const toHost = normalizeStorageHost(
+    getEnvValue("NEXT_PUBLIC_CMS_STORAGE_REWRITE_TO_HOST", DEFAULT_STORAGE_REWRITE_TO_HOST)
+  );
+  const fromBucket = normalizeBucketName(
+    getEnvValue("NEXT_PUBLIC_CMS_STORAGE_REWRITE_FROM_BUCKET", DEFAULT_STORAGE_REWRITE_FROM_BUCKET)
+  );
+  const toBucket = normalizeBucketName(
+    getEnvValue("NEXT_PUBLIC_CMS_STORAGE_REWRITE_TO_BUCKET", DEFAULT_STORAGE_REWRITE_TO_BUCKET)
+  );
+
+  if (!fromHost || !toHost || !fromBucket || !toBucket) return null;
+
+  return {
+    fromHost,
+    toHost,
+    fromPrefix: `/storage/v1/object/public/${fromBucket}/`,
+    toPrefix: `/storage/v1/object/public/${toBucket}/`,
+  };
+}
 
 function isFrontendRunningInDocker() {
   const internalBackendUrl = process.env.BACKEND_INTERNAL_URL ?? "";
   return process.env.RUNNING_IN_DOCKER === "true" || internalBackendUrl.includes("://backend:");
 }
 
-/**
- * Rewrites CMS Supabase storage URLs to production Supabase storage URLs.
- * Converts: https://kguoyuakfwwbvetzqtao.supabase.co/storage/v1/object/public/public-assets/...
- *       To: https://jlpqlqvrhwdjyspwolro.supabase.co/storage/v1/object/public/assets/...
- */
-function rewriteCmsStorageUrl(url: URL): string | null {
-  if (url.hostname !== CMS_SUPABASE_HOST) return null;
-  if (!url.pathname.startsWith(CMS_BUCKET_PREFIX)) return null;
+function rewriteConfiguredStorageUrl(url: URL): string | null {
+  const rewriteConfig = getStorageRewriteConfig();
+  if (!rewriteConfig) return null;
+  if (url.hostname !== rewriteConfig.fromHost) return null;
+  if (!url.pathname.startsWith(rewriteConfig.fromPrefix)) return null;
 
-  const objectPath = url.pathname.slice(CMS_BUCKET_PREFIX.length);
-  return `https://${PROD_SUPABASE_HOST}${PROD_BUCKET_PREFIX}${objectPath}`;
+  const objectPath = url.pathname.slice(rewriteConfig.fromPrefix.length);
+  return `https://${rewriteConfig.toHost}${rewriteConfig.toPrefix}${objectPath}`;
 }
 
 function rewriteLocalImageUrlForOptimizer(url: URL) {
   const supabaseUrlEnv = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-  
-  // Check if the URL points to local Supabase storage (port 54321)
-  const isLocalSupabaseUrl = (
+  const isLocalSupabaseUrl =
     (url.hostname === "localhost" || url.hostname === "127.0.0.1" || url.hostname === DOCKER_HOST_GATEWAY) &&
-    url.port === "54321"
-  );
+    url.port === "54321";
 
   if (isLocalSupabaseUrl && supabaseUrlEnv) {
     try {
       const envUrl = new URL(supabaseUrlEnv);
-      const isEnvUrlLocal = (
+      const isEnvUrlLocal =
         envUrl.hostname === "localhost" ||
         envUrl.hostname === "127.0.0.1" ||
-        envUrl.hostname === DOCKER_HOST_GATEWAY
-      );
+        envUrl.hostname === DOCKER_HOST_GATEWAY;
 
-      // If the database gives us a local URL but we are connected to a remote Supabase Cloud instance,
-      // rewrite it dynamically to fetch from the remote storage bucket.
       if (!isEnvUrlLocal) {
         const rewritten = new URL(url.toString());
         rewritten.protocol = envUrl.protocol;
         rewritten.host = envUrl.host;
         rewritten.port = envUrl.port;
-        
         return rewritten.toString();
       }
-    } catch (e) {
-      console.error("[public-images] Invalid NEXT_PUBLIC_SUPABASE_URL parsing:", e);
+    } catch (error) {
+      console.error("[public-images] Invalid NEXT_PUBLIC_SUPABASE_URL parsing:", error);
     }
   }
 
-  // Check if the URL points to local Strapi CMS (port 1337)
-  const isLocalStrapiUrl = (
+  const isLocalStrapiUrl =
     (url.hostname === "localhost" || url.hostname === "127.0.0.1" || url.hostname === DOCKER_HOST_GATEWAY) &&
-    url.port === "1337"
-  );
+    url.port === "1337";
 
   if (isLocalStrapiUrl) {
     const rewritten = new URL(url.toString());
@@ -104,9 +135,8 @@ export function getPublicImageUrl(value: string | null | undefined, fallback: st
     if (url.protocol !== "http:" && url.protocol !== "https:") return fallback;
     if (url.username || url.password) return fallback;
 
-    // Rewrite CMS Supabase storage URLs to production bucket
-    const cmsRewrite = rewriteCmsStorageUrl(url);
-    if (cmsRewrite) return cmsRewrite;
+    const storageRewrite = rewriteConfiguredStorageUrl(url);
+    if (storageRewrite) return storageRewrite;
 
     return rewriteLocalImageUrlForOptimizer(url);
   } catch {

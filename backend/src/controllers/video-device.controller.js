@@ -1,3 +1,4 @@
+const { logger } = require('../utils/logger');
 const { getAuthenticatedUser, isEmailVerified } = require('../utils/auth');
 const { isUuid } = require('../utils/validation');
 const {
@@ -32,7 +33,7 @@ exports.listVideoDevices = async (req, res) => {
     });
     return res.json(deviceSummary);
   } catch (err) {
-    console.error('[Video Device Controller] Error listing devices:', err.message);
+    logger.error('[Video Device Controller] Error listing devices:', err.message);
     return res.status(500).json({ error: 'No pudimos cargar tus dispositivos.' });
   }
 };
@@ -70,7 +71,7 @@ exports.revokeVideoDevice = async (req, res) => {
       return res.status(err.status).json({ error: getPublicDeviceErrorMessage(err.code) });
     }
 
-    console.error('[Video Device Controller] Error revoking device:', err.message);
+    logger.error('[Video Device Controller] Error revoking device:', err.message);
     return res.status(500).json({ error: 'No pudimos revocar el dispositivo.' });
   }
 };

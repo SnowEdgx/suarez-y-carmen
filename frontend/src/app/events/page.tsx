@@ -46,7 +46,7 @@ function formatDateParts(value: string) {
 
 function formatEventDateRange(startValue: string, endValue: string | null) {
   const start = formatDateParts(startValue);
-  if (!start) return "Fecha pendiente";
+  if (!start) return "Fecha por confirmar";
 
   const end = endValue ? formatDateParts(endValue) : null;
   if (!end) return `${start.day} de ${start.month} de ${start.year}`;
@@ -193,7 +193,7 @@ export default async function EventsPage() {
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
             {events.map((event) => {
               const title = normalizeDisplayText(event.title, "Evento");
-              const city = normalizeDisplayText(event.city, "Ubicación pendiente");
+              const city = normalizeDisplayText(event.city, "Ubicación por confirmar");
               const type = normalizeDisplayText(event.type, "Evento");
               const imageUrl = getPublicImageUrl(event.image_url);
 

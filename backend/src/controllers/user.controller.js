@@ -1,3 +1,4 @@
+const { logger } = require('../utils/logger');
 const crypto = require('crypto');
 const { supabase } = require('../config/supabase');
 const { buildAccountDeletionEmail } = require('../services/account-deletion-email.service');
@@ -27,7 +28,7 @@ async function requestDeleteAccount(req, res, next) {
       });
 
     if (dbError) {
-      console.error('[Delete Account] Database insert failed:', dbError.message);
+      logger.error('[Delete Account] Database insert failed:', dbError.message);
       return res.status(500).json({ error: 'No pudimos procesar tu solicitud en este momento.' });
     }
 
@@ -38,7 +39,7 @@ async function requestDeleteAccount(req, res, next) {
     const resendFrom = process.env.RESEND_FROM_EMAIL || 'academy@mail.suarezycarmenbachata.com';
 
     if (!resendApiKey) {
-      console.error('[Delete Account] RESEND_API_KEY is not defined in environment variables.');
+      logger.error('[Delete Account] RESEND_API_KEY is not defined in environment variables.');
       return res.status(500).json({ error: 'El servicio de correo electrónico no está configurado.' });
     }
 
@@ -61,11 +62,11 @@ async function requestDeleteAccount(req, res, next) {
 
       if (!response.ok) {
         const errBody = await response.json().catch(() => ({}));
-        console.error('[Delete Account] Resend API error status:', response.status, errBody);
+        logger.error('[Delete Account] Resend API error status:', response.status, errBody);
         return res.status(500).json({ error: 'El servicio de correo falló al enviar la confirmación.' });
       }
     } catch (mailError) {
-      console.error('[Delete Account] Network error while calling Resend:', mailError.message);
+      logger.error('[Delete Account] Network error while calling Resend:', mailError.message);
       return res.status(500).json({ error: 'Error de red al enviar el correo de confirmación.' });
     }
 
@@ -103,7 +104,7 @@ async function confirmDeleteAccount(req, res, next) {
     const { error: deleteError } = await supabase.auth.admin.deleteUser(request.user_id);
 
     if (deleteError) {
-      console.error('[Delete Account] Supabase delete user failed:', deleteError.message);
+      logger.error('[Delete Account] Supabase delete user failed:', deleteError.message);
       return res.status(500).json({ error: 'No se pudo completar el borrado de tu cuenta. Contacta con soporte.' });
     }
 

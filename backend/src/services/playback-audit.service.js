@@ -1,3 +1,4 @@
+const { logger } = require('../utils/logger');
 const { supabase } = require('../config/supabase');
 const { hashRequestValue } = require('./video-device.service');
 const { getClientIp, getUserAgent } = require('../utils/request');
@@ -34,7 +35,7 @@ async function recordPlaybackEvent({
 
 function recordPlaybackEventSafe(event) {
   recordPlaybackEvent(event).catch((error) => {
-    console.warn('[Playback Audit Service] Playback audit write failed:', error.message);
+    logger.warn('[Playback Audit Service] Playback audit write failed:', error.message);
   });
 }
 

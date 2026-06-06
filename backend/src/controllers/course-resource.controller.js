@@ -1,3 +1,4 @@
+const { logger } = require('../utils/logger');
 const { getAuthenticatedUser } = require('../utils/auth');
 const { UUID_REGEX } = require('../utils/validation');
 const {
@@ -26,9 +27,9 @@ exports.getCourseResourceViewUrl = async (req, res) => {
   } catch (err) {
     const status = err.status || 500;
     if (status >= 500) {
-      console.error('[Course Resource Controller] Error resolving resource access:', err.message);
+      logger.error('[Course Resource Controller] Error resolving resource access:', err.message);
     } else {
-      console.warn('[Course Resource Controller] Resource access rejected:', err.message);
+      logger.warn('[Course Resource Controller] Resource access rejected:', err.message);
     }
 
     return res.status(status).json({
@@ -56,9 +57,9 @@ exports.viewCourseResource = async (req, res) => {
   } catch (err) {
     const status = err.status || 500;
     if (status >= 500) {
-      console.error('[Course Resource Controller] Error streaming resource:', err.message);
+      logger.error('[Course Resource Controller] Error streaming resource:', err.message);
     } else {
-      console.warn('[Course Resource Controller] Resource stream rejected:', err.message);
+      logger.warn('[Course Resource Controller] Resource stream rejected:', err.message);
     }
 
     return res.status(status).json({

@@ -1,3 +1,4 @@
+const { logger } = require('../utils/logger');
 const { supabase } = require('../config/supabase');
 const { UUID_REGEX } = require('../utils/validation');
 const {
@@ -10,7 +11,7 @@ const { extractPaymentIntentId } = require('./stripe-client.service');
 async function resolvePaidCheckoutStatus({ session, user }) {
   const courseId = session.metadata?.courseId;
   if (!courseId || !UUID_REGEX.test(courseId)) {
-    console.error('[Stripe Controller] Paid checkout session is missing valid course metadata:', session.id);
+    logger.error('[Stripe Controller] Paid checkout session is missing valid course metadata:', session.id);
     return {
       status: PURCHASE_STATUS.PAID,
       sessionId: session.id,
@@ -35,7 +36,7 @@ async function resolvePaidCheckoutStatus({ session, user }) {
   }
 
   if (!Number.isInteger(normalizedAmountCents) || normalizedAmountCents <= 0) {
-    console.error('[Stripe Controller] Could not infer paid checkout amount:', session.id);
+    logger.error('[Stripe Controller] Could not infer paid checkout amount:', session.id);
     return {
       status: PURCHASE_STATUS.PAID,
       sessionId: session.id,

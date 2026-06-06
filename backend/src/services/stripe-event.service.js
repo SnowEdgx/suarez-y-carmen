@@ -1,3 +1,4 @@
+const { logger } = require('../utils/logger');
 const { supabase } = require('../config/supabase');
 
 async function markStripeEventReceived(event) {
@@ -17,7 +18,7 @@ async function rollbackStripeEvent(eventId) {
     .eq('id', eventId);
 
   if (error) {
-    console.error('[Stripe Event Service] Event rollback failed:', error.message);
+    logger.error('[Stripe Event Service] Event rollback failed:', error.message);
   }
 }
 

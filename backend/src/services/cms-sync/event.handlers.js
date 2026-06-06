@@ -59,7 +59,10 @@ async function upsertEvent(entry) {
 }
 
 async function unpublishEvent(entry) {
-  const existing = await findEvent(entry, { allowFallback: !entry.cmsDocumentId });
+  const cmsDocumentId = optionalString(entry.cmsDocumentId, 255);
+  if (!cmsDocumentId) return { id: null, skipped: true };
+
+  const existing = await findEvent({ cmsDocumentId }, { allowFallback: false });
   if (!existing?.id) return { id: null, skipped: true };
 
   const result = await supabase

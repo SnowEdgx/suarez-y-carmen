@@ -1,3 +1,4 @@
+const { logger } = require('../../utils/logger');
 const { supabase } = require('../../config/supabase');
 
 const RAW_SIGNED_URL_TTL_SECONDS = Number.parseInt(
@@ -15,7 +16,7 @@ async function createStorageSignedUrl(storageReference) {
     .createSignedUrl(storageReference.path, Math.min(SIGNED_URL_TTL_SECONDS, 300));
 
   if (error || !data?.signedUrl) {
-    console.error(
+    logger.error(
       '[Video Storage Service] Error creating signed URL:',
       error?.message || 'unknown storage error'
     );

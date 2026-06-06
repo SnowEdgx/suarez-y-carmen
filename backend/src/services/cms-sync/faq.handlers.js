@@ -30,7 +30,10 @@ async function upsertFaq(entry) {
 }
 
 async function unpublishFaq(entry) {
-  const existing = await findFaq(entry, { allowFallback: !entry.cmsDocumentId });
+  const cmsDocumentId = optionalString(entry.cmsDocumentId, 255);
+  if (!cmsDocumentId) return { id: null, skipped: true };
+
+  const existing = await findFaq({ cmsDocumentId }, { allowFallback: false });
   if (!existing?.id) return { id: null, skipped: true };
 
   const result = await supabase

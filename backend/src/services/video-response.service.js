@@ -1,3 +1,4 @@
+const { logger } = require('../utils/logger');
 const { Readable } = require('stream');
 const { getForwardableRangeHeader } = require('../utils/range-header');
 const {
@@ -35,7 +36,7 @@ async function streamStorageObject({ req, res, storageReference, audit }) {
   const upstreamResponse = await fetchStorageObject(storageReference, { rangeHeader });
 
   if (!upstreamResponse.ok && upstreamResponse.status !== 206) {
-    console.error('[Lesson Controller] Storage stream failed:', upstreamResponse.status);
+    logger.error('[Lesson Controller] Storage stream failed:', upstreamResponse.status);
     recordPlaybackEventSafe({
       ...audit,
       eventType: 'stream_error',
@@ -75,7 +76,7 @@ async function serveHlsObject({ req, res, rawToken, resourceReference, rootRefer
   const upstreamResponse = await fetchStorageObject(resourceReference, { rangeHeader });
 
   if (!upstreamResponse.ok) {
-    console.error('[Lesson Controller] HLS storage fetch failed:', upstreamResponse.status);
+    logger.error('[Lesson Controller] HLS storage fetch failed:', upstreamResponse.status);
     recordPlaybackEventSafe({
       ...audit,
       eventType: 'stream_error',

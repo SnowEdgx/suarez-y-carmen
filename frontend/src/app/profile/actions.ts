@@ -11,8 +11,8 @@ import {
   AUTH_SESSION_PREFERENCE_COOKIE,
   getExpiredSessionPreferenceCookieOptions,
 } from '@/lib/auth-session'
+import { isUuid } from '@/lib/uuid'
 
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{12}$/i
 const MAX_PROFILE_NAME_LENGTH = 120
 
 function isEmailRateLimitError(error: { status?: number; code?: string; message?: string }) {
@@ -114,7 +114,7 @@ async function readJsonSafely(response: Response) {
 export async function revokeVideoDevice(formData: FormData) {
   const deviceId = typeof formData.get('deviceId') === 'string' ? formData.get('deviceId') as string : ''
 
-  if (!UUID_REGEX.test(deviceId)) {
+  if (!isUuid(deviceId)) {
     return { error: 'No pudimos identificar el dispositivo.' }
   }
 
