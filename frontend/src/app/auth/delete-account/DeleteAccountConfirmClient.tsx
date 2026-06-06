@@ -29,7 +29,6 @@ export default function DeleteAccountConfirmClient() {
         setError(result.error);
       } else if (result?.success) {
         setSuccess(true);
-        // Redirigir después de 3 segundos para que vean el mensaje de éxito
         setTimeout(() => {
           router.push("/login?account_deleted=1");
         }, 3000);
@@ -43,10 +42,12 @@ export default function DeleteAccountConfirmClient() {
 
   if (!token) {
     return (
-      <div className="w-full max-w-md rounded-3xl border border-red-500/20 bg-neutral-900/50 p-8 backdrop-blur-md shadow-2xl text-center">
-        <div className="text-4xl mb-4" role="img" aria-label="Error">❌</div>
-        <h1 className="text-2xl font-semibold text-white mb-3">Enlace inválido</h1>
-        <p className="text-sm text-neutral-400 mb-6 leading-relaxed">
+      <div className="w-full max-w-md rounded-3xl border border-neutral-800 bg-neutral-900/50 p-8 shadow-2xl backdrop-blur-md">
+        <div className="mb-5 inline-flex rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-red-300">
+          Error
+        </div>
+        <h1 className="mb-3 text-2xl font-semibold text-white">Enlace inválido</h1>
+        <p className="mb-6 text-sm leading-relaxed text-neutral-400">
           El enlace de confirmación es incorrecto o está incompleto. Solicita una nueva confirmación desde tu perfil.
         </p>
         <Link
@@ -61,14 +62,16 @@ export default function DeleteAccountConfirmClient() {
 
   if (success) {
     return (
-      <div className="w-full max-w-md rounded-3xl border border-green-500/20 bg-neutral-900/50 p-8 backdrop-blur-md shadow-2xl text-center animate-scale-in">
-        <div className="text-4xl mb-4" role="img" aria-label="Éxito">👋</div>
-        <h1 className="text-2xl font-semibold text-white mb-3">Cuenta eliminada</h1>
-        <p className="text-sm text-neutral-400 mb-6 leading-relaxed">
-          Tu cuenta y todos tus datos asociados han sido eliminados de forma definitiva. Lamentamos verte partir.
+      <div className="w-full max-w-md rounded-3xl border border-green-500/20 bg-neutral-900/50 p-8 shadow-2xl backdrop-blur-md animate-scale-in">
+        <div className="mb-5 inline-flex rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-green-300">
+          Confirmado
+        </div>
+        <h1 className="mb-3 text-2xl font-semibold text-white">Cuenta eliminada</h1>
+        <p className="mb-6 text-sm leading-relaxed text-neutral-400">
+          Tu cuenta y los datos asociados se han eliminado correctamente.
         </p>
         <div className="text-xs text-neutral-500 animate-pulse">
-          Redirigiendo a la página de inicio...
+          Redirigiendo al inicio de sesión...
         </div>
       </div>
     );
@@ -76,16 +79,15 @@ export default function DeleteAccountConfirmClient() {
 
   return (
     <div className="w-full max-w-md rounded-3xl border border-neutral-800 bg-neutral-900/40 p-6 sm:p-8 backdrop-blur-md shadow-2xl animate-scale-in">
-      <div className="flex items-center justify-center w-14 h-14 mx-auto mb-6 rounded-full bg-red-500/10 text-red-500">
-        <span className="text-3xl" role="img" aria-label="Alerta">⚠️</span>
+      <div className="mb-5 inline-flex rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-red-300">
+        Acción definitiva
       </div>
 
-      <h1 className="text-2xl font-semibold text-center text-white mb-3">
-        Confirmación definitiva
-      </h1>
+      <h1 className="mb-3 text-2xl font-semibold text-white">Confirmar borrado de cuenta</h1>
 
-      <p className="text-sm text-center text-neutral-400 mb-6 leading-relaxed">
-        Estás a punto de borrar definitivamente tu cuenta de la academia. Esta acción no se puede deshacer y perderás tus compras y tu progreso para siempre.
+      <p className="mb-6 text-sm leading-relaxed text-neutral-400">
+        Esta confirmación eliminará tu cuenta de alumno, tus compras y tu progreso. Si no quieres continuar,
+        vuelve a tu perfil y no uses este enlace.
       </p>
 
       {error && (

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import { PlayCircle } from "lucide-react";
-import { startCourseCheckout } from "@/app/courses/actions";
 import { getCourseImageUrl, shouldBypassImageOptimization } from "@/lib/course-images";
 import { normalizeDisplayText } from "@/lib/display-text";
 
@@ -18,8 +17,6 @@ type CourseItem = {
 interface CourseGridProps {
   courses: CourseItem[];
   purchasedCourseIds: string[];
-  isAuthenticated: boolean;
-  purchaseStatusUnavailable?: boolean;
 }
 
 function formatPrice(priceCents: number | null) {
@@ -38,8 +35,6 @@ function getCoursePath(slug: string) {
 export default function CourseGrid({
   courses,
   purchasedCourseIds,
-  isAuthenticated,
-  purchaseStatusUnavailable = false,
 }: CourseGridProps) {
   const purchasedSet = new Set(purchasedCourseIds);
 
@@ -63,7 +58,6 @@ export default function CourseGrid({
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {courses.map((course, index) => {
               const isOwned = purchasedSet.has(course.id);
-              const hasPrice = Number.isInteger(course.price_cents) && (course.price_cents as number) > 0;
               const imageSrc = getCourseImageUrl(course.cover_image_url);
               const coursePath = getCoursePath(course.slug);
               const title = normalizeDisplayText(course.title, "Curso");
@@ -113,55 +107,16 @@ export default function CourseGrid({
 
                     <p className="text-white font-semibold">{formatPrice(course.price_cents)}</p>
 
-                    <div className="mt-auto space-y-3">
-                      {isOwned ? (
-                        <Link
-                          href={coursePath}
-                          className="w-full text-center py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors block"
-                        >
-                          Ver curso
-                        </Link>
-                      ) : purchaseStatusUnavailable ? (
-                        <button
-                          type="button"
-                          disabled
-                          className="w-full py-3 bg-neutral-800 text-neutral-400 font-semibold rounded-lg cursor-not-allowed"
-                        >
-                          Acceso no verificado
-                        </button>
-                      ) : !hasPrice ? (
-                        <button
-                          type="button"
-                          disabled
-                          className="w-full py-3 bg-neutral-800 text-neutral-400 font-semibold rounded-lg cursor-not-allowed"
-                        >
-                          Compra no disponible
-                        </button>
-                      ) : isAuthenticated ? (
-                        <form action={startCourseCheckout}>
-                          <input type="hidden" name="courseId" value={course.id} />
-                          <input type="hidden" name="returnTo" value="/courses" />
-                          <button
-                            type="submit"
-                            className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors"
-                          >
-                            Comprar curso
-                          </button>
-                        </form>
-                      ) : (
-                        <Link
-                          href={`/login?next=${encodeURIComponent(coursePath)}`}
-                          className="w-full text-center py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors block"
-                        >
-                          Inicia sesión para comprar
-                        </Link>
-                      )}
-
+                    <div className="mt-auto">
                       <Link
                         href={coursePath}
-                        className="w-full text-center py-2.5 border border-neutral-700 text-neutral-200 hover:text-white hover:border-neutral-500 rounded-lg transition-colors block"
+                        className={`block w-full rounded-lg py-3 text-center font-semibold transition-colors ${
+                          isOwned
+                            ? "bg-green-600 text-white hover:bg-green-700"
+                            : "bg-red-600 text-white hover:bg-red-700"
+                        }`}
                       >
-                        Ver detalle y vistas previas
+                        {isOwned ? "Continuar curso" : "Ver detalle y vistas previas"}
                       </Link>
                     </div>
                   </div>

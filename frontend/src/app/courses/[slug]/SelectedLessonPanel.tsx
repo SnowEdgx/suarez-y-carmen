@@ -1,7 +1,6 @@
 import Link from "next/link";
 import SecureVideoPlayer from "@/components/courses/SecureVideoPlayer";
 import { normalizeDisplayText } from "@/lib/display-text";
-import { startCourseCheckout } from "../actions";
 import { setLessonProgress } from "./actions";
 import type { CourseDetailViewProps } from "./course-detail.model";
 
@@ -35,42 +34,15 @@ function LessonProgressSummary({
 
 function EmptyLessonState({
   lessons,
-  course,
-  hasPurchased,
-  hasValidPrice,
-  purchaseCheckUnavailable,
-  isAuthenticated,
-  checkoutReturnPath,
-}: Pick<
-  CourseDetailViewProps,
-  "lessons" | "course" | "hasPurchased" | "hasValidPrice" | "purchaseCheckUnavailable" | "isAuthenticated" | "checkoutReturnPath"
->) {
+}: Pick<CourseDetailViewProps, "lessons">) {
   return (
     <div className="rounded-2xl border border-neutral-800 bg-neutral-900/35 p-6">
       {lessons.length > 0 ? (
-        <div className="space-y-4">
+        <div className="space-y-2">
           <p className="text-neutral-300">Las lecciones completas se desbloquean al comprar el curso.</p>
-          {!hasPurchased && hasValidPrice && !purchaseCheckUnavailable && (
-            isAuthenticated ? (
-              <form action={startCourseCheckout}>
-                <input type="hidden" name="courseId" value={course.id} />
-                <input type="hidden" name="returnTo" value={checkoutReturnPath} />
-                <button
-                  type="submit"
-                  className="rounded-full bg-red-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-700"
-                >
-                  Comprar curso
-                </button>
-              </form>
-            ) : (
-              <Link
-                href={`/login?next=${encodeURIComponent(checkoutReturnPath)}`}
-                className="inline-block rounded-full bg-red-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-700"
-              >
-                Inicia sesión para comprar
-              </Link>
-            )
-          )}
+          <p className="text-sm text-neutral-500">
+            El acceso completo se activa desde el botón principal del curso.
+          </p>
         </div>
       ) : (
         <p className="text-neutral-400">Aún no hay lecciones disponibles para este curso.</p>
@@ -88,14 +60,11 @@ export default function SelectedLessonPanel({
   completedAccessibleLessons,
   progressPercent,
   hasPurchased,
-  hasValidPrice,
-  purchaseCheckUnavailable,
   isAuthenticated,
   featuredLesson,
   featuredLessonVideoUrl,
   featuredLessonVideoMessage,
   featuredLessonVideoErrorCode,
-  checkoutReturnPath,
 }: CourseDetailViewProps) {
   const accessibleLessonCount = accessibleLessonIds.size;
 
@@ -172,15 +141,7 @@ export default function SelectedLessonPanel({
           </div>
         </div>
       ) : (
-        <EmptyLessonState
-          lessons={lessons}
-          course={course}
-          hasPurchased={hasPurchased}
-          hasValidPrice={hasValidPrice}
-          purchaseCheckUnavailable={purchaseCheckUnavailable}
-          isAuthenticated={isAuthenticated}
-          checkoutReturnPath={checkoutReturnPath}
-        />
+        <EmptyLessonState lessons={lessons} />
       )}
     </section>
   );

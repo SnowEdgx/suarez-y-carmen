@@ -19,7 +19,7 @@ export default function DeleteAccountConfirmPage() {
       <Navbar />
 
       <main id="main-content" className="relative z-10 flex-1 flex items-center justify-center px-6 pb-20 pt-32 md:px-12">
-        {/* Background ambient glow matching login page */}
+        {/* Ambient background aligned with auth pages. */}
         <div 
           className="pointer-events-none absolute inset-x-0 top-0 h-[520px] bg-[radial-gradient(circle_at_18%_18%,rgba(220,38,38,0.18),transparent_34%),linear-gradient(180deg,rgba(10,10,10,0.2),#0a0a0a)]" 
           aria-hidden="true"

@@ -131,17 +131,15 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
   ])
 
   let purchasedCourseIds: string[] = []
-  let purchaseStatusUnavailable = false
 
   if (user && purchases) {
     if (!purchases.error) {
       purchasedCourseIds = (purchases.data || []).map((entry: { course_id: string }) => entry.course_id)
     } else {
-      purchaseStatusUnavailable = true
       logAppError('Courses Page', 'Could not verify purchased courses', purchases.error)
       pageMessages.push({
         type: 'error',
-        text: 'No pudimos verificar tus cursos comprados. Por seguridad, las compras quedan bloqueadas temporalmente.',
+        text: 'No pudimos verificar tus cursos comprados. Recarga la página en unos segundos.',
       })
     }
   }
@@ -184,8 +182,6 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
         <CourseGrid
           courses={courses}
           purchasedCourseIds={purchasedCourseIds}
-          isAuthenticated={Boolean(user)}
-          purchaseStatusUnavailable={purchaseStatusUnavailable}
         />
       </main>
       <Footer />

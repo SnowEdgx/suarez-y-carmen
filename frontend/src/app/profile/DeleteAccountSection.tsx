@@ -31,9 +31,9 @@ export default function DeleteAccountSection() {
     <div>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h3 className="text-sm font-semibold text-white">Borrar cuenta permanentemente</h3>
+          <h3 className="text-sm font-semibold text-white">Borrar cuenta</h3>
           <p className="mt-1 text-sm text-neutral-400">
-            Esta acción eliminará de forma irreversible tu acceso a los cursos comprados, tu progreso y tus datos personales.
+            Solicita un enlace de confirmación para eliminar tu cuenta de forma definitiva.
           </p>
         </div>
         <button
@@ -43,7 +43,7 @@ export default function DeleteAccountSection() {
           aria-busy={isPending}
           className="rounded-full border border-red-500/30 bg-red-950/10 px-5 py-2.5 text-sm font-semibold text-red-400 transition-colors hover:bg-red-950/30 hover:border-red-500/50 hover:text-red-300 disabled:pointer-events-none disabled:opacity-50 shrink-0"
         >
-          {isPending ? "Solicitando..." : "Borrar cuenta"}
+          {isPending ? "Solicitando..." : "Solicitar borrado"}
         </button>
       </div>
 
@@ -61,27 +61,28 @@ export default function DeleteAccountSection() {
         </div>
       )}
 
-      {/* Confirmation Modal */}
       {isOpen && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in"
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm animate-fade-in"
           role="dialog"
           aria-modal="true"
+          aria-labelledby="delete-account-title"
         >
-          <div className="relative w-full max-w-md overflow-hidden rounded-3xl border border-neutral-800 bg-neutral-900 p-6 shadow-2xl sm:p-8 animate-scale-in">
-            <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full bg-red-500/10 text-red-500">
-              <span className="text-2xl" aria-hidden="true">⚠️</span>
+          <div className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-neutral-800 bg-neutral-950 p-6 shadow-2xl sm:p-8 animate-scale-in">
+            <div className="mb-5 inline-flex rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-red-300">
+              Acción definitiva
             </div>
-            
-            <h3 className="text-lg font-semibold text-center text-white mb-2">
-              ¿Eliminar cuenta definitivamente?
+
+            <h3 id="delete-account-title" className="text-xl font-semibold text-white">
+              Confirma la solicitud de borrado
             </h3>
-            
-            <p className="text-sm text-center text-neutral-400 mb-6 leading-relaxed">
-              Te enviaremos un correo electrónico de confirmación. Tendrás que pulsar el enlace contenido en él para finalizar la eliminación. Perderás tus cursos, tu progreso y datos de forma irreversible.
+
+            <p className="mt-3 text-sm leading-relaxed text-neutral-400">
+              Te enviaremos un correo con un enlace de un solo uso. Al confirmarlo, se eliminarán tu perfil,
+              tus compras, tu progreso y los datos asociados a la cuenta.
             </p>
-            
-            <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:justify-end">
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
@@ -92,9 +93,9 @@ export default function DeleteAccountSection() {
               <button
                 type="button"
                 onClick={handleRequestDeletion}
-                className="rounded-full bg-red-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg transition-all hover:bg-red-700 active:scale-[0.98]"
+                className="rounded-full bg-red-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-red-950/30 transition-all hover:bg-red-700 active:scale-[0.98]"
               >
-                Solicitar borrado
+                Enviar correo de borrado
               </button>
             </div>
           </div>
