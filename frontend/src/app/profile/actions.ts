@@ -212,12 +212,12 @@ export async function requestAccountDeletionAction() {
 }
 
 /**
- * Confirma el borrado definitivo de cuenta en el backend Express
+ * Confirma la eliminación de cuenta en el backend Express
  * y cierra la sesión en el cliente Next.js.
  */
 export async function confirmAccountDeletionAction(token: string) {
   if (!token) {
-    return { error: 'Token de confirmación no proporcionado.' }
+    return { error: 'El enlace de confirmación no es válido o está incompleto.' }
   }
 
   let response: Response

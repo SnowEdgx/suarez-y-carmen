@@ -16,7 +16,7 @@ export default function DeleteAccountConfirmClient() {
 
   async function handleConfirmDelete() {
     if (!token) {
-      setError("Token de confirmación no válido o ausente.");
+      setError("El enlace de confirmación no es válido o está incompleto.");
       return;
     }
 
@@ -44,7 +44,7 @@ export default function DeleteAccountConfirmClient() {
     return (
       <div className="w-full max-w-md rounded-3xl border border-neutral-800 bg-neutral-900/50 p-8 shadow-2xl backdrop-blur-md">
         <div className="mb-5 inline-flex rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-red-300">
-          Error
+          Enlace no válido
         </div>
         <h1 className="mb-3 text-2xl font-semibold text-white">Enlace inválido</h1>
         <p className="mb-6 text-sm leading-relaxed text-neutral-400">
@@ -80,10 +80,10 @@ export default function DeleteAccountConfirmClient() {
   return (
     <div className="w-full max-w-md rounded-3xl border border-neutral-800 bg-neutral-900/40 p-6 sm:p-8 backdrop-blur-md shadow-2xl animate-scale-in">
       <div className="mb-5 inline-flex rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-red-300">
-        Acción definitiva
+        Confirmación necesaria
       </div>
 
-      <h1 className="mb-3 text-2xl font-semibold text-white">Confirmar borrado de cuenta</h1>
+      <h1 className="mb-3 text-2xl font-semibold text-white">Confirmar eliminación de cuenta</h1>
 
       <p className="mb-6 text-sm leading-relaxed text-neutral-400">
         Esta confirmación eliminará tu cuenta de alumno, tus compras y tu progreso. Si no quieres continuar,
@@ -107,7 +107,7 @@ export default function DeleteAccountConfirmClient() {
           aria-busy={isPending}
           className="w-full rounded-full bg-red-600 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:bg-red-700 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
         >
-          {isPending ? "Eliminando cuenta..." : "Sí, borrar cuenta definitivamente"}
+          {isPending ? "Eliminando cuenta..." : "Sí, eliminar mi cuenta"}
         </button>
         
         <Link

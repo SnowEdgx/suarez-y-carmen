@@ -5,8 +5,8 @@ import Footer from "@/components/home/Footer";
 import DeleteAccountConfirmClient from "./DeleteAccountConfirmClient";
 
 export const metadata: Metadata = {
-  title: "Confirmar borrado de cuenta | Suárez y Carmen",
-  description: "Confirmación de la eliminación definitiva de tu cuenta de alumno.",
+  title: "Confirmar eliminación de cuenta | Suárez y Carmen",
+  description: "Confirmación de la eliminación de tu cuenta de alumno.",
   robots: {
     index: false,
     follow: false,

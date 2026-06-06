@@ -5,7 +5,7 @@ const userController = require('../controllers/user.controller');
 // Solicitar borrado de cuenta (requiere estar autenticado)
 router.post('/request-delete-account', userController.requestDeleteAccount);
 
-// Confirmar borrado definitivo (público, recibe token en cuerpo)
+// Confirmar eliminación desde enlace de correo.
 router.post('/confirm-delete-account', userController.confirmDeleteAccount);
 
 module.exports = router;

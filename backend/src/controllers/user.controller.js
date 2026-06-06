@@ -81,7 +81,7 @@ async function confirmDeleteAccount(req, res, next) {
     const { token } = req.body;
 
     if (!token || !isUuid(token)) {
-      return res.status(400).json({ error: 'Token de confirmación ausente o con formato incorrecto.' });
+      return res.status(400).json({ error: 'El enlace de confirmación no es válido o está incompleto.' });
     }
 
     const { data: request, error: fetchError } = await supabase

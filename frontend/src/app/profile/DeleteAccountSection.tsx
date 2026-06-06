@@ -70,7 +70,7 @@ export default function DeleteAccountSection() {
         >
           <div className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-neutral-800 bg-neutral-950 p-6 shadow-2xl sm:p-8 animate-scale-in">
             <div className="mb-5 inline-flex rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-red-300">
-              Acción definitiva
+              Zona sensible
             </div>
 
             <h3 id="delete-account-title" className="text-xl font-semibold text-white">
