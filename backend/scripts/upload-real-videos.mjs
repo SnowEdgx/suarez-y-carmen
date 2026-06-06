@@ -30,7 +30,7 @@ function loadEnvFile(filePath) {
   }
 }
 
-// Cargar variables locales como fallback
+// Load local variables as a fallback for manual maintenance scripts.
 loadEnvFile(path.join(repoRoot, 'backend', '.env.local'));
 
 function resolveSupabaseUrl(rawUrl) {
@@ -43,16 +43,16 @@ function resolveSupabaseUrl(rawUrl) {
 
 const supabaseUrl = resolveSupabaseUrl(process.env.SUPABASE_URL);
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
-const videoDir = process.env.VIDEO_SOURCE_DIR || 'C:\\Users\\pedrx\\Downloads\\syc-demo-media\\bachazouk-videos';
+const videoDir = process.env.VIDEO_SOURCE_DIR || path.join(repoRoot, 'media', 'bachazouk-videos');
 const bucketName = process.env.SUPABASE_VIDEO_BUCKET || 'course-videos';
 
 if (!supabaseUrl || !supabaseKey) {
-  console.error('ERROR: Faltan credenciales de Supabase. Configura SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY.');
+  console.error('ERROR: Missing Supabase credentials. Configure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.');
   process.exit(1);
 }
 
 if (!existsSync(videoDir)) {
-  console.error(`ERROR: La carpeta de videos no existe en: ${videoDir}`);
+  console.error(`ERROR: Video source directory does not exist: ${videoDir}`);
   process.exit(1);
 }
 
@@ -64,27 +64,26 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
 });
 
 async function main() {
-  console.log(`Conectando a Supabase URL: ${supabaseUrl}`);
-  console.log(`Subiendo videos desde: ${videoDir}`);
-  console.log(`Destino Bucket: ${bucketName}`);
+  console.log(`Connecting to Supabase URL: ${supabaseUrl}`);
+  console.log(`Uploading videos from: ${videoDir}`);
+  console.log(`Destination bucket: ${bucketName}`);
 
-  // Asegurar que el bucket existe
-  const { data: bucket, error: bucketErr } = await supabase.storage.getBucket(bucketName);
+  const { error: bucketErr } = await supabase.storage.getBucket(bucketName);
   if (bucketErr) {
-    console.log(`Creando bucket "${bucketName}"...`);
+    console.log(`Creating bucket "${bucketName}"...`);
     const { error: createErr } = await supabase.storage.createBucket(bucketName, { public: false });
     if (createErr && !createErr.message.includes('already exists')) {
-      throw new Error(`No se pudo crear el bucket: ${createErr.message}`);
+      throw new Error(`Could not create bucket: ${createErr.message}`);
     }
   }
 
   const files = readdirSync(videoDir).filter(file => file.endsWith('.mp4'));
-  console.log(`Encontrados ${files.length} archivos MP4 para subir.`);
+  console.log(`Found ${files.length} MP4 files to upload.`);
 
   for (const file of files) {
     const filePath = path.join(videoDir, file);
     const storagePath = `bachazouk-vol-1/${file}`;
-    console.log(`Subiendo ${file} -> ${bucketName}/${storagePath}...`);
+    console.log(`Uploading ${file} -> ${bucketName}/${storagePath}...`);
 
     const fileBuffer = readFileSync(filePath);
 
@@ -96,13 +95,13 @@ async function main() {
       });
 
     if (error) {
-      console.error(`❌ Error al subir ${file}: ${error.message}`);
+      console.error(`ERROR: Could not upload ${file}: ${error.message}`);
     } else {
-      console.log(`✅ Subido con éxito: ${file}`);
+      console.log(`Uploaded successfully: ${file}`);
     }
   }
 
-  console.log('--- Proceso de subida de videos completado ---');
+  console.log('Video upload process completed.');
 }
 
 main().catch(console.error);

@@ -47,6 +47,7 @@ const supabasePublicStorageRemotePattern = getSupabasePublicStorageRemotePattern
 
 const nextConfig: NextConfig = {
   distDir,
+  poweredByHeader: false,
   allowedDevOrigins: ["127.0.0.1"],
   async headers() {
     return [

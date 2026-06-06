@@ -39,6 +39,9 @@ cms/public/uploads/*
 !cms/public/uploads/.gitkeep
 cms-build.log
 
+# Local media used by maintenance scripts
+media/
+
 # OS
 .DS_Store
 Thumbs.db

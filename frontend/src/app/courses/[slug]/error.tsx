@@ -5,7 +5,7 @@ import Link from "next/link";
 
 export default function CourseDetailError({ error, reset }: { error: Error; reset: () => void }) {
   useEffect(() => {
-    console.error("Error en vista detallada de curso:", error);
+    console.error("[Course Detail] Failed to render course detail view:", error);
   }, [error]);
 
   return (

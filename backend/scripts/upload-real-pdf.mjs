@@ -30,7 +30,7 @@ function loadEnvFile(filePath) {
   }
 }
 
-// Cargar variables locales como fallback
+// Load local variables as a fallback for manual maintenance scripts.
 loadEnvFile(path.join(repoRoot, 'backend', '.env.local'));
 
 function resolveSupabaseUrl(rawUrl) {
@@ -43,17 +43,17 @@ function resolveSupabaseUrl(rawUrl) {
 
 const supabaseUrl = resolveSupabaseUrl(process.env.SUPABASE_URL);
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
-const pdfPath = process.env.PDF_SOURCE_PATH || 'C:\\Users\\pedrx\\Downloads\\0. Bachazouk vol 1.pdf';
+const pdfPath = process.env.PDF_SOURCE_PATH || path.join(repoRoot, 'media', 'bachazouk-vol-1.pdf');
 const bucketName = process.env.SUPABASE_RESOURCE_BUCKET || 'course-resources';
 const storagePath = 'bachazouk-vol-1/bachazouk-vol-1.pdf';
 
 if (!supabaseUrl || !supabaseKey) {
-  console.error('ERROR: Faltan credenciales de Supabase. Configura SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY.');
+  console.error('ERROR: Missing Supabase credentials. Configure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.');
   process.exit(1);
 }
 
 if (!existsSync(pdfPath)) {
-  console.error(`ERROR: El archivo PDF no existe en: ${pdfPath}`);
+  console.error(`ERROR: PDF source file does not exist: ${pdfPath}`);
   process.exit(1);
 }
 
@@ -65,17 +65,16 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
 });
 
 async function main() {
-  console.log(`Conectando a Supabase URL: ${supabaseUrl}`);
-  console.log(`Subiendo PDF desde: ${pdfPath}`);
-  console.log(`Destino Bucket: ${bucketName}/${storagePath}`);
+  console.log(`Connecting to Supabase URL: ${supabaseUrl}`);
+  console.log(`Uploading PDF from: ${pdfPath}`);
+  console.log(`Destination bucket: ${bucketName}/${storagePath}`);
 
-  // Asegurar que el bucket existe
-  const { data: bucket, error: bucketErr } = await supabase.storage.getBucket(bucketName);
+  const { error: bucketErr } = await supabase.storage.getBucket(bucketName);
   if (bucketErr) {
-    console.log(`Creando bucket "${bucketName}"...`);
+    console.log(`Creating bucket "${bucketName}"...`);
     const { error: createErr } = await supabase.storage.createBucket(bucketName, { public: false });
     if (createErr && !createErr.message.includes('already exists')) {
-      throw new Error(`No se pudo crear el bucket: ${createErr.message}`);
+      throw new Error(`Could not create bucket: ${createErr.message}`);
     }
   }
 
@@ -89,10 +88,10 @@ async function main() {
     });
 
   if (error) {
-    console.error(`❌ Error al subir el PDF: ${error.message}`);
+    console.error(`ERROR: Could not upload PDF: ${error.message}`);
     process.exit(1);
   } else {
-    console.log(`✅ PDF subido con éxito a ${bucketName}/${storagePath}`);
+    console.log(`PDF uploaded successfully to ${bucketName}/${storagePath}`);
   }
 }
 
