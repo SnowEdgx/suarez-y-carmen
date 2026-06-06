@@ -12,6 +12,7 @@ const {
   resolvePublishedState,
 } = require('./validation');
 const { findCourseByReference, findLesson } = require('./finders');
+const { assertNoPublishedPositionConflict } = require('./position-integrity');
 
 async function upsertLesson(entry) {
   const course = await findCourseByReference(entry);
@@ -24,9 +25,20 @@ async function upsertLesson(entry) {
   const durationSeconds = optionalInteger(entry.durationSeconds, 'durationSeconds', { min: 0, max: 86400 });
   const videoStoragePath = normalizeVideoStoragePath(entry.videoStoragePath);
   const existing = await findLesson(entry, course.id, position);
+  const isPublished = resolvePublishedState(entry);
 
   if (!existing?.id && !videoStoragePath) {
     throw createHttpError(422, 'videoStoragePath is required for new lessons.');
+  }
+
+  if (isPublished) {
+    await assertNoPublishedPositionConflict({
+      table: 'lessons',
+      entityName: 'Lesson',
+      courseId: course.id,
+      position,
+      currentId: existing?.id,
+    });
   }
 
   const finalVideoStoragePath = videoStoragePath || existing.video_storage_path;
@@ -40,7 +52,7 @@ async function upsertLesson(entry) {
     duration_seconds: durationSeconds,
     position,
     is_free_preview: optionalBoolean(entry.isFreePreview) ?? false,
-    is_published: resolvePublishedState(entry),
+    is_published: isPublished,
     cms_document_id: optionalString(entry.cmsDocumentId, 255),
     cms_entry_id: optionalString(entry.cmsEntryId, 255),
     updated_at: new Date().toISOString(),

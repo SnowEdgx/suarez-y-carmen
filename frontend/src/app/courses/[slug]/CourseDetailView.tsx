@@ -39,7 +39,6 @@ export default function CourseDetailView(props: CourseDetailViewProps) {
           <CourseResourcesPanel
             resources={props.resources}
             accessByResourceId={props.resourceAccessById}
-            hasPurchased={props.hasPurchased}
           />
         </div>
       </section>

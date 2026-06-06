@@ -140,11 +140,15 @@ TRANSFER_TOKEN_SALT=
 JWT_SECRET=
 CMS_SYNC_BACKEND_URL=
 CMS_SYNC_TOKEN=
+CMS_SYNC_STRICT=true
+STRAPI_CORS_ORIGINS=
 ```
 
 Deployment notes:
 
 - Strapi must not receive Supabase service-role keys, Stripe keys or student tokens.
+- `STRAPI_CORS_ORIGINS` must include only approved frontend and CMS admin origins.
+- `CMS_SYNC_STRICT=true` should be enabled in production so editorial validation errors are visible to administrators instead of becoming silent sync drift.
 - CMS uploads should use persistent storage in production. The project includes optional `aws-s3` provider configuration for AWS S3 or S3-compatible storage such as Cloudflare R2 through the `UPLOAD_*` variables in `cms/.env.example`.
 - Publishing content in Strapi must sync through the Express backend.
 - Production CMS images use `cms/Dockerfile`; local hot-reload remains in `cms/Dockerfile.dev`.

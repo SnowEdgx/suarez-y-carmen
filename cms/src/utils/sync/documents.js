@@ -4,6 +4,16 @@ const { getErrorMessage } = require('./config');
 const { sendCmsSync } = require('./client');
 const { SYNC_ACTIONS, SYNC_MODELS } = require('./model-config');
 
+const STRICT_ACTIONS = new Set(['create', 'update', 'publish']);
+
+function shouldBlockEditorAction(error, context, backendAction) {
+  const strictSync = process.env.CMS_SYNC_STRICT === 'true' || process.env.NODE_ENV === 'production';
+  if (!strictSync || backendAction !== 'upsert' || !STRICT_ACTIONS.has(context?.action)) return false;
+
+  if (error?.code === 'cms_sync_configuration_error') return true;
+  return Number.isInteger(error?.status) && error.status >= 400 && error.status < 500;
+}
+
 async function findDocument(uid, documentId, populate, status) {
   if (!documentId) return null;
 
@@ -71,6 +81,9 @@ async function syncDocumentAction(context, result) {
       await sendCmsSync(config.model, backendAction, config.buildEntry(document));
     } catch (error) {
       strapi.log.error(`[CMS Sync] ${config.model} ${backendAction} ${documentId} failed: ${getErrorMessage(error)}`);
+      if (shouldBlockEditorAction(error, context, backendAction)) {
+        throw error;
+      }
     }
   }
 }

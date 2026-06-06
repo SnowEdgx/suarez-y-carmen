@@ -1,5 +1,9 @@
 const { supabase } = require('../config/supabase');
 const {
+  assertCourseIsPublished,
+  userHasPaidCourse,
+} = require('./course-access.service');
+const {
   assertPlaybackDeviceStillActive,
   assertVideoDeviceAccess,
 } = require('./video-device.service');
@@ -12,30 +16,6 @@ const {
   isHlsManifestPath,
   resolveStorageReference,
 } = require('./video-storage.service');
-
-async function userHasPaidCourse(userId, courseId) {
-  const { data, error } = await supabase
-    .from('user_courses')
-    .select('id')
-    .eq('user_id', userId)
-    .eq('course_id', courseId)
-    .eq('status', 'paid')
-    .maybeSingle();
-
-  if (error) throw error;
-  return Boolean(data);
-}
-
-async function lessonBelongsToPublishedCourse(courseId) {
-  const { data, error } = await supabase
-    .from('courses')
-    .select('is_published')
-    .eq('id', courseId)
-    .maybeSingle();
-
-  if (error) throw error;
-  return Boolean(data?.is_published);
-}
 
 async function getPlayableLesson(lessonId) {
   const { data: lesson, error: lessonError } = await supabase
@@ -57,12 +37,7 @@ async function getPlayableLesson(lessonId) {
     throw error;
   }
 
-  const isPublishedCourse = await lessonBelongsToPublishedCourse(lesson.course_id);
-  if (!isPublishedCourse) {
-    const error = new Error('Parent course is not published.');
-    error.status = 404;
-    throw error;
-  }
+  await assertCourseIsPublished(lesson.course_id);
 
   return lesson;
 }
