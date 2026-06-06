@@ -82,7 +82,10 @@ test('createCheckoutSession rejects authenticated users without verified email b
     await controller.createCheckoutSession(req, res);
 
     assert.equal(res.statusCode, 403);
-    assert.deepEqual(res.body, { error: 'Debes verificar tu correo para completar una compra.' });
+    assert.deepEqual(res.body, {
+      error: 'Debes verificar tu correo para completar una compra.',
+      code: 'email_not_verified',
+    });
     assert.deepEqual(supabaseCalls, []);
   } finally {
     cleanup();

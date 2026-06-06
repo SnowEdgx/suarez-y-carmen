@@ -20,23 +20,32 @@ const {
 const { resolveCheckoutSessionStatus } = require('../services/stripe-checkout-status.service');
 const { processStripeEvent } = require('../services/stripe-webhook.service');
 
+function sendClientError(res, status, code, message) {
+  return res.status(status).json({ error: message, code });
+}
+
 // Creates a secure Checkout session for a single-course purchase.
 exports.createCheckoutSession = async (req, res) => {
   try {
     const { courseId, returnPath } = req.body;
     if (!courseId) {
-      return res.status(400).json({ error: 'courseId es obligatorio.' });
+      return sendClientError(res, 400, 'invalid_course', 'courseId es obligatorio.');
     }
     if (typeof courseId !== 'string' || !UUID_REGEX.test(courseId)) {
-      return res.status(400).json({ error: 'courseId no es válido.' });
+      return sendClientError(res, 400, 'invalid_course', 'courseId no es válido.');
     }
 
     const user = await getAuthenticatedUser(req);
     if (!user) {
-      return res.status(401).json({ error: 'No autorizado. Inicia sesión para continuar.' });
+      return sendClientError(
+        res,
+        401,
+        'authentication_required',
+        'No autorizado. Inicia sesión para continuar.'
+      );
     }
     if (!isEmailVerified(user)) {
-      return res.status(403).json({ error: 'Debes verificar tu correo para completar una compra.' });
+      return sendClientError(res, 403, 'email_not_verified', 'Debes verificar tu correo para completar una compra.');
     }
 
     const { data: course, error: courseError } = await supabase
@@ -47,11 +56,11 @@ exports.createCheckoutSession = async (req, res) => {
 
     if (courseError) throw courseError;
     if (!course) {
-      return res.status(404).json({ error: 'Curso no encontrado.' });
+      return sendClientError(res, 404, 'course_not_found', 'Curso no encontrado.');
     }
 
     if (!course.is_published) {
-      return res.status(403).json({ error: 'Este curso no está disponible para compra.' });
+      return sendClientError(res, 403, 'course_unavailable', 'Este curso no está disponible para compra.');
     }
 
     const stripeClient = requireStripe();
@@ -65,7 +74,7 @@ exports.createCheckoutSession = async (req, res) => {
 
     if (existingPurchaseError) throw existingPurchaseError;
     if (existingPurchase?.status === PURCHASE_STATUS.PAID) {
-      return res.status(409).json({ error: 'Ya tienes acceso a este curso.' });
+      return sendClientError(res, 409, 'already_owned', 'Ya tienes acceso a este curso.');
     }
 
     if (existingPurchase?.status === PURCHASE_STATUS.PENDING) {
@@ -80,7 +89,7 @@ exports.createCheckoutSession = async (req, res) => {
 
     if (!Number.isInteger(course.price_cents) || course.price_cents <= 0) {
       console.error('[Stripe Controller] Course has invalid price configuration:', course.id);
-      return res.status(503).json({ error: 'La compra no está disponible temporalmente.' });
+      return sendClientError(res, 503, 'checkout_unavailable', 'La compra no está disponible temporalmente.');
     }
 
     const frontendUrl = getFrontendUrl();
@@ -134,7 +143,12 @@ exports.createCheckoutSession = async (req, res) => {
   } catch (err) {
     const status = err.status || 500;
     console.error('[Stripe Controller] Error creating Checkout Session:', err.message);
-    return res.status(status).json({ error: 'Error procesando la solicitud de pago.' });
+    return sendClientError(
+      res,
+      status,
+      status >= 500 ? 'payment_error' : 'request_failed',
+      'Error procesando la solicitud de pago.'
+    );
   }
 };
 
@@ -145,15 +159,20 @@ exports.getCheckoutSessionStatus = async (req, res) => {
     const checkoutSessionId = sanitizeCheckoutSessionId(rawSessionId);
 
     if (!checkoutSessionId) {
-      return res.status(400).json({ error: 'session_id no es válido.' });
+      return sendClientError(res, 400, 'invalid_checkout_session', 'session_id no es válido.');
     }
 
     const user = await getAuthenticatedUser(req);
     if (!user) {
-      return res.status(401).json({ error: 'No autorizado. Inicia sesión para continuar.' });
+      return sendClientError(
+        res,
+        401,
+        'authentication_required',
+        'No autorizado. Inicia sesión para continuar.'
+      );
     }
     if (!isEmailVerified(user)) {
-      return res.status(403).json({ error: 'Debes verificar tu correo para consultar esta compra.' });
+      return sendClientError(res, 403, 'email_not_verified', 'Debes verificar tu correo para consultar esta compra.');
     }
 
     const stripeClient = requireStripe();
@@ -163,21 +182,26 @@ exports.getCheckoutSessionStatus = async (req, res) => {
       session = await stripeClient.checkout.sessions.retrieve(checkoutSessionId);
     } catch (error) {
       if (error?.type === 'StripeInvalidRequestError') {
-        return res.status(404).json({ error: 'No encontramos la sesión de checkout.' });
+        return sendClientError(res, 404, 'checkout_session_not_found', 'No encontramos la sesión de checkout.');
       }
       throw error;
     }
 
     const sessionUserId = session.metadata?.userId || session.client_reference_id;
     if (!sessionUserId || sessionUserId !== user.id) {
-      return res.status(403).json({ error: 'No tienes permisos para consultar esta sesión.' });
+      return sendClientError(res, 403, 'checkout_session_forbidden', 'No tienes permisos para consultar esta sesión.');
     }
 
     return res.json(await resolveCheckoutSessionStatus({ session, user }));
   } catch (err) {
     const status = err.status || 500;
     console.error('[Stripe Controller] Error checking checkout session status:', err.message);
-    return res.status(status).json({ error: 'No se pudo consultar el estado del checkout.' });
+    return sendClientError(
+      res,
+      status,
+      status >= 500 ? 'checkout_status_error' : 'request_failed',
+      'No se pudo consultar el estado del checkout.'
+    );
   }
 };
 

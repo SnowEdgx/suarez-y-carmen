@@ -85,10 +85,13 @@ export async function startCourseCheckout(formData: FormData) {
 
   if (response.status === 403) {
     const payload = await readJsonSafely(response)
-    const backendMessage = typeof payload?.error === 'string' ? payload.error.toLowerCase() : ''
+    const backendCode = typeof payload?.code === 'string' ? payload.code : ''
 
-    if (backendMessage.includes('verificar')) {
+    if (backendCode === 'email_not_verified') {
       redirect(`/login?next=${encodeURIComponent(returnTo)}&error=verify_email_required`)
+    }
+    if (backendCode === 'course_unavailable') {
+      redirect(buildPathWithCheckoutCode(returnTo, 'course_not_found'))
     }
 
     redirect(buildPathWithCheckoutCode(returnTo, 'forbidden'))
