@@ -1,6 +1,7 @@
 const LOCAL_IMAGE_HOSTS = new Set(["localhost", "127.0.0.1"]);
 const LOCAL_IMAGE_PORTS = new Set(["1337", "54321"]);
 const DOCKER_HOST_GATEWAY = "host.docker.internal";
+const DEFAULT_PRODUCTION_CMS_URL = "https://cms.suarezycarmenbachata.com";
 
 const DEFAULT_STORAGE_REWRITE_FROM_HOST = "kguoyuakfwwbvetzqtao.supabase.co";
 const DEFAULT_STORAGE_REWRITE_TO_HOST = "jlpqlqvrhwdjyspwolro.supabase.co";
@@ -20,6 +21,29 @@ function normalizeStorageHost(value: string) {
     if (url.username || url.password) return null;
     if (url.protocol !== "http:" && url.protocol !== "https:") return null;
     return url.hostname;
+  } catch {
+    return null;
+  }
+}
+
+function isLocalHostname(hostname: string) {
+  return LOCAL_IMAGE_HOSTS.has(hostname) || hostname === DOCKER_HOST_GATEWAY;
+}
+
+function getConfiguredRemoteCmsOrigin() {
+  const rawCmsUrl =
+    process.env.NEXT_PUBLIC_CMS_URL?.trim() ||
+    process.env.CMS_PUBLIC_URL?.trim() ||
+    (process.env.NODE_ENV === "production" ? DEFAULT_PRODUCTION_CMS_URL : "");
+
+  if (!rawCmsUrl) return null;
+
+  try {
+    const url = new URL(rawCmsUrl);
+    if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+    if (url.username || url.password || url.search || url.hash) return null;
+    if (isLocalHostname(url.hostname)) return null;
+    return url.origin;
   } catch {
     return null;
   }
@@ -73,16 +97,14 @@ function rewriteConfiguredStorageUrl(url: URL): string | null {
 function rewriteLocalImageUrlForOptimizer(url: URL) {
   const supabaseUrlEnv = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
   const isLocalSupabaseUrl =
-    (url.hostname === "localhost" || url.hostname === "127.0.0.1" || url.hostname === DOCKER_HOST_GATEWAY) &&
+    isLocalHostname(url.hostname) &&
     url.port === "54321";
 
   if (isLocalSupabaseUrl && supabaseUrlEnv) {
     try {
       const envUrl = new URL(supabaseUrlEnv);
       const isEnvUrlLocal =
-        envUrl.hostname === "localhost" ||
-        envUrl.hostname === "127.0.0.1" ||
-        envUrl.hostname === DOCKER_HOST_GATEWAY;
+        isLocalHostname(envUrl.hostname);
 
       if (!isEnvUrlLocal) {
         const rewritten = new URL(url.toString());
@@ -97,15 +119,19 @@ function rewriteLocalImageUrlForOptimizer(url: URL) {
   }
 
   const isLocalStrapiUrl =
-    (url.hostname === "localhost" || url.hostname === "127.0.0.1" || url.hostname === DOCKER_HOST_GATEWAY) &&
+    isLocalHostname(url.hostname) &&
     url.port === "1337";
 
   if (isLocalStrapiUrl) {
-    const rewritten = new URL(url.toString());
-    rewritten.protocol = "https";
-    rewritten.host = "cms.suarezycarmenbachata.com";
-    rewritten.port = "";
-    return rewritten.toString();
+    const remoteCmsOrigin = getConfiguredRemoteCmsOrigin();
+    if (remoteCmsOrigin) {
+      const remoteCmsUrl = new URL(remoteCmsOrigin);
+      const rewritten = new URL(url.toString());
+      rewritten.protocol = remoteCmsUrl.protocol;
+      rewritten.host = remoteCmsUrl.host;
+      rewritten.port = remoteCmsUrl.port;
+      return rewritten.toString();
+    }
   }
 
   if (!isFrontendRunningInDocker()) {
@@ -117,7 +143,7 @@ function rewriteLocalImageUrlForOptimizer(url: URL) {
     return url.toString();
   }
 
-  if (!LOCAL_IMAGE_HOSTS.has(url.hostname) || !LOCAL_IMAGE_PORTS.has(url.port)) return url.toString();
+  if (!isLocalHostname(url.hostname) || !LOCAL_IMAGE_PORTS.has(url.port)) return url.toString();
 
   const rewrittenUrl = new URL(url.toString());
   rewrittenUrl.hostname = DOCKER_HOST_GATEWAY;
