@@ -1,10 +1,14 @@
 const { getClientIp } = require('./request');
 
-function createIpRateLimit({ windowMs, maxRequests, message, code }) {
+// keyGenerator lets a route limit by something more specific than the client IP
+// (for example the caller's session), which matters when requests arrive through
+// the Next.js server and therefore share its IP.
+function createIpRateLimit({ windowMs, maxRequests, message, code, keyGenerator }) {
   const buckets = new Map();
 
   function rateLimit(req, res, next) {
-    const key = getClientIp(req);
+    const customKey = typeof keyGenerator === 'function' ? keyGenerator(req) : null;
+    const key = typeof customKey === 'string' && customKey ? customKey : getClientIp(req);
     const now = Date.now();
     const bucket = buckets.get(key);
 
