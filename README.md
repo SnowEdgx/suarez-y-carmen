@@ -134,6 +134,8 @@ Endpoints publicos por diseño:
 - `GET /api/course-resources/view/:token`: sirve materiales del curso desde backend en modo inline, sin exponer la URL privada de Storage.
 - `GET /api/video-devices`: lista dispositivos de video del usuario autenticado.
 - `POST /api/video-devices/:deviceId/revoke`: revoca un dispositivo de video del usuario autenticado.
+- `POST /api/users/request-delete-account`: requiere sesion con email verificado; envia por Resend un enlace de confirmacion de un solo uso (1 hora).
+- `POST /api/users/confirm-delete-account`: recibe el token del correo y elimina definitivamente la cuenta y sus datos en cascada.
 - `POST /api/cms/sync`: sincronizacion Strapi -> Express, protegida con `CMS_SYNC_TOKEN`.
 
 `GET /api/supabase-test` solo existe fuera de produccion si `ENABLE_SUPABASE_TEST_ENDPOINT=true`, pensado para diagnostico local.
@@ -155,6 +157,8 @@ npm test
 ```
 
 El repositorio tambien ejecuta en CI auditoria de dependencias, lint, type-check, build de frontend, build de plantillas de email, comprobacion sintactica de backend, build de CMS y comprobacion de patrones de secretos en archivos versionados.
+
+En el CMS la auditoria se ejecuta con `node scripts/check-audit.mjs`: falla ante cualquier aviso alto o critico salvo dos excepciones revisadas de Strapi 5 sin parche upstream (documentadas en el propio script). Al actualizar Strapi, revisa esa lista y elimina las excepciones que ya no apliquen.
 
 ## Notas de seguridad y produccion
 
