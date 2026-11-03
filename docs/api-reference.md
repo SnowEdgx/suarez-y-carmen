@@ -234,6 +234,33 @@ Rules:
 - Revoked devices cannot continue accessing paid video.
 - The number of active devices is capped by backend configuration.
 
+## Account Deletion
+
+| Method | Path | Auth | Purpose |
+|---|---|---|---|
+| `POST` | `/api/users/request-delete-account` | User token + verified email | Emails a single-use confirmation link to the account owner. |
+| `POST` | `/api/users/confirm-delete-account` | Confirmation token in body | Permanently deletes the account that owns the token. |
+
+Confirm request:
+
+```json
+{
+  "token": "uuid-from-the-confirmation-email"
+}
+```
+
+Rules:
+
+- The confirmation link points to `FRONTEND_URL/auth/delete-account?token=...` and expires after 1 hour.
+- Requesting a new link invalidates any previous link for the same account.
+- The same account can request a new email at most once every 2 minutes (`429 deletion_recently_requested`).
+- Requests are also rate limited per session (`429 account_deletion_rate_limited`).
+- Expired tokens are purged by the backend; tokens are only readable with the service role.
+- Deleting the Supabase Auth user cascades to profile, purchases, progress, video devices and pending tokens. Video audit events keep no user reference (`on delete set null`).
+- Email delivery requires `RESEND_API_KEY` and `RESEND_FROM_EMAIL` in the backend environment; without them the endpoint answers `503 email_unavailable` and creates nothing.
+
+Error codes: `authentication_required`, `email_not_verified`, `email_missing`, `email_unavailable`, `email_send_failed`, `deletion_recently_requested`, `deletion_request_failed`, `invalid_token`, `expired_token`, `deletion_failed`, `account_deletion_rate_limited`.
+
 ## CMS Sync
 
 | Method | Path | Auth | Purpose |

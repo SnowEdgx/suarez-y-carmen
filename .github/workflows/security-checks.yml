@@ -126,8 +126,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Strapi 5 still ships two advisories without an upstream fix. The script
+      # accepts only those reviewed advisory/path pairs and fails on anything else.
       - name: Audit dependencies
-        run: npm audit --audit-level=high
+        run: node scripts/check-audit.mjs
 
       - name: Build CMS
         run: npm run build

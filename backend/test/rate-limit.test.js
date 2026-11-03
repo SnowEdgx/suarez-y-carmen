@@ -43,3 +43,29 @@ test('createIpRateLimit returns a safe code when the limit is exceeded', () => {
     code: 'rate_limited',
   });
 });
+
+test('createIpRateLimit can limit by a custom key instead of the shared client IP', () => {
+  const limiter = createIpRateLimit({
+    windowMs: 60 * 1000,
+    maxRequests: 1,
+    message: 'Too many requests.',
+    code: 'rate_limited',
+    keyGenerator: (req) => req.headers.session || null,
+  });
+  const sharedIp = '198.51.100.7';
+  const firstUser = { ip: sharedIp, headers: { session: 'a' } };
+  const secondUser = { ip: sharedIp, headers: { session: 'b' } };
+  const responses = [createResponseRecorder(), createResponseRecorder(), createResponseRecorder()];
+  let nextCalls = 0;
+  const next = () => {
+    nextCalls += 1;
+  };
+
+  limiter(firstUser, responses[0], next);
+  limiter(secondUser, responses[1], next);
+  limiter(firstUser, responses[2], next);
+
+  assert.equal(nextCalls, 2);
+  assert.equal(responses[1].statusCode, null);
+  assert.equal(responses[2].statusCode, 429);
+});

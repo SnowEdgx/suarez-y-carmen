@@ -73,6 +73,8 @@ CMS_SYNC_TOKEN=
 VIDEO_PLAYBACK_TOKEN_SECRET=
 COURSE_RESOURCE_TOKEN_SECRET=
 VIDEO_AUDIT_HASH_SECRET=
+RESEND_API_KEY=
+RESEND_FROM_EMAIL=academy@mail.suarezycarmenbachata.com
 ```
 
 Deployment notes:
@@ -84,6 +86,7 @@ Deployment notes:
 - `ENABLE_SUPABASE_TEST_ENDPOINT` must stay disabled by default; production code ignores it even if it is accidentally set.
 - `VIDEO_PLAYBACK_TOKEN_SECRET`, `COURSE_RESOURCE_TOKEN_SECRET` and `VIDEO_AUDIT_HASH_SECRET` must be long random secrets.
 - Use different values for video playback tokens and course resource tokens.
+- `RESEND_API_KEY` and `RESEND_FROM_EMAIL` are used by the backend to send account deletion confirmations. `FRONTEND_URL` builds the confirmation link, so it must be the public site URL.
 - Backend logs can contain operational context, but public responses must stay generic.
 - Production backend images use `backend/Dockerfile`; local hot-reload remains in `backend/Dockerfile.dev`.
 
@@ -179,4 +182,5 @@ After deployment:
 - Purchased lesson plays through protected backend routes.
 - Unpurchased lesson stays locked.
 - CMS publish/edit/unpublish syncs with the public website.
+- Account deletion request sends the confirmation email and the link deletes a test account.
 - `/robots.txt` and `/sitemap.xml` return 200.

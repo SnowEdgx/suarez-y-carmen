@@ -13,13 +13,11 @@ function isHlsSource(src: string) {
 
 export default function SecureVideoPlayer({ src, title }: SecureVideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const [hasPlaybackError, setHasPlaybackError] = useState(false);
+  // Errors are tied to the source that failed, so switching lessons clears them without an effect.
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  const hasPlaybackError = failedSrc === src;
   const [reloadNonce, setReloadNonce] = useState(0);
   const shouldUseHls = isHlsSource(src);
-
-  useEffect(() => {
-    setHasPlaybackError(false);
-  }, [src]);
 
   useEffect(() => {
     const videoElement = videoRef.current;
@@ -47,7 +45,7 @@ export default function SecureVideoPlayer({ src, title }: SecureVideoPlayerProps
         hlsInstance = hls;
         hls.on(Hls.Events.ERROR, (_event, data: { fatal?: boolean }) => {
           if (data?.fatal && isMounted) {
-            setHasPlaybackError(true);
+            setFailedSrc(src);
           }
         });
         hls.loadSource(src);
@@ -78,7 +76,7 @@ export default function SecureVideoPlayer({ src, title }: SecureVideoPlayerProps
         disablePictureInPicture
         disableRemotePlayback
         onContextMenu={(event) => event.preventDefault()}
-        onError={() => setHasPlaybackError(true)}
+        onError={() => setFailedSrc(src)}
         playsInline
         preload="metadata"
         className="aspect-[9/16] max-h-[72vh] w-full bg-black object-contain"
@@ -97,7 +95,7 @@ export default function SecureVideoPlayer({ src, title }: SecureVideoPlayerProps
             <button
               type="button"
               onClick={() => {
-                setHasPlaybackError(false);
+                setFailedSrc(null);
                 setReloadNonce((current) => current + 1);
               }}
               className="mt-4 rounded-full bg-red-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-red-700"
